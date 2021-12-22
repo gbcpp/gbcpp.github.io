@@ -102,7 +102,9 @@ description: 或许是最漂亮的Jekyll主题
         {% if site.search %}
         <div class="search-card">
             <input id="search_input" type="text" placeholder="Search..." autocomplete="off">
-            <i class="iconfont icon-search"></i>
+            <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-search"></use>
+            </svg>
             <div class="search_result"></div>
         </div>
         {% endif %}
