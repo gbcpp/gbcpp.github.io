@@ -61,6 +61,10 @@ sns:
   instagram: '//www.instagram.com/steveliaocn'
   github: '//github.com/kaeyleo'
 
+# Links 友情链接
+links:
+  'Mr Li': 'https://lisz.me'
+
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value

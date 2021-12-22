@@ -227,6 +227,15 @@
     @include tagStyle;
 }
 
+.tags-card .links {
+    width: 100%;
+    font-size: 16px;
+    color: #4e4e4e;
+    font-weight: 500;
+    margin: 12px 0 6px;
+    text-align: center;
+  }
+
 .g-sidebar-wrapper {
     float: right;
     width: 240px;
