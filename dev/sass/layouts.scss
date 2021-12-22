@@ -32,6 +32,20 @@
     }
 }
 
+@media screen and (max-width: 960px) {
+    .archives-date {
+        display: none;
+    }
+
+    .archives-title {
+        width: 290px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        margin-bottom: -8px!important;
+    }
+}
+
 @media screen and (max-width: 768px) {
     .post-wrapper, .markdown-body, .read-next {
         width: 92%;

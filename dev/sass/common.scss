@@ -114,15 +114,13 @@
         padding-top: 190px;
         line-height: 38px;
         font-size: 42px;
-        font-family: 'Arial', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+        font-family: 'Microsoft YaHei', 'Arial', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', sans-serif;
         font-weight: bold;
-        letter-spacing: 2px;
         line-height: 52px;
     }
     h3 {
         font-size: 20px;
-        font-weight: normal;
-        letter-spacing: 10px;
+        font-weight: 400;
         margin-top: 8px;
     }
 }
@@ -198,9 +196,10 @@
             .post-excerpt {
                 margin-top: 8px;
                 font-size: 16px;
-                font-family: 'Merriweather-Light', $fonts;
+                font-family: 'Merriweather', $fonts;
                 line-height: 26px;
                 word-break: break-all;
+                color: #b8bdc3;
             }
         }
         .post-meta {
@@ -384,9 +383,9 @@
     section {
         font-size: 14px;
         line-height: 20px;
-        color: #A6ABB2;
+        color: #4E4E4E;
         a {
-            color: #A6ABB2;
+            color: #4E4E4E;
             &:hover {
                 color: #83888F;
             }
@@ -542,7 +541,7 @@
 
 // Post style
 .markdown-body {
-    font-family: 'Merriweather-Light', $fonts;
+    font-family: 'Merriweather', $fonts;
     width: $post-content-w;
     box-sizing: border-box;
     padding: 0 0 32px;
@@ -878,4 +877,30 @@
     .token.keyword {
         color: #61BDCF;
     }
+}
+
+.archives-date {
+    width: 130px;
+    display: inline-block;
+}
+  
+.archives-title {
+    width: 95%;
+    display: inline-block;
+    margin-bottom: 0!important;
+    margin-top: 0!important;
+}
+
+.markdown-body a {
+    color: #005b81;
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    color: #e32e00;
+    text-decoration: underline;
+}
+
+.markdown-body p {
+    font-size: 16px;
 }

@@ -1,7 +1,7 @@
 # Site settings 配置站点
-title: '廖柯宇的独立博客'
-description: '昵称悟空，千禧一代，前端开发者/伪极客/灵魂摄影师，热爱技术&设计。很高兴能在这里与你分享我对技术和生活的思考。'
-keyword: '廖柯宇, 廖柯宇的独立博客, 廖柯宇的博客, 前端, 前端开发, 前端博客, javascript, vuejs, nodejs, 设计'
+title: 'Mr Li'
+description: '个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。'
+keyword: 'zhonger，zhonger的博客，nodejs，kvm, 机器学习'
 url: '' # your host
 
 # when build blog on server, if you don't need baseurl, you should leave this value blank.
@@ -17,23 +17,27 @@ baseurl: ''
 # Navigation links
 nav:
   home: '/'
+  blog: '/blog/index.html'
+  archives: '/archives.html'
   tags: '/tags.html'
+  RSS: '/feed.xml'
+  logs: '/logs.html'
 
 # Footer
 footer:
-  since: 2017
+  since: 2015
 
 # Author 配置博主信息
-author: '廖柯宇'
-nickname: '悟空'
-bio: '前端开发者，热爱技术&设计，简单乐观爱创造'
-avatar: '/assets/img/profile.png'
+author: 'zhonger'
+nickname: 'zhonger'
+bio: '全栈开发者，热爱前端、运维和架构设计'
+avatar: '/assets/img/profile.webp'
 
 # Search
 search: true
 
 # Night mode
-nightMode: true
+nightMode: false
 
 # Comments 评论功能
 comments:
@@ -56,22 +60,27 @@ postPatterns: 'circuitBoard'
 # SNS settings 配置社交网站
 # url: email, weibo, zhihu, twitter, instagram, juejin, github, douban, facebook, dribble, uicn, jianshu, medium, linkedin
 sns:
-  weibo: '//weibo.com/lovecolcol'
-  juejin: '//juejin.im/user/57a6f434165abd006159b4cc'
-  instagram: '//www.instagram.com/steveliaocn'
-  github: '//github.com/kaeyleo'
+  google-scholar: 'https://scholar.google.com/citations?user=AUupIooAAAAJ'
+  researchgate: 'https://www.researchgate.net/profile/Shengzhou-Li'
+  ORCID: 'https://orcid.org/0000-0001-6973-3825'
+  github: 'https://github.com/zhonger'
+  linkedin: 'https://www.linkedin.com/in/shengzhouli/'
+  segmentfault: 'https://segmentfault.com/u/wuwozhonger'
 
 # Links 友情链接
 links:
   'Mr Li': 'https://lisz.me'
+
+# Beian 备案号
+beian: '沪ICP备xxxxxxxx号'
 
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
 
 # Build settings
-paginate: 6
-paginate_path: 'page:num'
+paginate: 10
+paginate_path: 'blog/page:num'
 exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md']
 
 # Markdown
@@ -81,11 +90,11 @@ kramdown:
   input: GFM
 
 # RSS
-RSS: false
+RSS: true
 
 # Permalink
 # See: https://github.com/kaeyleo/jekyll-theme-H2O/issues/35
-permalink: /:year/:month/:day/:title.html
+permalink: /:categories/:title.html
 
 # Plugins
-plugins: [jekyll-paginate]
+plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap]

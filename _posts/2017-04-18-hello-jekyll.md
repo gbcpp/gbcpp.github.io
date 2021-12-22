@@ -3,7 +3,7 @@ layout: post
 title: 'Hello Jekyll'
 date: 2017-04-18
 author: Jekyll
-cover: 'http://on2171g4d.bkt.clouddn.com/jekyll-banner.png'
+cover: 'https://images.unsplash.com/photo-1465189684280-6a8fa9b19a7a?w=1600&q=900'
 tags: jekyll
 ---
 

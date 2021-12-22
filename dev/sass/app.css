@@ -8,7 +8,7 @@
 /** Font **/
 @font-face {
   font-family: "Merriweather";
-  src: url("../fonts/Merriweather-Black.ttf"); }
+  src: url("../fonts/Merriweather-Regular.ttf"); }
 
 @font-face {
   font-family: "Merriweather-Light";
@@ -141,14 +141,12 @@ a {
     padding-top: 190px;
     line-height: 38px;
     font-size: 42px;
-    font-family: 'Arial', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+    font-family: 'Microsoft YaHei', 'Arial', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', sans-serif;
     font-weight: bold;
-    letter-spacing: 2px;
     line-height: 52px; }
   .home-banner h3 {
     font-size: 20px;
-    font-weight: normal;
-    letter-spacing: 10px;
+    font-weight: 400;
     margin-top: 8px; }
 
 .banner-theme-default {
@@ -222,9 +220,10 @@ a {
       .article-list .article-item .post-preview .post-excerpt {
         margin-top: 8px;
         font-size: 16px;
-        font-family: "Merriweather-Light", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+        font-family: "Merriweather", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
         line-height: 26px;
-        word-break: break-all; }
+        word-break: break-all;
+        color: #b8bdc3; }
     .article-list .article-item .post-meta {
       height: 22px;
       margin-top: 16px; }
@@ -502,9 +501,9 @@ a {
   .g-footer section {
     font-size: 14px;
     line-height: 20px;
-    color: #A6ABB2; }
+    color: #4E4E4E; }
     .g-footer section a {
-      color: #A6ABB2; }
+      color: #4E4E4E; }
       .g-footer section a:hover {
         color: #83888F; }
 
@@ -648,7 +647,7 @@ a {
       bottom: 0; }
 
 .markdown-body {
-  font-family: "Merriweather-Light", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  font-family: "Merriweather", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
   width: 720px;
   box-sizing: border-box;
   padding: 0 0 32px; }
@@ -888,6 +887,27 @@ a {
   .night-mode .token.keyword {
     color: #61BDCF; }
 
+.archives-date {
+  width: 130px;
+  display: inline-block; }
+
+.archives-title {
+  width: 95%;
+  display: inline-block;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important; }
+
+.markdown-body a {
+  color: #005b81;
+  text-decoration: none; }
+
+.markdown-body a:hover {
+  color: #e32e00;
+  text-decoration: underline; }
+
+.markdown-body p {
+  font-size: 16px; }
+
 @media screen and (min-width: 1920px) {
   .home-banner {
     height: 600px; }
@@ -909,6 +929,16 @@ a {
     display: none; }
   .pagination .page-link {
     width: 56px; } }
+
+@media screen and (max-width: 960px) {
+  .archives-date {
+    display: none; }
+  .archives-title {
+    width: 290px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: -8px !important; } }
 
 @media screen and (max-width: 768px) {
   .post-wrapper, .markdown-body, .read-next {
