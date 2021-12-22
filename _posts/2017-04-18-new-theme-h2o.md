@@ -16,7 +16,7 @@ tags: jekyll 前端开发 设计
 
 ![](http://on2171g4d.bkt.clouddn.com/jekyll-theme-h2o-realhome.jpg)
 
-新主题名叫"H2O"，基于Jekyll 3.0.x（使用```gem update jekyll```升级Jekyll），Markdown的代码高亮不再支持pygments转而使用rouge，咱已经默认配置了 ```highlighter: rouge``` 。用到的技术栈也很简单：引入jQuery类库，使用Sass编写样式，使用Gulp来编译Sass、合并压缩css、js，开源在[Github](https://github.com/kaeyleo/jekyll-theme-H2O)上，稍作配置即可用于你的Jekyll博客上。
+新主题名叫"H2O"，基于Jekyll 3.0.x（使用`gem update jekyll`升级Jekyll），Markdown的代码高亮不再支持pygments转而使用rouge，咱已经默认配置了 `highlighter: rouge` 。用到的技术栈也很简单：引入jQuery类库，使用Sass编写样式，使用Gulp来编译Sass、合并压缩css、js，开源在[Github](https://github.com/kaeyleo/jekyll-theme-H2O)上，稍作配置即可用于你的Jekyll博客上。
 
 ![Design with Sketch](http://on2171g4d.bkt.clouddn.com/jekyll-theme-h2o-sketchdesign.png)
 
@@ -68,17 +68,17 @@ tags: jekyll 前端开发 设计
 
 遵循 [HTML5](https://www.w3.org/TR/html5/grouping-content.html#the-pre-element) 标准，Prism 使用语义化的 `<pre>` 元素和 `<code>` 元素来标记代码区块：
 
-```
+```markdown
 <pre><code class="language-css">p { color: red }</code></pre>
 ```
 
 在Markdown中你可以这样写：
 
+````markdown
+```css
+p { color: red }
 ```
- ```css
-	p { color: red }
- ```
-```
+````
 
 支持语言：
 
