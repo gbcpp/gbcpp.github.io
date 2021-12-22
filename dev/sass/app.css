@@ -965,7 +965,9 @@ a {
     top: 0;
     padding: 28px 0; }
     .g-header .icon-menu {
-      display: block; }
+      display: block;
+      width: 40px;
+      height: 28px; }
     .g-header .g-nav {
       position: relative;
       top: 48px;
@@ -1039,8 +1041,7 @@ a {
       line-height: 48px; }
     .home-banner h3 {
       margin-top: 2px;
-      font-size: 18px;
-      letter-spacing: 6px; }
+      font-size: 18px; }
   .home-content {
     margin-bottom: 32px; }
   .article-list .article-item {
