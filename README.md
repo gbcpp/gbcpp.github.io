@@ -6,11 +6,10 @@ An Jekyll theme for researchers and maintainers based on Jekyll and [H2O](https:
 
 ### Preview
 
-#### [在线预览 Live Demo →](http://lisz.me/)
+#### [在线预览 Live Demo →](https://h2o-ac.pages.dev/)
 
 ![vgy.me](https://i.vgy.me/pICzcE.png)
-![vgy.me](https://i.vgy.me/cI35JI.png)
-![vgy.me](https://i.vgy.me/ReKZeP.png)
+![vgy.me](https://i.vgy.me/0kmQ1j.png)
 
 如果你喜欢这个博客模板，请在右上角star一下，非常感谢～
 
@@ -22,7 +21,7 @@ If you like this theme or using it, please give a ⭐️ for motivation ;)
 
 Using your smartphone to scan the QR Code
 
-### New Features based on H2O， 与 H2O 不同的新特性
+### New Features compared with H2O， 与 H2O 不同的新特性
 
 #### CN
 
@@ -70,4 +69,4 @@ Any types of contribution are welcome. Thanks.
 
 ### License 许可证
 
-Jekyll-Theme-H2O-ac is licensed under [MIT](https://github.com/kaeyleo/jekyll-theme-H2O-ac/blob/master/LICENSE).
+Jekyll-Theme-H2O-ac is licensed under [MIT](https://github.com/zhonger/jekyll-theme-H2O-ac/blob/master/LICENSE).
