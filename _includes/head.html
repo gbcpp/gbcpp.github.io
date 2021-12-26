@@ -11,8 +11,11 @@
     <meta property="og:url" content="{{ page.url | prepend: site.url }}">
     <meta property="og:description" content="{{ site.description }}">
     <meta property="og:site_name" content="{{ site.title }}">
-    <link rel="stylesheet" href="//cdn.staticfile.org/normalize/6.0.0/normalize.min.css">
+    <link rel="Shortcut Icon" href="{{ site.favicon | prepend: site.baseurl }}">
+    <link rel="bookmark" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/normalize.min.css">
     <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | relative_url }}">
+    <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | relative_rul }}" as="font" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ "/assets/css/app.min.css" | relative_url }}">
-    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 </head>

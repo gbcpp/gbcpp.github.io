@@ -14,6 +14,9 @@ url: '' # your host
 # 但是，如果你创建了一个叫 "myblog" 的网站，此时网址会变成 "kaeyleo.github.io/myblog" ，这时再将 baseurl 设置为 '/myblog'
 baseurl: ''
 
+# International
+language: zh-cn
+
 # Navigation links
 nav:
   home: '/'

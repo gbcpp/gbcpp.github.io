@@ -26,7 +26,11 @@
         <time class="post-meta-item" datetime="{{ page.date | date:"%y-%m-%d" }}"><i class="iconfont icon-date"></i>{{ page.date | date_to_rfc822 }}</time>
       </div>
       <div class="post-meta">
+        {% if site.language == 'zh-cn' %}
         <span>本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
+        {% else %}
+        <span>There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
+        {% endif %}
       </div>
     </div>
     {% if page.cover %}
@@ -149,8 +153,7 @@
 
   <script src="{{ "/assets/js/prism.js" | relative_url }}"></script>
   <script src="{{ "/assets/js/index.min.js" | relative_url }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
   <script>
       // 给图片添加链接
       $(document).ready(function() {
