@@ -74,6 +74,17 @@ links:
 # Beian 备案号
 beian: '沪ICP备xxxxxxxx号'
 
+# CC License
+cclicense: true
+
+# CNZZ Analytics
+# cnzz: 1234567891
+cnzz: 
+
+# Google Analytics
+# google_analytics: UA-XXXXXXXXX-X
+google_analytics: 
+
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
