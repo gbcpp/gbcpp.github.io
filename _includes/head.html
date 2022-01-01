@@ -9,13 +9,14 @@
     <meta property="og:title" content="{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ page.url | prepend: site.url }}">
+    <meta property="og:baseurl" content="{{ site.baseurl }}">
     <meta property="og:description" content="{{ site.description }}">
     <meta property="og:site_name" content="{{ site.title }}">
     <link rel="Shortcut Icon" href="{{ site.favicon | prepend: site.baseurl }}">
     <link rel="bookmark" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/normalize.min.css">
-    <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | relative_url }}">
-    <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | relative_rul }}" as="font" crossorigin="anonymous">
-    <link rel="stylesheet" href="{{ "/assets/css/app.min.css" | relative_url }}">
+    <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | prepend: site.baseurl }}">
+    <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" as="font" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ "/assets/css/app.min.css" | prepend: site.baseurl }}">
     <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 </head>
