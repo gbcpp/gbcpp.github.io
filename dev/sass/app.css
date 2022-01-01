@@ -656,6 +656,11 @@ a {
       top: 0; }
     .post-content .post-subtitle:after {
       bottom: 0; }
+  .post-content .interest {
+    width: auto;
+    height: 40px;
+    display: inline-block !important;
+    margin: 0 20px 0 0 !important; }
 
 .markdown-body {
   font-family: "Merriweather", -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
