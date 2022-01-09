@@ -30,7 +30,8 @@ body {
   font-family: -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
   color: #656565;
   -webkit-font-smoothing: antialiased;
-  background-color: #F7F8FA; }
+  background-color: #F7F8FA;
+  overflow: visible; }
 
 ul {
   list-style-type: none; }
@@ -631,7 +632,7 @@ a {
   position: relative;
   width: 100%;
   background-color: #fff;
-  overflow: hidden;
+  overflow: visible;
   padding: 40px 0 80px; }
   .post-content .post-subtitle {
     position: relative;
@@ -656,6 +657,37 @@ a {
       top: 0; }
     .post-content .post-subtitle:after {
       bottom: 0; }
+  .post-content .container {
+    width: 1050px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row; }
+    .post-content .container .contents {
+      width: 720px; }
+    .post-content .container .table-of-contents {
+      padding: 10px;
+      border-left: 2px solid #efefef;
+      width: 280px;
+      position: -webkit-sticky;
+      position: sticky;
+      top: 80px;
+      margin-bottom: 80px;
+      height: fit-content;
+      margin-left: 30px; }
+      .post-content .container .table-of-contents h2 {
+        font-family: fantasy;
+        color: #e32e00; }
+      .post-content .container .table-of-contents ul {
+        margin-left: 20px;
+        list-style-type: revert;
+        font-size: 14px;
+        line-height: 24px;
+        color: #005b81; }
+        .post-content .container .table-of-contents ul a {
+          color: #005b81; }
+          .post-content .container .table-of-contents ul a:hover {
+            color: #e32e00;
+            text-decoration: underline; }
   .post-content .interest {
     width: auto;
     height: 40px;
@@ -945,6 +977,16 @@ a {
     display: none; }
   .pagination .page-link {
     width: 56px; } }
+
+@media screen and (max-width: 1050px) {
+  .post-content .container {
+    width: 100%; }
+    .post-content .container .contents {
+      width: 100%;
+      float: none;
+      margin: 0 auto; }
+    .post-content .container .table-of-contents {
+      display: none; } }
 
 @media screen and (max-width: 960px) {
   .archives-date {

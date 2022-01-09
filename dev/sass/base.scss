@@ -25,6 +25,7 @@ body {
     color: $color-f-secondary;
     -webkit-font-smoothing: antialiased;
     background-color: $color-bg;
+    overflow: visible;
 }
 ul {
     list-style-type: none;

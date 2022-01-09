@@ -110,5 +110,8 @@ RSS: true
 # See: https://github.com/kaeyleo/jekyll-theme-H2O/issues/35
 permalink: /:categories/:title.html
 
+# TOC
+toc: true
+
 # Plugins
 plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap]
