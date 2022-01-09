@@ -1,4 +1,4 @@
-<div style="text-align:center">
+<div align="center">
 
 # jekyll-theme-H2O-ac
 
