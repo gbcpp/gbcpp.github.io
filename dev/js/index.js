@@ -1,11 +1,17 @@
 $(document).ready(function(){
     var nav = $('.g-nav');
     var baseurl = $("meta[property='og:baseurl']").attr('content');
+    var logo = $('.g-logo');
+    var themeStyle = $('.g-banner').attr('data-theme');
+    logo.css({
+        'background': 'url(' + baseurl + '/assets/icons/' + themeStyle + '.svg) no-repeat center',
+        'background-size': '100% 100%'
+    });
 
     /**
      * Responsive Navigation
      */
-    $('#menu-toggle').on('click', function(e) {
+    $('#menu-toggle').off("click").on('click', function(e) {
         var duration = 200;
         nav.slideToggle(duration);
         $(document).on('click', function() {
@@ -24,10 +30,10 @@ $(document).ready(function(){
     if($(window).width() > 695) {
         var header = $('.g-header');
         var headerHeight = header.outerHeight();
-        var logo = $('.g-logo');
         var navText = nav.find('a');
-        var themeStyle = $('.g-banner').attr('data-theme');
         var scFlag = $(document).scrollTop();
+        var logo = $('.g-logo');
+        var themeStyle = $('.g-banner').attr('data-theme');
 
         $(document).scroll(function() {
             var scrollTop = $(this).scrollTop();
@@ -42,7 +48,7 @@ $(document).ready(function(){
                     'box-shadow': '0 1px 12px rgba(0, 0, 0, .08)'
                 });
                 logo.css({
-                    'background': 'url(' + baseurl + '/assets/icons/logo_' + themeStyle + '.svg) no-repeat center',
+                    'background': 'url(' + baseurl + '/assets/icons/' + themeStyle + '.svg) no-repeat center',
                     'background-size': '100% 100%'
                 });
                 navText.css('color', '#666');
@@ -54,7 +60,7 @@ $(document).ready(function(){
                     'box-shadow': 'none'
                 });
                 logo.css({
-                    'background': 'url(' + baseurl + '/assets/icons/logo.svg) no-repeat center',
+                    'background': 'url(' + baseurl + '/assets/icons/' + themeStyle + '.svg) no-repeat center',
                     'background-size': '100% 100%'
                 });
                 navText.css('color', '#fff');
@@ -124,7 +130,7 @@ $(document).ready(function(){
 
         for (var i = current - limit; i < current; i++) {
             if (i > 0 && i !== 1) {
-                link_html += '<a href="' + baseUrl + 'page' + i + '" class="page-link page-num">' + i + '</a>';
+                link_html += '<a href="' + baseUrl + 'page' + i + '/index.html" class="page-link page-num">' + i + '</a>';
             } else if (i === 1) {
                 link_html += '<a href="' + baseUrl + '" class="page-link page-num">' + i + '</a>';
             }
@@ -134,7 +140,7 @@ $(document).ready(function(){
 
         for (var j = current + 1; j <= current + limit; j++) {
             if (j <= total) {
-                link_html += '<a href="' + baseUrl + 'page' + j + '" class="page-link page-num">' + j + '</a>';
+                link_html += '<a href="' + baseUrl + 'page' + j + '/index.html" class="page-link page-num">' + j + '</a>';
             }
         }
 

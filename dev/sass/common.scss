@@ -9,7 +9,8 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: $g-header-h;
+    // height: $g-header-h;
+    height: 50px;
     padding: 16px 0;
     background-color: transparent;
     transition: all .6s;
@@ -17,11 +18,13 @@
     .g-logo {
         float: left;
         margin-left: 2%;
-        width: 60px;
-        height: $g-header-h;
-        background: url('../icons/logo.svg') no-repeat center;
-        background-size: 100% 100%;
-        opacity: .8;
+        // width: 70px;
+        // height: $g-header-h;
+        width: 50px;
+        height: 50px;
+        // background: url('../icons/default.svg') no-repeat center;
+        // background-size: 100% 100%;
+        // opacity: .8;
         transition: all .2s;
         &:hover {
             opacity: 1;
@@ -36,7 +39,7 @@
     .icon-menu {
         display: none;
         position: absolute;
-        top: 22px;
+        top: 32px;
         right: 0;
         padding: 8px;
         font-size: 28px;
@@ -53,8 +56,10 @@
         margin-right: 2%;
         &>ul>li{
             float: left;
-            height: $g-header-h;
-            line-height: $g-header-h;
+            // height: $g-header-h;
+            // line-height: $g-header-h;
+            height: 50px;
+            line-height: 50px;
             text-transform: uppercase;
             margin-right: 18px;
             &:last-child {
@@ -62,7 +67,7 @@
             }
             &>a {
                 display: inline-block;
-                font-size: 14px;
+                font-size: 18px;
                 letter-spacing: 1px;
                 color: #fff;
                 padding: 0 12px;
@@ -87,7 +92,7 @@
 }
 // header scroll
 .headerUp{
-    top: -65px;
+    top: -82px;
 }
 .headerDown{
     top: 0;
