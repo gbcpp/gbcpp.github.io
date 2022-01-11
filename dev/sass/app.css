@@ -945,13 +945,20 @@ a {
 .markdown-body a {
   color: #005b81;
   text-decoration: none; }
-
-.markdown-body a:hover {
-  color: #e32e00;
-  text-decoration: underline; }
+  .markdown-body a:hover {
+    color: #e32e00;
+    text-decoration: underline; }
 
 .markdown-body p {
   font-size: 16px; }
+
+.markdown-body .table-area {
+  overflow: auto; }
+  .markdown-body .table-area table {
+    word-break: keep-all;
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+    white-space: nowrap; }
 
 @media screen and (min-width: 1920px) {
   .home-banner {

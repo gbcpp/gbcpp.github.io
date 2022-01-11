@@ -9,9 +9,15 @@ $(document).ready(function(){
     });
 
     /**
+     * Fix table for small screens
+     */
+     $("table").wrap("<div class='table-area'></div>");
+
+
+    /**
      * Responsive Navigation
      */
-    $('#menu-toggle').off("click").on('click', function(e) {
+    $('#menu-toggle').on('click', function(e) {
         var duration = 200;
         nav.slideToggle(duration);
         $(document).on('click', function() {

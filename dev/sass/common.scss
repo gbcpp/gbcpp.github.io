@@ -953,16 +953,27 @@
     margin-top: 0!important;
 }
 
-.markdown-body a {
-    color: #005b81;
-    text-decoration: none;
-}
+.markdown-body {
+    a {
+        color: #005b81;
+        text-decoration: none;
 
-.markdown-body a:hover {
-    color: #e32e00;
-    text-decoration: underline;
-}
-
-.markdown-body p {
-    font-size: 16px;
+        &:hover {
+            color: #e32e00;
+            text-decoration: underline;
+        }
+    }
+    p {
+        font-size: 16px;
+    }
+    .table-area{
+        overflow: auto;
+        table {
+            word-break: keep-all;
+            word-wrap: break-word;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    
 }
