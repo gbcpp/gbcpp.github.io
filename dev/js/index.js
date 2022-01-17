@@ -187,7 +187,7 @@ $(document).ready(function(){
             $('.icon-search').css('color', '#CAD3DC');
         }
 
-        var jsonfile =  baseurl + '/search.json';
+        var jsonfile =  baseurl + '/assets/search.json';
         $.getJSON(jsonfile).done(function(data) {
             var html = '';
             for (var i in data) {
