@@ -12,6 +12,9 @@
     <meta property="og:baseurl" content="{{ site.baseurl }}">
     <meta property="og:description" content="{{ site.description }}">
     <meta property="og:site_name" content="{{ site.title }}">
+    {% if site.google_search %}
+    <meta name="google-site-verification" content="{{ site.google_search }}" />
+    {% endif %}
     <link rel="Shortcut Icon" href="{{ site.favicon | prepend: site.baseurl }}">
     <link rel="bookmark" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/normalize.min.css">

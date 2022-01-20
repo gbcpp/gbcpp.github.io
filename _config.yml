@@ -88,6 +88,9 @@ cnzz:
 # google_analytics: UA-XXXXXXXXX-X
 google_analytics: 
 
+# Google Search
+google_search: 
+
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
