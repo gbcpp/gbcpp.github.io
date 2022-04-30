@@ -45,3 +45,11 @@ a {
 ::-webkit-selection {
     background-color: rgba(0, 147, 254, .2);
 }
+
+.gray{
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+}

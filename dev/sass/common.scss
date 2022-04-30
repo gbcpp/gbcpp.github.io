@@ -35,7 +35,27 @@
             height: 100%;
         }
     }
-
+    #mode-toggle{
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 35px;
+        right: 57px;
+        display: none;
+        .icon-day, .icon-night{
+            width: 30px;
+            height: 30px;
+            padding: 5px;
+            display: none;
+            &.active{
+                display: block;
+            }
+            &:hover{
+                background-color: #81bbff;
+                border-radius: 50%;
+            }
+        }
+    }
     .icon-menu {
         display: none;
         position: absolute;
@@ -76,12 +96,34 @@
                     opacity: 1;
                 }
             }
+            &.mode{
+                width: 40px;
+                height: 40px;
+                margin: 5px 0;
+                .icon{
+                    width: 30px;
+                    height: 30px;
+                    padding: 5px;
+                    display: none;
+                    &.active{
+                        display: block;
+                    }
+                }
+                &:hover{
+                    background-color: #81bbff;
+                    border-radius: 50%;
+                }
+            }
         }
     }
 
     .nav-default {
         a:hover {
             color: $color-theme-default !important;
+        }
+        .mode {
+            background-color: #1B7EFF;
+            border-radius: 50%;
         }
     }
     .nav-pink {
@@ -208,11 +250,13 @@
             }
         }
         .post-meta {
-            height: 22px;
-            margin-top: 16px;
+            min-height: 22px;
+            margin-top: 8px;
+            display: inline-block;
             .post-tags {
                 float: left;
                 display: inline-block;
+                width: 515px;
             }
             .post-date {
                 float: right;
@@ -589,6 +633,9 @@
                         text-decoration: underline;
                     }
                 }
+                a.active {
+                    color: #e32e00;
+                }
             }
         }
     }
@@ -821,6 +868,7 @@
         color: $color-f-dark;
         background-color: $color-dark-secondary;
         border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
     }
 
     .article-item {
@@ -876,7 +924,8 @@
         }
     }
     .article-item .post-tag, .tags-card .tag {
-        border: none;
+        // border: none;
+        background-color: #515151;
     }
     .tags-list {
         li {
@@ -907,6 +956,9 @@
         }
         blockquote {
             border-left-color: #555A61;
+        }
+        code {
+            text-shadow: none!important;
         }
     }
     .read-next-item {

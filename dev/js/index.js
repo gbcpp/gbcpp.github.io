@@ -45,6 +45,7 @@ $(document).ready(function(){
             var scrollTop = $(this).scrollTop();
             var navClassName = 'nav-' + themeStyle;
 
+
             if (scrollTop > headerHeight) {
                 if(scrollTop > 3 * headerHeight) {
                     header.addClass('headerUp');
@@ -232,8 +233,14 @@ $(document).ready(function(){
         var date = new Date();
         var hour = date.getHours();
 
-        if (hour <= 6 || hour >= 18) {
-            el.addClass(className);
+        var mode = getCookie("mode");
+        if (mode == "") {
+            console.log(mode);
+            if (hour <= 6 || hour >= 18){
+                console.log("Start night mode");
+                setCookie("mode", "night", 1)
+            }
+            // el.addClass(className);
         }
     }
 
@@ -257,6 +264,96 @@ $(document).ready(function(){
         if (txt.toString().length >= 30) {
             setClipboardData(txt);
         }
+    });
+
+    /*
+    * TOC highlight with the corresponding content
+    */
+    function locateCatelogList(){
+        /*获取文章目录集合,可通过：header过滤器*/
+        var alis = $('article :header');
+        /*获取侧边栏目录列表集合**/
+        var sidebar_alis = $('.table-of-contents').find('a');
+        /*获取滚动条到顶部的距离*/
+        var scroll_height = $(window).scrollTop();
+        if(scroll_height>0){
+            $('.g-header').addClass('headerUp');
+        }
+        for(var i =0;i<alis.length;i++){
+            /*获取锚点集合中的元素分别到顶点的距离*/
+            var a_height = $(alis[i]).offset().top - 100;
+            if (a_height < scroll_height){
+                /*高亮显示*/
+                $(sidebar_alis).removeClass('active');
+                $(sidebar_alis[i]).addClass('active');
+            }
+        }
+    }
+
+    locateCatelogList();
+    $(window).bind('scroll',locateCatelogList); 
+
+    /*
+    * Day/Night mode switch button
+    */
+    function getCookie(cname)
+    {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0; i<ca.length; i++) 
+        {
+            var c = ca[i].trim();
+            if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+        }
+        return "";
+    }
+
+    function setCookie(cname, cvalue, exdays){
+        var d = new Date();
+        d.setTime(d.getTime()+(exdays*24*60*60*1000));
+        var expires = "expires="+d.toGMTString();
+        if(!baseurl){
+            document.cookie = cname+"="+cvalue+"; path=/; "+expires;
+        }else {
+            document.cookie = cname+"="+cvalue+"; path="+baseurl+"; "+expires;
+        }
+    }
+
+    var mode = getCookie("mode");
+    // console.log(mode);
+    if(mode == "night"){
+        $(".g-nav li.mode .night").addClass("active");
+        $("#mode-toggle .icon-night").addClass("active");
+        $("body").addClass("night-mode");
+    }else{
+        $(".g-nav li.mode .day").addClass("active");
+        $("#mode-toggle .icon-day").addClass("active");
+        $("body").removeClass("night-mode");
+    }
+
+    function changeMode(){
+        var mode = getCookie("mode");
+        if(mode == ""){
+            setCookie("mode", "night", 1)
+            $("body").addClass("night-mode");
+        }else if(mode == "day"){
+            setCookie("mode", "night", 1)
+            $("body").addClass("night-mode");
+        }else{
+            setCookie("mode", "day", 1)
+            $("body").removeClass("night-mode");
+        }
+        // console.log(mode + "-->" + getCookie("mode"));
+        $(".g-nav li.mode .icon").toggleClass("active");
+        $("#mode-toggle .icon").toggleClass("active");
+    }
+
+    $(".g-nav li.mode").click(function(){
+        changeMode();
+    });
+
+    $("#mode-toggle").click(function(){
+        changeMode();
     });
 
 });

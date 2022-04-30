@@ -12,6 +12,7 @@
     <meta property="og:baseurl" content="{{ site.baseurl }}">
     <meta property="og:description" content="{{ site.description }}">
     <meta property="og:site_name" content="{{ site.title }}">
+    <meta property="og:gray" content="{{ site.gray }}">
     {% if site.google_search %}
     <meta name="google-site-verification" content="{{ site.google_search }}" />
     {% endif %}
@@ -23,7 +24,7 @@
     <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" as="font" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ "/assets/css/app.min.css" | prepend: site.baseurl }}">
     <!-- <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"> -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
     <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 	{% if site.mathjax %}
 	{% include mathjax.html %}

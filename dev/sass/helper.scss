@@ -51,16 +51,17 @@ $post-content-w: 720px;
     cursor: pointer;
     margin-right: 2px;
     transition: .2s;
+    margin-bottom: 5px;
     &:last-child {
         margin-right: 0;
     }
     &:hover {
-        color: #83888F;
+        color: $color-theme-default!important;
     }
 }
 
 @mixin cardStyle {
-    padding: 30px 20px;
+    padding: 20px 20px;
     background-color: #fff;
     border: 1px solid #E7EAF1;
     border-radius: 3px;

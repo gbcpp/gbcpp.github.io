@@ -83,6 +83,9 @@
         position: absolute;
         top: 0;
         padding: 28px 0;
+        #mode-toggle {
+            display: block;
+        }
         .icon-menu {
             display: block;
             width: 40px;
@@ -110,6 +113,9 @@
                     font-weight: bold;
                     color: #A5A8B0;
                     opacity: 1;
+                }
+                &.mode{
+                    display: none;
                 }
             }
         }

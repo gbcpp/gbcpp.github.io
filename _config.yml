@@ -26,6 +26,14 @@ nav:
   RSS: '/feed.xml'
   logs: '/logs.html'
 
+# Gray for the whole site 全站灰色
+gray: false
+
+# Formats
+# 时间格式（Time format）：0 -- 2022-04-29    1 -- 29 Apr 2022   2 -- 2022年4月29日
+formats:
+  time: 0   
+
 # Footer
 footer:
   since: 2015
@@ -115,6 +123,43 @@ permalink: /:categories/:title.html
 
 # TOC
 toc: true
+# <div class="title">{% if title %} {{title}} {% else %} {{default_title}} {% endif %}</div>
+# premonition
+premonition:
+  default:
+    template: '<div class="premonition {{type}}">
+          <div class="header">
+            <svg class="icon {{type}}" aria-hidden="true">
+                <use xlink:href="#icon-{{type}}"></use>
+            </svg>
+            <div class="title"> {{title}} </div>
+          </div>
+          <div class="content">
+            {{content}}
+          </div>
+        </div>'
+  types:
+    citation:
+      template: '<div class="premonition {{type}}">
+          <div class="header">
+            <svg class="icon {{type}}" aria-hidden="true">
+                <use xlink:href="#icon-{{type}}"></use>
+            </svg>     
+          </div>
+          <div class="content">
+            {{content}}
+          </div>
+          {% if title %}<div class="ref"> ------ {{title}} </div>{% endif %}
+        </div>'
+      default_title: ''
+    note:
+      default_title: 'Note'
+    info:
+      default_title: 'Info'
+    warning:
+      default_title: 'Warning'
+    error:
+      default_title: 'Error'
 
 # Plugins
-plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap]
+plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap, premonition]

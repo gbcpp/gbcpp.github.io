@@ -4,130 +4,148 @@
 
 <body>
   <!--[if lt IE 10]>
-<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
-<![endif]-->
-  <input id="nm-switch" type="hidden" value="{{ site.nightMode }}"> {% include header.html %}
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  {% if site.gray %}
+  <div id=all class="gray">
+  {% else %}
+  <div id="all">
+  {% endif %}
+    <input id="nm-switch" type="hidden" value="{{ site.nightMode }}"> {% include header.html %}
 
-  <header
-    class="g-banner post-header {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }} {% unless page.cover %}post-no-cover{% endunless %}"
-    data-theme="{{ site.theme-color }}"
-  >
-    <div class="post-wrapper">
-      <div class="post-tags">
-        {% if page.tags.size > 0 %}
-          {% for tag in page.tags  %}
-            <a href="{{ "/tags.html#" | append: tag | relative_url }}" class="post-tag">{{ tag }}</a>
-          {% endfor %}
-        {% endif %}
+    <header
+      class="g-banner post-header {{ site.postPatterns | prepend: 'post-pattern-' }} {{ site.theme-color | prepend: 'bgcolor-' }} {% unless page.cover %}post-no-cover{% endunless %}"
+      data-theme="{{ site.theme-color }}"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          {% if page.tags.size > 0 %}
+            {% for tag in page.tags  %}
+              <a href="{{ "/tags.html#" | append: tag | relative_url }}" class="post-tag">{{ tag }}</a>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <h1>{{ page.title }}</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <i class="iconfont icon-author"></i>{% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}
+          </span>
+          <time class="post-meta-item" datetime="{{ page.date | date:"%y-%m-%d" }}">
+            <i class="iconfont icon-date"></i>
+            {% case site.formats.time %}
+            {% when 0 %}
+              {{ page.date | date: "%Y-%m-%d %H:%M:%S %z" }} 
+            {% when 1 %}
+              {{ page.date | date_to_rfc822 }}
+            {% else %}
+              {{ page.date | date: "%Y年%-m月%-d日 %H:%M:%S %z"  }}
+            {% endcase %}
+          </time>
+        </div>
+        <div class="post-meta">
+          {% if site.language == 'zh-cn' %}
+          <span>本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
+          {% else %}
+          <span>There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
+          {% endif %}
+        </div>
       </div>
-      <h1>{{ page.title }}</h1>
-      <div class="post-meta">
-        <span class="post-meta-item"><i class="iconfont icon-author"></i>{% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}</span>
-        <time class="post-meta-item" datetime="{{ page.date | date:"%y-%m-%d" }}"><i class="iconfont icon-date"></i>{{ page.date | date_to_rfc822 }}</time>
-      </div>
-      <div class="post-meta">
-        {% if site.language == 'zh-cn' %}
-        <span>本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
-        {% else %}
-        <span>There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
-        {% endif %}
-      </div>
-    </div>
-    {% if page.cover %}
-    <div class="filter"></div>
-      <div class="post-cover" style="background: url('{{ page.cover | relative_url }}') center no-repeat; background-size: cover;"></div>
-    {% endif %}
-  </header>
-  <div class="post-content visible">
-    {% if page.subtitle %}
-    <h2 class="post-subtitle">{{ page.subtitle }}</h2>
-    {% endif %}
+      {% if page.cover %}
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('{{ page.cover | relative_url }}') center no-repeat; background-size: cover;"></div>
+      {% endif %}
+    </header>
+    <div class="post-content visible">
+      {% if page.subtitle %}
+      <h2 class="post-subtitle">{{ page.subtitle }}</h2>
+      {% endif %}
 
-    {% if site.toc %}
-    <div class="container">  
-      <div class="contents">
+      {% if site.toc %}
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body">
+            {{ page.content }}
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>Contents</h2>
+          {% include toc.html html=content %}
+        </div>
+      </div>
+      {% else %}
         <article class="markdown-body">
           {{ page.content }}
         </article>
-      </div>   
-      <div class="table-of-contents">
-        <h2>Contents</h2>
-        {% include toc.html html=content %}
-      </div>
-    </div>
-    {% else %}
-      <article class="markdown-body">
-        {{ page.content }}
-      </article>
-    {% endif %}
-
-    {% if site.social-share %}
-    <div class="social-share-wrapper">
-      <div class="social-share"></div>
-    </div>
-    {% endif %}
-  </div>
-
-  <section class="author-detail">
-    <section class="post-footer-item author-card">
-      <div class="avatar">
-        <img src="{{ site.avatar | relative_url }}" alt="">
-      </div>
-      <div class="author-name" rel="author">{{ site.author }}</div>
-      <div class="bio">
-        <p>{{ site.bio }}</p>
-      </div>
-      {% if site.sns.size > 0 %}
-      <ul class="sns-links">
-        {% for s in site.sns %}
-        <li>
-          <a href="{{ s[1] }}" target="_blank">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-{{ s[0] }}"></use>
-            </svg>
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
       {% endif %}
-    </section>
-    <section class="post-footer-item read-next">
-      {% if page.next.url %}
-      <div class="read-next-item">
-        <a href="{{ page.next.url | relative_url }}" class="read-next-link"></a>
-        <section>
-          <span>{{ page.next.title }}</span>
-          <p>{{ page.next.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
-        </section>
-        {% if page.next.cover %}
-        <div class="filter"></div>
-        <img src="{{ page.next.cover | relative_url }}" alt="">
+
+      {% if site.social-share %}
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="{{ site.avatar | relative_url }}" alt="">
+        </div>
+        <div class="author-name" rel="author">{{ site.author }}</div>
+        <div class="bio">
+          <p>{{ site.bio }}</p>
+        </div>
+        {% if site.sns.size > 0 %}
+        <ul class="sns-links">
+          {% for s in site.sns %}
+          <li>
+            <a href="{{ s[1] }}" target="_blank">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-{{ s[0] }}"></use>
+              </svg>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
         {% endif %}
-     </div>
-      {% endif %}
-
-      {% if page.previous.url %}
-      <div class="read-next-item">
-        <a href="{{ page.previous.url | relative_url }}" class="read-next-link"></a>
+      </section>
+      <section class="post-footer-item read-next">
+        {% if page.next.url %}
+        <div class="read-next-item">
+          <a href="{{ page.next.url | relative_url }}" class="read-next-link"></a>
           <section>
-            <span>{{ page.previous.title }}</span>
-            <p>{{ page.previous.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
+            <span>{{ page.next.title }}</span>
+            <p>{{ page.next.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
           </section>
-          {% if page.previous.cover %}
+          {% if page.next.cover %}
           <div class="filter"></div>
-          <img src="{{ page.previous.cover | relative_url }}" alt="">
+          <img src="{{ page.next.cover | relative_url }}" alt="">
           {% endif %}
       </div>
+        {% endif %}
+
+        {% if page.previous.url %}
+        <div class="read-next-item">
+          <a href="{{ page.previous.url | relative_url }}" class="read-next-link"></a>
+            <section>
+              <span>{{ page.previous.title }}</span>
+              <p>{{ page.previous.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
+            </section>
+            {% if page.previous.cover %}
+            <div class="filter"></div>
+            <img src="{{ page.previous.cover | relative_url }}" alt="">
+            {% endif %}
+        </div>
+        {% endif %}
+      </section>
+      {% if site.comments.disqus %}
+      <section class="post-footer-item comment">
+          <div id="disqus_thread"></div>
+      </section>
       {% endif %}
     </section>
-    {% if site.comments.disqus %}
-    <section class="post-footer-item comment">
-        <div id="disqus_thread"></div>
-    </section>
-    {% endif %}
-  </section>
 
-  {% include footer.html %}
+    {% include footer.html %}
+  </div>
 
   <script src="{{ "/assets/js/social-share.min.js" | relative_url }}"></script>
   <script>
@@ -166,16 +184,27 @@
 
   <script src="{{ "/assets/js/prism.js" | relative_url }}"></script>
   <script src="{{ "/assets/js/index.min.js" | relative_url }}"></script>
-  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
   <script>
       // 给图片添加链接
       $(document).ready(function() {
           $("p img").each(function() {
-              var strA = "<a data-fancybox='gallery' ref='gallery1' href='" + this.src + "'></a>";
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + this.src + "' data-caption='" + this.alt + "'></a>";
               $(this).wrapAll(strA);
           });
 
-          $('[data-fancybox="gallery"]').fancybox();
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });
+          
       });
   </script>
   {% include analytics.html %}
