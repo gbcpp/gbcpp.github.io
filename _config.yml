@@ -34,6 +34,9 @@ gray: false
 formats:
   time: 0   
 
+# Favicon
+favicon: "/favicon.ico"
+
 # Footer
 footer:
   since: 2015
