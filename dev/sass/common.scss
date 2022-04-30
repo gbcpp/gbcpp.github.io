@@ -991,6 +991,12 @@
     .token.keyword {
         color: #61BDCF;
     }
+    .bttb {
+        background-color: #444950;
+        &:hover{
+            background-color: #bec3c9;
+        }
+    }
 }
 
 .archives-date {
@@ -1028,4 +1034,32 @@
         }
     }
     
+}
+
+.bttb {
+    position: fixed;
+    right: 20.8px;
+    bottom: 20.8px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    z-index: 100;
+    visibility: hidden;
+    transform: scale(0);
+    transition: all 100ms 200ms;
+    background-color: #ebedf0;
+    box-shadow: 1px 1px 0 rgba(0,0,0,.1);
+    &.active {
+        visibility: visible;    
+        opacity: 1;
+        transform: scale(1);
+    }
+    &:hover {
+        background-color: #bec3c9;
+    }
+    .icon.up {
+        width: 16px;
+        height: 16px;
+    }
 }

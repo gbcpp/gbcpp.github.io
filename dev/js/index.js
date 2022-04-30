@@ -62,6 +62,8 @@ $(document).ready(function(){
                 nav.addClass(navClassName);
             } else {
                 header.removeClass('headerUp');
+                // console.log("rm up");
+                $('.bttb').removeClass("active");
                 header.css({
                     'background-color': 'transparent',
                     'box-shadow': 'none'
@@ -77,12 +79,23 @@ $(document).ready(function(){
             // scroll action
             if (scFlag > scrollTop) {
                 header.addClass('headerDown');
+                if(header.hasClass('headerUp')){
+                    $('.bttb').addClass("active");
+                }
             } else {
                 header.removeClass('headerDown');
+                $('.bttb').removeClass("active");
             }
             scFlag = scrollTop;
         });
     }
+
+    /*
+    * Back To Top Button
+    */
+    $('.bttb').bind('click', function(){
+        $('html,body').animate({scrollTop:0});
+    });
 
     /*
     * Post Cover Resize
