@@ -116,7 +116,6 @@ $(document).ready(function(){
     */
     $('.bttb').bind('click', function(){
         $('html,body').animate({scrollTop:0}, function(){
-            console.log("rm bttb");
             $('#bttb').removeClass("active");
         });
     });
@@ -395,6 +394,41 @@ $(document).ready(function(){
 
     $("#mode-toggle").click(function(){
         changeMode();
+    });
+
+    /*
+    *  Copy code blocks
+    */
+    // get all <code> elements
+    var allCodeBlocksElements = $("pre code");
+    allCodeBlocksElements.each(function(i) {
+        // add different id for each code block
+        // target	
+        var currentId = "codeblock" + (i + 1);
+        $(this).attr('id', currentId);
+       
+        //trigger
+        var clipButton = '<button class="btn" data-bs-original-title="Copy" aria-label="Copy" data-clipboard-target="#' + currentId + '"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-copy"></use></svg><span class="tooltip unfinish">Copy</span><span class="tooltip finish">Copied</span></button>';
+        $(this).before(clipButton);
+    });
+
+    var clipboard = new ClipboardJS('.btn');
+    clipboard.on('success', function(e) {
+        e.clearSelection();
+    });
+
+    $(".markdown-body .btn").hover(function(){
+        $(".markdown-body .btn .tooltip.unfinish").addClass("active");
+    },function(){
+        $(".markdown-body .btn .tooltip.unfinish").removeClass("active");
+    });
+
+    $(".markdown-body .btn").click(function(){
+        $(".markdown-body .btn .tooltip.unfinish").removeClass("active");
+        $(".markdown-body .btn .tooltip.finish").addClass("active");
+        setTimeout(function () {      
+            $(".markdown-body .btn .tooltip.finish").removeClass("active");
+        }, 500);
     });
 
 });

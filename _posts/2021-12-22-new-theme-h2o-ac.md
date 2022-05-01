@@ -69,9 +69,9 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;原来 H2O 主题的深色模式切换需要在 _config.yml 文件中配置开启，并且只能在固定时间段使用。此次更新在页面右上角提供了深色/浅色模式一键切换按钮，如下图所示。由于更新了深色模式采用 cookie 的方式来确定，此深色模式切换按钮可以与原来的深色模式配置共存。
 
-![jekyll-h2o-ac-f01.png](https://s2.loli.net/2022/04/30/2DqtSQkUG1CNWPO.png)
+![浅色模式 Day mode](https://i.vgy.me/x1CWVs.png)
 
-![jekyll-h2o-ac-f02.png](https://s2.loli.net/2022/04/30/ormGJnRtDzPK9WV.png)
+![深色模式 Night mode](https://i.vgy.me/8DGFx2.png)
 
 #### 提示框
 
@@ -97,6 +97,22 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 #### 代码高亮优化
 
 &emsp;&emsp;本人使用 H2O 主题的时候代码高亮功能还是沿用的 Jekyll 自带的，后来 H2O 主题也开始采用了 [Prism.js](https://prismjs.com/)。不过由于使用的是 `OKAIDIA` 高亮主题，所以有些段落中的格式化字段显示上有些问题。这里，仍然采用默认主题，并且扩增到 Prism.js 支持的所有编程语言类型。效果可以从前一句的 OKAIDIA 字段和下面即将出现的代码片段看出。
+
+#### 代码复制
+
+(2022年5月1日更新)
+
+&emsp;&emsp;由于主题设置有复制自动添加版权保护文字，导致复制代码或无法直接使用。但是如果直接去掉版权保护又不大合适，于是新增代码复制功能。当使用如下所示代码片段右上角的复制按钮时，代码会被复制到粘贴板，且不包含版权保护文字，可以放心直接使用。
+
+```html
+<!-- Target -->
+<input id="foo" value="https://github.com/zenorocha/clipboard.js.git">
+
+<!-- Trigger -->
+<button class="btn" data-clipboard-target="#foo">
+    <img src="assets/clippy.svg" alt="Copy to clipboard">
+</button>
+```
 
 #### 字数统计及阅读时间估计
 

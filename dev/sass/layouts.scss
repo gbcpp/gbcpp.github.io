@@ -334,6 +334,13 @@
             background-color: #dadde1;
         }
     }
+    .markdown-body{
+        .btn {
+            &:hover {
+                background-color: #dadde1;
+            }
+        }
+    }
     .night-mode {
         .bttb {
             &:hover{

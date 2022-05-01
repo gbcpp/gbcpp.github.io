@@ -751,6 +751,46 @@ a {
     margin: 0; }
     .markdown-body ul li p:first-child, .markdown-body ol li p:first-child {
       margin-bottom: 0; }
+  .markdown-body .btn {
+    float: right;
+    margin-top: -15px;
+    margin-right: -15px;
+    padding: 2px 2px;
+    border: none;
+    cursor: pointer;
+    height: 28px;
+    background-color: #ebedf0; }
+    .markdown-body .btn .icon {
+      width: 24px;
+      height: 24px; }
+    .markdown-body .btn .tooltip {
+      font-family: -apple-system, Verdana, "PingFang SC", "Helvetica Neue", "Arial", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+      font-size: 14px;
+      float: right;
+      position: absolute;
+      margin-left: -38px;
+      background-color: #dadde1;
+      padding: 3px 7px;
+      border-radius: 3px;
+      margin-top: -35px;
+      display: none; }
+      .markdown-body .btn .tooltip.finish {
+        margin-left: -43px; }
+      .markdown-body .btn .tooltip:after {
+        content: "";
+        position: absolute;
+        top: calc(100% - 6px);
+        left: calc(50% - 6px);
+        width: 10px;
+        height: 10px;
+        background-color: #dadde1;
+        border-width: 1px;
+        border-style: solid;
+        border-color: transparent #dadde1 #dadde1 transparent;
+        transform: rotate(45deg);
+        clip-path: polygon(145% -50%, 150% 150%, -50% 145%); }
+      .markdown-body .btn .tooltip.active {
+        display: inline-block; }
 
 .social-share-wrapper {
   float: left;
@@ -1325,6 +1365,8 @@ a {
 
 @media (hover: hover) {
   .bttb:hover {
+    background-color: #dadde1; }
+  .markdown-body .btn:hover {
     background-color: #dadde1; }
   .night-mode .bttb:hover {
     background-color: #606770; } }
