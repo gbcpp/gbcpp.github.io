@@ -279,17 +279,10 @@ a {
         font-size: 14px;
         letter-spacing: .6px;
         line-height: 22px; }
-        .article-list .article-item .post-meta .post-date:before {
-          position: relative;
-          top: 2px;
-          left: -6px;
-          content: '';
-          float: left;
-          display: inline-block;
-          width: 18px;
-          height: 18px;
-          background: url("../icons/date.svg") no-repeat center;
-          background-size: 100%; }
+        .article-list .article-item .post-meta .post-date .icon {
+          width: 16px;
+          height: 16px;
+          margin-bottom: -3px; }
 
 .author-card {
   text-align: center; }
@@ -616,7 +609,8 @@ a {
       font-size: 16px;
       color: #fff;
       margin-right: 4px;
-      opacity: .8; }
+      opacity: .8;
+      margin-bottom: 10px; }
       .post-header .post-meta .post-meta-item:last-child {
         margin-right: 0; }
       .post-header .post-meta .post-meta-item .iconfont {
@@ -624,6 +618,10 @@ a {
         margin-right: 4px; }
       .post-header .post-meta .post-meta-item a {
         color: #fff; }
+      .post-header .post-meta .post-meta-item .icon {
+        width: 18px;
+        height: 18px;
+        margin-bottom: -3px; }
   .post-header .filter {
     position: absolute;
     content: '';
@@ -1240,7 +1238,9 @@ a {
   .tags-list {
     padding: 0 0 24px; }
   .g-footer {
-    padding: 30px 0; } }
+    padding: 30px 0; }
+  .post-meta-item .icon.info2 {
+    display: none; } }
 
 @media screen and (max-width: 500px) {
   .home-banner {

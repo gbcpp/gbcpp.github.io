@@ -44,7 +44,9 @@ description: 或许是最漂亮的Jekyll主题
                         {% endif %}
                     </div>
                     <time class="post-date" datetime="{{ post.date | date:"%y-%m-%d" }}">
-                        <!-- {{ post.date | date_to_string }} -->
+                        <svg class="icon" aria-hidden="true">
+                            <use xlink:href="#icon-time2"></use>
+                        </svg>
                         {% case site.formats.time %}
                         {% when 0 %}
                           {{ post.date | date: "%Y-%m-%d" }} 

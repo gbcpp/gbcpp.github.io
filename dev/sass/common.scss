@@ -263,6 +263,12 @@
                 float: right;
                 color: #A9B0BC;
                 @include timeStyle;
+
+                .icon {
+                    width: 16px;
+                    height: 16px;
+                    margin-bottom: -3px;
+                }
             }
         }
     }
@@ -498,6 +504,7 @@
             color: #fff;
             margin-right: 4px;
             opacity: .8;
+            margin-bottom: 10px;
             &:last-child {
                 margin-right: 0;
             }
@@ -507,6 +514,11 @@
             }
             a {
                 color: #fff;
+            }
+            .icon {
+                width: 18px;
+                height: 18px;
+                margin-bottom: -3px;
             }
         }
     }

@@ -28,10 +28,15 @@
         <h1>{{ page.title }}</h1>
         <div class="post-meta">
           <span class="post-meta-item">
-            <i class="iconfont icon-author"></i>{% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            {% if page.author %}{{ page.author }}{% else %}{{ site.author }}{% endif %}
           </span>
           <time class="post-meta-item" datetime="{{ page.date | date:"%y-%m-%d" }}">
-            <i class="iconfont icon-date"></i>
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-time"></use>
+            </svg>
             {% case site.formats.time %}
             {% when 0 %}
               {{ page.date | date: "%Y-%m-%d %H:%M:%S %z" }} 
@@ -41,12 +46,18 @@
               {{ page.date | date: "%Y年%-m月%-d日 %H:%M:%S %z"  }}
             {% endcase %}
           </time>
-        </div>
-        <div class="post-meta">
           {% if site.language == 'zh-cn' %}
-          <span>本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
+          <span class="post-meta-item">
+            <svg class="icon info2" aria-hidden="true">
+              <use xlink:href="#icon-info2"></use>
+            </svg>
+          本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
           {% else %}
-          <span>There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-info2"></use>
+            </svg>
+          There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
           {% endif %}
         </div>
       </div>
