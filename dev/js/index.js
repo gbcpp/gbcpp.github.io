@@ -1,4 +1,6 @@
 $(document).ready(function(){
+    document.body.addEventListener('touchstart', function(){});
+
     var nav = $('.g-nav');
     var baseurl = $("meta[property='og:baseurl']").attr('content');
     var logo = $('.g-logo');
@@ -63,7 +65,7 @@ $(document).ready(function(){
             } else {
                 header.removeClass('headerUp');
                 // console.log("rm up");
-                $('.bttb').removeClass("active");
+                $('#bttb').removeClass("active");
                 header.css({
                     'background-color': 'transparent',
                     'box-shadow': 'none'
@@ -80,28 +82,30 @@ $(document).ready(function(){
             if (scFlag > scrollTop) {
                 header.addClass('headerDown');
                 if(header.hasClass('headerUp')){
-                    $('.bttb').addClass("active");
+                    $('#bttb').addClass("active");
                 }
             } else {
                 header.removeClass('headerDown');
-                $('.bttb').removeClass("active");
+                $('#bttb').removeClass("active");
             }
             scFlag = scrollTop;
         });
     }else{
+        var header = $('.g-header');
+        var headerHeight = header.outerHeight();
         var scFlag = $(document).scrollTop();
         $(document).scroll(function() {
             var scrollTop = $(this).scrollTop();
 
-            if (scFlag < 5){
-                $('.bttb').removeClass("active");
+            if (scrollTop < 100){
+                $('#bttb').removeClass("active");
             }
 
             // scroll action
             if (scFlag > scrollTop && scFlag > 5) {
-                $('.bttb').addClass("active");
+                $('#bttb').addClass("active");
             } else {
-                $('.bttb').removeClass("active");
+                $('#bttb').removeClass("active");
             }
             scFlag = scrollTop;
         });
@@ -111,7 +115,10 @@ $(document).ready(function(){
     * Back To Top Button
     */
     $('.bttb').bind('click', function(){
-        $('html,body').animate({scrollTop:0});
+        $('html,body').animate({scrollTop:0}, function(){
+            console.log("rm bttb");
+            $('#bttb').removeClass("active");
+        });
     });
 
     /*
@@ -355,10 +362,12 @@ $(document).ready(function(){
         $(".g-nav li.mode .night").addClass("active");
         $("#mode-toggle .icon-night").addClass("active");
         $("body").addClass("night-mode");
+        $(".icon.up.night").toggleClass("active");
     }else{
         $(".g-nav li.mode .day").addClass("active");
         $("#mode-toggle .icon-day").addClass("active");
         $("body").removeClass("night-mode");
+        $(".icon.up.day").toggleClass("active");
     }
 
     function changeMode(){
@@ -376,6 +385,8 @@ $(document).ready(function(){
         // console.log(mode + "-->" + getCookie("mode"));
         $(".g-nav li.mode .icon").toggleClass("active");
         $("#mode-toggle .icon").toggleClass("active");
+        $(".icon.up.day").toggleClass("active");
+        $(".icon.up.night").toggleClass("active");
     }
 
     $(".g-nav li.mode").click(function(){

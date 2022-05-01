@@ -317,3 +317,20 @@
     }
 
 }
+
+@media (hover: hover){
+    .bttb {
+        &:hover {
+            // background-color: #bec3c9;
+            // background-color: #dcddde;
+            background-color: #dadde1;
+        }
+    }
+    .night-mode {
+        .bttb {
+            &:hover{
+                background-color: #606770;
+            }
+        }
+    }
+}
