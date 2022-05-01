@@ -93,6 +93,10 @@ $(document).ready(function(){
         $(document).scroll(function() {
             var scrollTop = $(this).scrollTop();
 
+            if (scFlag < 5){
+                $('.bttb').removeClass("active");
+            }
+
             // scroll action
             if (scFlag > scrollTop && scFlag > 5) {
                 $('.bttb').addClass("active");
