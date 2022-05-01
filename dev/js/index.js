@@ -88,6 +88,19 @@ $(document).ready(function(){
             }
             scFlag = scrollTop;
         });
+    }else{
+        var scFlag = $(document).scrollTop();
+        $(document).scroll(function() {
+            var scrollTop = $(this).scrollTop();
+
+            // scroll action
+            if (scFlag > scrollTop && scFlag > 5) {
+                $('.bttb').addClass("active");
+            } else {
+                $('.bttb').removeClass("active");
+            }
+            scFlag = scrollTop;
+        });
     }
 
     /*
