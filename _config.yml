@@ -57,6 +57,8 @@ nightMode: false
 comments:
   disqus: false
   disqus_url: 'https://liaokeyu.disqus.com/embed.js'
+  waline: true
+  waline_url: 'https://h2o-ac-waline.vercel.app'
 
 # MathJax 公式支持 by Ray-Eldath
 mathjax: true
