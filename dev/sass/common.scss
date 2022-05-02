@@ -1076,11 +1076,21 @@
             }
         }
     }
+    .archives-date {
+        color: #adbac7;
+    }
+    .year {
+        span {
+            background-color: #fff;
+        }
+    }
 }
 
 .archives-date {
     width: 130px;
     display: inline-block;
+    color: #363636;
+    opacity: 0.63;
 }
   
 .archives-title {
@@ -1150,3 +1160,26 @@
     --waline-theme-color: #81bbff!important;
     --waline-active-color: #1B7EFF!important;
 }
+
+.year {
+    span {
+        float: right;
+        width: 50px;
+        height: 25px;
+        text-align: center;
+        border-radius: 2px;
+        .icon {
+            &.animal {
+                width: 25px;
+                height: 25px;
+            }
+            &.dz {
+                width: 15px;
+                height: 15px;
+                margin-bottom: 10px;
+                margin-left: -5px;
+            }
+        }
+    }  
+}
+

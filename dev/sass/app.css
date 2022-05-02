@@ -1033,10 +1033,16 @@ a {
     color: #666666; }
   .night-mode .wl-card .wl-content p {
     color: #888888; }
+  .night-mode .archives-date {
+    color: #adbac7; }
+  .night-mode .year span {
+    background-color: #fff; }
 
 .archives-date {
   width: 130px;
-  display: inline-block; }
+  display: inline-block;
+  color: #363636;
+  opacity: 0.63; }
 
 .archives-title {
   width: 95%;
@@ -1092,6 +1098,21 @@ a {
 :root {
   --waline-theme-color: #81bbff!important;
   --waline-active-color: #1B7EFF!important; }
+
+.year span {
+  float: right;
+  width: 50px;
+  height: 25px;
+  text-align: center;
+  border-radius: 2px; }
+  .year span .icon.animal {
+    width: 25px;
+    height: 25px; }
+  .year span .icon.dz {
+    width: 15px;
+    height: 15px;
+    margin-bottom: 10px;
+    margin-left: -5px; }
 
 .premonition.note, .premonition.info, .premonition.warning, .premonition.error, .premonition.citation {
   border-radius: 6.4px;
