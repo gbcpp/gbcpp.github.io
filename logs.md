@@ -2,6 +2,7 @@
 layout: page
 home-title: Welcome to zhonger's blog!
 description: Writing, writing, writing ...
+cover: https://images.unsplash.com/photo-1630824869986-a5b2f513b1f4?w=1600&q=900
 ---
 
 # 更新日志
@@ -30,6 +31,11 @@ description: Writing, writing, writing ...
   - 新增代码片段一键复制按钮
   - 移除遗留字体样式图标，全面 symbol 化。
   - 修复网站 favicon 在子目录下无法正常显示的错误
+- 2022年5月2日，新增若干功能，修复某些错误：
+  - 新增 Waline 评论支持
+  - 归档页年份右端新增生肖与地支小图标
+  - 修复 cover 字段无法在页面模板中生效，现已与 post 统一。
+  - 修复复制按钮显示问题
 
 ## 节点信息
 

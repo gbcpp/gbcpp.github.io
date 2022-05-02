@@ -128,6 +128,19 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;在原来的基础上增加了跟随左侧内容滑动高亮。当左侧内容向上或向下滑动时，右侧索引导航将会使对应的对应一级标题高亮。
 
+#### 支持 Waline 评论系统
+
+&emsp;&emsp;目前已支持基于 Valine 衍生的简洁、安全的评论系统。可以根据官方提供的 [快速上手](https://waline.js.org/guide/get-started.html) 进行配置，以下为 _config.yml 中需要配置的内容：
+
+```yaml
+# _config.yml
+
+comments:
+  waline: true
+  waline_url: https://xxxxxx.vercel.app
+```
+
+&emsp;&emsp;目前未对多评论系统同时支持进行优化，所以如果 Disqus 和 Waline 同时开启时，Disqus 在前 Waline 在后同时出现。如果用户环境无法访问 Disqus 即只能看到 Waline。
 #### 配置项
 
 &emsp;&emsp;配置项中新增了**友情链接**和**备案号**功能，可以直接在 _config.yml 文件的对应配置项下设置即可，如下所示。友情链接主要是方便跟其他博主交换友链，备案号主要是为了方便部署在国内需备案的 vps 或虚拟主机上。此处，二者都可以置空。
