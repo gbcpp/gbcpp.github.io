@@ -418,16 +418,17 @@ $(document).ready(function(){
     });
 
     $(".markdown-body .btn").hover(function(){
-        $(".markdown-body .btn .tooltip.unfinish").addClass("active");
+        $(this).find(".tooltip.unfinish").addClass("active");
     },function(){
-        $(".markdown-body .btn .tooltip.unfinish").removeClass("active");
+        $(this).find(".tooltip.unfinish").removeClass("active");
     });
 
     $(".markdown-body .btn").click(function(){
-        $(".markdown-body .btn .tooltip.unfinish").removeClass("active");
-        $(".markdown-body .btn .tooltip.finish").addClass("active");
+        $(this).find(".tooltip.unfinish").removeClass("active");
+        var finish = $(this).find(".tooltip.finish")
+        finish.addClass("active");
         setTimeout(function () {      
-            $(".markdown-body .btn .tooltip.finish").removeClass("active");
+            finish.removeClass("active");
         }, 500);
     });
 
