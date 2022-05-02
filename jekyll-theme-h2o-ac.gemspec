@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
     spec.name          = "jekyll-theme-h2o-ac"
-    spec.version       = "1.0.17"
+    spec.version       = "1.0.18"
     spec.authors       = ["zhonger"]
     spec.email         = ["zhonger@live.cn"]
   
@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
     spec.homepage      = "https://github.com/zhonger/jekyll-theme-H2O-ac"
     spec.license       = "MIT"
 
-    spec.required_ruby_version     = ">= 3.0.0"
+    spec.required_ruby_version     = ">= 2.7.0"
     spec.required_rubygems_version = ">= 3.0.0"
 
     spec.metadata = {
@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   
     spec.files         = `git ls-files -z`.split("\x0").select { |f| f.match(%r!^(assets|_layouts|_includes|blog|search.json|LICENSE|README|_config\.yml)!i) }
   
-    spec.add_runtime_dependency "jekyll", "~> 4.2"
+    # spec.add_runtime_dependency "jekyll", "~> 3.7", ">= 3.7"
     spec.add_runtime_dependency "jekyll-paginate", "~> 1.1.0"
     spec.add_runtime_dependency "jekyll-feed", "~> 0.15.1"
     spec.add_runtime_dependency "jekyll-sitemap", "~> 1.4.0"
