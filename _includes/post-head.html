@@ -16,7 +16,11 @@
     {% if site.google_search %}
     <meta name="google-site-verification" content="{{ site.google_search }}" />
     {% endif %}
+    <meta name="theme-color" content="{{ site.pwa.color }}" />
+    <link rel="manifest" href="{{ "/manifest.json" | prepend: site.baseurl }}" />
+    <link rel="apple-touch-icon" href="{{ site.baseurl }}/assets/img/touch/apple-touch-icon.png"/>
     <link rel="Shortcut Icon" href="{{ site.favicon | prepend: site.baseurl }}">
+    <link rel="icon" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
     <link rel="bookmark" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/normalize.min.css">
     <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | prepend: site.baseurl }}">
