@@ -400,7 +400,7 @@ $(document).ready(function(){
     *  Copy code blocks
     */
     // get all <code> elements
-    var allCodeBlocksElements = $("pre code");
+    var allCodeBlocksElements = $("pre");
     allCodeBlocksElements.each(function(i) {
         // add different id for each code block
         // target	
@@ -408,7 +408,7 @@ $(document).ready(function(){
         $(this).attr('id', currentId);
        
         //trigger
-        var clipButton = '<button class="btn" data-bs-original-title="Copy" aria-label="Copy" data-clipboard-target="#' + currentId + '"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-copy"></use></svg><span class="tooltip unfinish">Copy</span><span class="tooltip finish">Copied</span></button>';
+        var clipButton = '<div class="copy-container"><button class="btn" data-bs-original-title="Copy" aria-label="Copy" data-clipboard-target="#' + currentId + '"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-copy"></use></svg><span class="tooltip unfinish">Copy</span><span class="tooltip finish">Copied</span></button></div>';
         $(this).before(clipButton);
     });
 
