@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    document.body.addEventListener('touchstart', function(){});
+    document.body.addEventListener('touchstart', function(){}, {passive: true});
 
     var nav = $('.g-nav');
     var baseurl = $("meta[property='og:baseurl']").attr('content');
@@ -158,6 +158,8 @@ $(document).ready(function(){
 
     $('.read-next-item img').each(function(){
         postCover($(this), $('.read-next-item'));
+        // $(this).addClass("lazyload");
+        $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload");
     });
 
     /**
@@ -344,16 +346,23 @@ $(document).ready(function(){
         return "";
     }
 
-    function setCookie(cname, cvalue, exdays){
+    function setCookie(cname, cvalue, exdays, domain="127.0.0.1"){
         var d = new Date();
         d.setTime(d.getTime()+(exdays*24*60*60*1000));
         var expires = "expires="+d.toGMTString();
         if(!baseurl){
-            document.cookie = cname+"="+cvalue+"; path=/; "+expires;
+            document.cookie = cname+"="+cvalue+"; path=/; domain="+domain+";"+expires;
         }else {
-            document.cookie = cname+"="+cvalue+"; path="+baseurl+"; "+expires;
+            document.cookie = cname+"="+cvalue+"; path="+baseurl+"; domain="+domain+";"+expires;
         }
     }
+    
+    // setCookie("SameSite", "None; Secure", 1, ".lisz.me");
+    // setCookie("widget_session", "abc123; SameSite=None; Secure", 1);
+    // setCookie("widget_session", "abc123; SameSite=None; Secure", 1, ".lisz.me");
+    // setCookie("SameSite", "Strict", 1, ".lisz.me");
+
+    // document.cookie = "Set-Cookie: widget_session=abc123; SameSite=None; Secure; path="+baseurl;
 
     var mode = getCookie("mode");
     // console.log(mode);

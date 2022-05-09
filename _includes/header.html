@@ -1,6 +1,6 @@
 <header class="g-header">
     <div class="g-logo">
-      <a href="{{ "/" | relative_url }}"></a>
+      <a href="{{ "/" | relative_url }}" aria-label="logo"></a>
     </div>
     <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
     <div id="mode-toggle">
@@ -17,7 +17,11 @@
     <nav class="g-nav">
         <ul>
             {% for i in site.nav %}
-            <li><a href="{{ i[1] | relative_url}}">{{ i[0] }}</a></li>
+            <li>
+                <a href="{{ i[1] | relative_url}}" aria-label="{{ i[0] }}">
+                    {{ i[0] }}
+                </a>
+            </li>
             {% endfor %}
             <li class="mode">
                 <svg class="icon day" aria-hidden="true">

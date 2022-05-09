@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html>
+{% if post.language %}
+<html lang="{{post.language}}">
+{% else %}
+<html lang="{{site.language}}">
+{% endif %}
 {% include post-head.html %}
 
 <body>
@@ -109,7 +113,7 @@
         <ul class="sns-links">
           {% for s in site.sns %}
           <li>
-            <a href="{{ s[1] }}" target="_blank">
+            <a href="{{ s[1] }}" target="_blank" aria-label="{{ s[0] }}">
               <svg class="icon" aria-hidden="true">
                 <use xlink:href="#icon-{{ s[0] }}"></use>
               </svg>
@@ -122,7 +126,7 @@
       <section class="post-footer-item read-next">
         {% if page.next.url %}
         <div class="read-next-item">
-          <a href="{{ page.next.url | relative_url }}" class="read-next-link"></a>
+          <a href="{{ page.next.url | relative_url }}" class="read-next-link" aria-label="{{ page.next.title }}"></a>
           <section>
             <span>{{ page.next.title }}</span>
             <p>{{ page.next.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
@@ -136,7 +140,7 @@
 
         {% if page.previous.url %}
         <div class="read-next-item">
-          <a href="{{ page.previous.url | relative_url }}" class="read-next-link"></a>
+          <a href="{{ page.previous.url | relative_url }}" class="read-next-link" aria-label="{{ page.previous.title }}"></a>
             <section>
               <span>{{ page.previous.title }}</span>
               <p>{{ page.previous.excerpt | strip_html | strip_newlines | truncate: 60}}</p>
@@ -175,6 +179,9 @@
       wechatQrcodeTitle: "分享到微信朋友圈",
       wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
     });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
   </script>
 
   {% if site.comments.disqus %}
@@ -199,9 +206,12 @@
 
   <script src="{{ "/assets/js/prism.js" | relative_url }}"></script>
   <script src="{{ "/assets/js/index.min.js" | relative_url }}"></script>
-  <script src="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  {% if site.comments.waline %}
   <script src="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.js"></script>
+  {% endif %}
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy.cjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js.map"></script> -->
@@ -212,7 +222,8 @@
       // 给图片添加链接
       $(document).ready(function() {
           $("p img").each(function() {
-              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + this.src + "' data-caption='" + this.alt + "'></a>";
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload");
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
               $(this).wrapAll(strA);
           });
 
@@ -236,10 +247,15 @@
               pageview: true,
             });
           {% endif %}
+
       });
   </script>
-  <script src="//at.alicdn.com/t/font_3046306_rpxw9us9jmc.js"></script>
+  <script src="https://at.alicdn.com/t/font_3046306_rpxw9us9jmc.js"></script>
   {% include analytics.html %}
+  {% include pwa.html %}
+  {% if site.mathjax %}
+	{% include mathjax.html %}
+	{% endif %}
 </body>
 
 </html>

@@ -91,9 +91,11 @@
                 letter-spacing: 1px;
                 color: #fff;
                 padding: 0 12px;
-                opacity: .7;
+                // opacity: .7;
+                opacity: 1;
                 &:hover {
-                    opacity: 1;
+                    // opacity: 1;
+                    opacity: .7;
                 }
             }
             &.mode{
@@ -238,7 +240,9 @@
                 margin-top: 3px;
                 font-size: 18px;
                 font-weight: normal;
-                color: $color-brand;
+                // color: $color-brand;
+                // color: gray;
+                color: #585858;
                 line-height: 26px;
             }
             .post-excerpt {
@@ -247,7 +251,8 @@
                 font-family: 'Merriweather', $fonts;
                 line-height: 26px;
                 word-break: break-all;
-                color: #b8bdc3;
+                // color: #b8bdc3;
+                color: #585858;
             }
         }
         .post-meta {
@@ -261,7 +266,9 @@
             }
             .post-date {
                 float: right;
-                color: #A9B0BC;
+                // color: #A9B0BC;
+                // color: gray;
+                color: #585858;
                 @include timeStyle;
 
                 .icon {
@@ -457,6 +464,12 @@
             &:hover {
                 color: #83888F;
             }
+            .license {
+                border-width: 0px;
+                margin-bottom: -3px;
+                width: 80px;
+                height: 15px;
+            }
 
         }
     }
@@ -588,7 +601,8 @@
         position: relative;
         width: $post-content-w;
         font-size: 18px;
-        color: #a6a6a6;
+        // color: #a6a6a6;
+        color: #585858;
         font-weight: normal;
         line-height: 28px;
         text-align: center;
@@ -673,6 +687,8 @@
     }
     img {
         transition: .3s;
+        width: 100%;
+        height: 100%;
     }
     ul, ol {
         li {
@@ -988,7 +1004,13 @@
     }
     .article-item .post-tag, .tags-card .tag {
         // border: none;
-        background-color: #515151;
+        background-color: #565656;
+        color: #ffffff;
+    }
+    .tags-card {
+        .links {
+            color: #d3d3d3;
+        }
     }
     .tags-list {
         li {
@@ -1001,6 +1023,12 @@
         border-color: rgba(255, 255, 255, 0.1);
         section {
             color: $color-f-dark;
+            a {
+                color: #f8f8f8;
+                &:hover {
+                    color: #83888f;
+                }
+            }
         }
     }
     .post-content {
@@ -1022,6 +1050,9 @@
         }
         code {
             text-shadow: none!important;
+        }
+        a {
+            color: #58ceff;
         }
     }
     .read-next-item {
@@ -1080,7 +1111,7 @@
         }
     }
     .archives-date {
-        color: #adbac7;
+        color: #eff0f0;
     }
     .year {
         span {
@@ -1092,7 +1123,8 @@
 .archives-date {
     width: 130px;
     display: inline-block;
-    color: #363636;
+    // color: #363636;
+    color: #222222;
     opacity: 0.63;
 }
   

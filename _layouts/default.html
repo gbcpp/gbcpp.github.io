@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{site.language}}">
 {% include head.html %}
 <body ontouchstart="">
     <!--[if lt IE 10]>
@@ -16,12 +16,15 @@
       </div>
     </div>
 
-    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
     <script src="{{ "/assets/js/prism.js" | prepend: site.baseurl }}"></script>
     <script src="{{ "/assets/js/index.min.js" | prepend: site.baseurl }}"></script>
-    <script src="//at.alicdn.com/t/font_3046306_rpxw9us9jmc.js"></script>
+    <script src="https://at.alicdn.com/t/font_3046306_rpxw9us9jmc.js"></script>
     {% include analytics.html %}
     {% include pwa.html %}
+    {% if site.mathjax %}
+    {% include mathjax.html %}
+    {% endif %}
 </body>
 </html>

@@ -14,7 +14,8 @@ $color-dark-secondary: #2D313A;
 // font-color
 $color-f-primary: #4E4E4E;
 $color-f-secondary: #656565;
-$color-f-dark: #868A94;
+// $color-f-dark: #868A94;
+$color-f-dark: #AAAAAA;
 
 // size
 $g-header-h: 26px;
@@ -41,7 +42,8 @@ $post-content-w: 720px;
     height: 22px;
     padding: 0 8px;
     font-size: 14px;
-    color: #A6ABB2;
+    // color: #A6ABB2;
+    color: #656565;
     font-family: $fonts;
     line-height: 22px;
     box-sizing: border-box;
@@ -80,7 +82,8 @@ $post-content-w: 720px;
         overflow: hidden;
         box-shadow: 0 1px 4px rgba(100, 110, 120, .53);
         img {
-            width: 100%;
+            width: 70px;
+            height: 70px;
         }
     }
     .author-name {
