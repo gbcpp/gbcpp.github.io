@@ -346,14 +346,17 @@ $(document).ready(function(){
         return "";
     }
 
-    function setCookie(cname, cvalue, exdays, domain="127.0.0.1"){
+    // function setCookie(cname, cvalue, exdays, domain="127.0.0.1"){
+    function setCookie(cname, cvalue, exdays){
         var d = new Date();
         d.setTime(d.getTime()+(exdays*24*60*60*1000));
         var expires = "expires="+d.toGMTString();
         if(!baseurl){
-            document.cookie = cname+"="+cvalue+"; path=/; domain="+domain+";"+expires;
+            // document.cookie = cname+"="+cvalue+"; path=/; domain="+domain+";"+expires;
+            document.cookie = cname+"="+cvalue+"; path=/; "+expires;
         }else {
-            document.cookie = cname+"="+cvalue+"; path="+baseurl+"; domain="+domain+";"+expires;
+            // document.cookie = cname+"="+cvalue+"; path="+baseurl+"; domain="+domain+";"+expires;
+            document.cookie = cname+"="+cvalue+"; path="+baseurl+"; "+expires;
         }
     }
     
