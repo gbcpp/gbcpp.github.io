@@ -444,4 +444,11 @@ $(document).ready(function(){
         }, 500);
     });
 
+    /*
+    *  Error image loading
+    */
+    document.addEventListener('error', function(e){
+        if(e.target.nodeName == 'IMG'){e.target.src = baseurl + '/assets/img/placeholder.webp';}
+    }, true);
+
 });
