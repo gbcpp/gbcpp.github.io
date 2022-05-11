@@ -29,19 +29,19 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;学术首页如下图所示，并将原来 H2O 中的卡片首页移动到 blog 子目录下了。如果读者想要看到文章卡片展示页，还是可以点击顶部的导航栏中的 BLOG 直接访问。
 
-![首页 Home](https://i.lisz.me/blog/XyT038.webp)
+![首页 Home](https://i.lisz.top/blog/XyT038.webp)
 
 #### 归档页
 
 &emsp;&emsp;归档页设置为由 Jekyll 按照模板自动生成，以年份、日期、文章标题分级列表展示，简洁清晰。
 
-![归档页 Archives](https://i.lisz.me/blog/lj4vUP.webp)
+![归档页 Archives](https://i.lisz.top/blog/lj4vUP.webp)
 
 #### 系统日志页
 
 &emsp;&emsp;系统日志页其实也不是经常更新的，只有在博客整体作出设置或改进的才加以说明。另外，也可以将一些固定的站点信息放置在系统日志页，比如站点的多点部署信息，读者可以根据此信息访问最快、最合适的节点。
 
-![系统日志 Log](https://i.lisz.me/blog/7QLEc6.webp)
+![系统日志 Log](https://i.lisz.top/blog/7QLEc6.webp)
 
 ### 使用体验提升
 
@@ -51,13 +51,13 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;H2O 原有的社交图标其实已经比较广泛，只是还有些领域局限性，比如学术研究人员可能更希望展示谷歌学术、ResearchGate、ORCID 等社交图标及链接，而运维开发人员可能更希望展示 SegmentFault、CSDN、博客园等社交图标及链接。这里在 H2O 提供的社交图标类型基础上做了这些平台图标的扩充，同时尝试了 Symbol 引用的方式来实现社交图标鼠标悬停的效果，从而简化代码（H2O 采用的是字体图标的方式，需要为每一个社交图标定义不同的主题色）。
 
-![社交图标 SNS](https://i.lisz.me/blog/UpnQdk.webp)
+![社交图标 SNS](https://i.lisz.top/blog/UpnQdk.webp)
 
 #### 查看大图
 
 &emsp;&emsp;查看大图功能的确对于读者的阅读体验来说有很大的提升。就像我们阅读文献一样，可能首先会只看文章附图来大致掌握文章的核心点。博文的查看大图功能也可能有这样的异曲同工之妙。这里是采用的 [Fancybox](https://fancyapps.com/docs/ui/fancybox) 插件实现的。H2O-ac 主题中只使用了最简单的配置，用户可以根据需求查看文档做出更多的修改。
 
-![查看大图 Fancybox](https://i.lisz.me/blog/BzfBoz.webp)
+![查看大图 Fancybox](https://i.lisz.top/blog/BzfBoz.webp)
 
 (2022年4月30日更新)
 
@@ -69,9 +69,9 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;原来 H2O 主题的深色模式切换需要在 _config.yml 文件中配置开启，并且只能在固定时间段使用。此次更新在页面右上角提供了深色/浅色模式一键切换按钮，如下图所示。由于更新了深色模式采用 cookie 的方式来确定，此深色模式切换按钮可以与原来的深色模式配置共存。
 
-![浅色模式 Day mode](https://i.lisz.me/blog/EPhFN9.webp)
+![浅色模式 Day mode](https://i.lisz.top/blog/EPhFN9.webp)
 
-![深色模式 Night mode](https://i.lisz.me/blog/BD7BqC.webp)
+![深色模式 Night mode](https://i.lisz.top/blog/BD7BqC.webp)
 
 #### 提示框
 
@@ -189,7 +189,7 @@ formats:
 
 &emsp;&emsp;为了方便用户使用 H2O-ac 主题，特别提供了 Github 的模板功能。如下图所示，访问 [H2O-ac](https://github.com/zhonger/jekyll-theme-H2O-ac) 可以看到如下的 Use this template 按钮，点击该按钮即可用 H2O-ac 主题创建自己的博客代码仓库。想要了解更多步骤，可以访问 Github 官方文档之 [从模板创建仓库](https://docs.github.com/cn/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)。
 
-![从模板新建 Start the blog from the template](https://i.lisz.me/blog/oHHZZh.webp)
+![从模板新建 Start the blog from the template](https://i.lisz.top/blog/oHHZZh.webp)
 
 #### 方式二：已有博客迁移
 
