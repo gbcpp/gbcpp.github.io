@@ -28,7 +28,9 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="{{ "/assets/js/index.min.js" | prepend: site.baseurl }}"></script>
     <script src="https://at.alicdn.com/t/font_3046306_5ex1jlxzv93.js"></script>
+    {% if busuanzi %}
     <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    {% endif %}
     {% include analytics.html %}
     {% include pwa.html %}
     {% if site.mathjax %}
