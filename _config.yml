@@ -103,7 +103,7 @@ cclicense: true
 cnzz: 
 
 # Busuanzi Analytics
-busuanzi: 
+busuanzi: true
 
 # Google Analytics
 # google_analytics: UA-XXXXXXXXX-X

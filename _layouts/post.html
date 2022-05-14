@@ -68,7 +68,7 @@
             </svg>
              阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟
           </span>
-          {% if busuanzi %}
+          {% if site.busuanzi %}
           <span class="post-meta-item">
             <svg class="icon pv" aria-hidden="true">
               <use xlink:href="#icon-pv"></use>
@@ -89,7 +89,7 @@
             </svg>
             It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes
           </span>
-          {% if busuanzi %}
+          {% if site.busuanzi %}
           <span class="post-meta-item">
             <svg class="icon pv" aria-hidden="true">
               <use xlink:href="#icon-pv"></use>
@@ -283,7 +283,7 @@
       });
   </script>
   <script src="https://at.alicdn.com/t/font_3046306_5ex1jlxzv93.js"></script>
-  {% if busuanzi %}
+  {% if site.busuanzi %}
   <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   {% endif %}
   {% include analytics.html %}
