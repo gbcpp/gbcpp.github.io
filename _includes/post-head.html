@@ -27,7 +27,7 @@
     <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" as="font" crossorigin="anonymous" />
     <link rel="stylesheet" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" media="print" onload="this.media='all'" />
     {% if site.prism.theme %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-{{site.prism_theme}}.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-{{site.prism.theme}}.min.css" />
     {% else %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism.min.css" />
     {% endif %}

@@ -25,8 +25,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" async>
     <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | prepend: site.baseurl }}">
     <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" as="font" crossorigin="anonymous">
-    {% if site.prism_theme %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-{{site.prism_theme}}.min.css">
+    {% if site.prism.theme %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-{{site.prism.theme}}.min.css">
     {% else %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism.min.css">
     {% endif %}
