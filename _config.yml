@@ -102,6 +102,9 @@ cclicense: true
 # cnzz: 1234567891
 cnzz: 
 
+# Busuanzi Analytics
+busuanzi: true
+
 # Google Analytics
 # google_analytics: UA-XXXXXXXXX-X
 google_analytics: 

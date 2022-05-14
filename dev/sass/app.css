@@ -1433,6 +1433,10 @@ a {
   color: #e32e00;
 }
 
+#busuanzi_value_site_pv, #busuanzi_value_site_uv {
+  color: brown;
+}
+
 .premonition.note, .premonition.info, .premonition.warning, .premonition.error, .premonition.citation {
   border-radius: 6.4px;
   padding: 10px 16px 1px 16px;

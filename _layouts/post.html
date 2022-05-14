@@ -44,7 +44,7 @@
           </span>
           <time class="post-meta-item" datetime="{{ page.date | date:"%y-%m-%d" }}">
             <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-time"></use>
+              <use xlink:href="#icon-calendar"></use>
             </svg>
             {% case site.formats.time %}
             {% when 0 %}
@@ -57,16 +57,42 @@
           </time>
           {% if site.language == 'zh-cn' %}
           <span class="post-meta-item">
-            <svg class="icon info2" aria-hidden="true">
-              <use xlink:href="#icon-info2"></use>
+            <svg class="icon words" aria-hidden="true">
+              <use xlink:href="#icon-words"></use>
             </svg>
-          本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字 <b>·</b> 阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟</span>
+          本文总共 {{ page.content | strip_html | strip_newlines | remove: " " | size }} 字
+          </span>
+          <span class="post-meta-item">
+            <svg class="icon time" aria-hidden="true">
+              <use xlink:href="#icon-time"></use>
+            </svg>
+             阅读全文大约需要 {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} 分钟
+          </span>
+          <span class="post-meta-item">
+            <svg class="icon pv" aria-hidden="true">
+              <use xlink:href="#icon-pv"></use>
+            </svg>
+            本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+          </span>
           {% else %}
           <span class="post-meta-item">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-info2"></use>
+            <svg class="icon words" aria-hidden="true">
+              <use xlink:href="#icon-words"></use>
             </svg>
-          There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally <b>·</b> It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes</span>
+          There are {{ page.content | strip_html | strip_newlines | remove: " " | size }} words totally 
+        </span>
+          <span class="post-meta-item">
+            <svg class="icon time" aria-hidden="true">
+              <use xlink:href="#icon-time"></use>
+            </svg>
+            It may needs {{ page.content | strip_html | strip_newlines | remove: " " | size | divided_by: 350 | plus: 1 }} minutes
+          </span>
+          <span class="post-meta-item">
+            <svg class="icon pv" aria-hidden="true">
+              <use xlink:href="#icon-pv"></use>
+            </svg>
+            Total pageviews <span id="busuanzi_value_page_pv"></span>
+          </span>
           {% endif %}
         </div>
       </div>
@@ -252,7 +278,8 @@
 
       });
   </script>
-  <script src="https://at.alicdn.com/t/font_3046306_t32rh9wafu.js"></script>
+  <script src="https://at.alicdn.com/t/font_3046306_5ex1jlxzv93.js"></script>
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   {% include analytics.html %}
   {% include pwa.html %}
   {% if site.mathjax %}
