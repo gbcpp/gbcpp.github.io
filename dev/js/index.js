@@ -112,6 +112,37 @@ $(document).ready(function(){
     }
 
     /*
+    * List for contents
+    */
+    // var mode = getCookie("mode");
+    // if(mode == "night"){
+    //     $(".mobile-list .icon.list.night").addClass("active");
+    // }else{
+    //     $(".mobile-list .icon.list.day").addClass("active");
+    // }
+
+    function clickMobileList(){
+        $('.table-of-contents').toggleClass("active");
+        var mode = getCookie("mode");
+        if(mode == "night"){
+            $('.mobile-list .icon.list.night').toggleClass('active');
+            $('.mobile-list .icon.exit.night').toggleClass('active');
+        }else{
+            $('.mobile-list .icon.list.day').toggleClass('active');
+            $('.mobile-list .icon.exit.day').toggleClass('active');
+        }
+    }
+
+    $('.mobile-list').bind('click', function(){
+        clickMobileList();
+    });
+
+    $(".table-of-contents").on('click', function(){
+        clickMobileList();
+    });
+
+
+    /*
     * Back To Top Button
     */
     $('.bttb').bind('click', function(){
@@ -374,11 +405,13 @@ $(document).ready(function(){
         $("#mode-toggle .icon-night").addClass("active");
         $("body").addClass("night-mode");
         $(".icon.up.night").toggleClass("active");
+        $(".icon.list.night").toggleClass("active");
     }else{
         $(".g-nav li.mode .day").addClass("active");
         $("#mode-toggle .icon-day").addClass("active");
         $("body").removeClass("night-mode");
         $(".icon.up.day").toggleClass("active");
+        $(".icon.list.day").toggleClass("active");
     }
 
     function changeMode(){
@@ -398,6 +431,13 @@ $(document).ready(function(){
         $("#mode-toggle .icon").toggleClass("active");
         $(".icon.up.day").toggleClass("active");
         $(".icon.up.night").toggleClass("active");
+        if($('.table-of-contents').css('visibility') == "visible"){
+            $(".icon.exit.day").toggleClass("active");
+            $(".icon.exit.night").toggleClass("active");
+        }else{
+            $(".icon.list.day").toggleClass("active");
+            $(".icon.list.night").toggleClass("active");
+        }
     }
 
     $(".g-nav li.mode").click(function(){

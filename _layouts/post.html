@@ -16,9 +16,9 @@
   <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
   <![endif]-->
   {% if site.gray %}
-  <div id=all class="gray">
+  <div id=all class="post gray">
   {% else %}
-  <div id="all">
+  <div id="all" class="post">
   {% endif %}
     <input id="nm-switch" type="hidden" value="{{ site.nightMode }}"> {% include header.html %}
 
@@ -219,12 +219,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.js"></script>
   {% endif %}
   <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy.cjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js.map"></script> -->
-  <!-- <!-- <script src="https://unpkg.com/@popperjs/core@2"></script> -->
-  <!-- <script src="https://unpkg.com/tippy.js@6"></script> --> 
-
   <script>
       // 给图片添加链接
       $(document).ready(function() {
@@ -258,7 +252,7 @@
 
       });
   </script>
-  <script src="https://at.alicdn.com/t/font_3046306_rpxw9us9jmc.js"></script>
+  <script src="https://at.alicdn.com/t/font_3046306_t32rh9wafu.js"></script>
   {% include analytics.html %}
   {% include pwa.html %}
   {% if site.mathjax %}
