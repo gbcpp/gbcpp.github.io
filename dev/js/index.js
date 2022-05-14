@@ -418,9 +418,10 @@ $(document).ready(function(){
         // target	
         var currentId = "codeblock" + (i + 1);
         $(this).attr('id', currentId);
+        var lang = $(this).attr("class").split(" ")[1].substring(9).toUpperCase(); 
        
         //trigger
-        var clipButton = '<div class="copy-container"><button class="btn" data-bs-original-title="Copy" aria-label="Copy" data-clipboard-target="#' + currentId + '"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-copy"></use></svg><span class="tooltip unfinish">Copy</span><span class="tooltip finish">Copied</span></button></div>';
+        var clipButton = '<div class="copy-container"><span class="lang">' + lang + '</span><button class="btn" data-bs-original-title="Copy" aria-label="Copy" data-clipboard-target="#' + currentId + '"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-copy"></use></svg><span class="tooltip unfinish">Copy</span><span class="tooltip finish">Copied</span></button></div>';
         $(this).before(clipButton);
     });
 

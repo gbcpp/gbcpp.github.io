@@ -98,6 +98,13 @@ tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 
 &emsp;&emsp;本人使用 H2O 主题的时候代码高亮功能还是沿用的 Jekyll 自带的，后来 H2O 主题也开始采用了 [Prism.js](https://prismjs.com/)。不过由于使用的是 `OKAIDIA` 高亮主题，所以有些段落中的格式化字段显示上有些问题。这里，仍然采用默认主题，并且扩增到 Prism.js 支持的所有编程语言类型。效果可以从前一句的 OKAIDIA 字段和下面即将出现的代码片段看出。
 
+```css
+@font-face {
+  font-family: 'Merriweather';
+  src: local('Merriweather'), url(https://fonts.gstatic.com/...) format('woff2');
+}
+```
+
 #### 代码复制
 
 (2022年5月1日更新)

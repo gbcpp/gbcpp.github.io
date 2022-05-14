@@ -235,6 +235,9 @@
                 color: $color-f-primary;
                 font-size: 24px;
                 line-height: 32px;
+                .keep-top {
+                    color: red;
+                }
             }
             .post-subtitle {
                 margin-top: 3px;
@@ -702,6 +705,13 @@
     }
     .copy-container{
         position: relative;
+        background-color: #e2e2e2;
+        height: 28px;
+        .lang {
+            line-height: 28px;
+            padding-left: 10px;
+            font-weight: bold;
+        }
         .btn {
             position: absolute;
             top: 0px;
@@ -711,6 +721,7 @@
             cursor: pointer;
             height: 28px;
             background-color: #ebedf0;
+            z-index: 100;
             // border-radius: 2px;
             .icon {
                 width: 24px;
@@ -1053,6 +1064,9 @@
         }
         a {
             color: #58ceff;
+        }
+        .copy-container {
+            background-color: #393939;
         }
     }
     .read-next-item {

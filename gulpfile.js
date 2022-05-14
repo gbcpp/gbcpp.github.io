@@ -24,17 +24,18 @@ gulp.task('sass', (cb) => {
 });
 
 gulp.task('css', (cb) => {
-    gulp.src(['dev/sass/prism.css', 'dev/sass/github-markdown.css', 'dev/sass/share.min.css'])
+    gulp.src(['dev/sass/github-markdown.css', 'dev/sass/share.min.css'])
         .pipe(concat('plugins.min.css'))
         .pipe(cleanCSS())
         .pipe(gulp.dest('assets/css'));
     cb();
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function(done) {
     gulp.watch('dev/sass/*.scss', gulp.series('sass'));
     gulp.watch('dev/sass/*.css', gulp.series("css"));
     gulp.watch('dev/js/*.js', gulp.series("scripts"));
+    done();
 });
 
 gulp.task('default', gulp.series('scripts', 'sass', 'css', 'watch'));
