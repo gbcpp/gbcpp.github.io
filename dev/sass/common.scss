@@ -1131,7 +1131,7 @@
     p {
         font-size: 16px;
     }
-    .table-area{
+    .table-area {
         overflow: auto;
         table {
             word-break: keep-all;
@@ -1140,7 +1140,21 @@
             white-space: nowrap;
         }
     }
-    
+    .post-copyright {
+        background-color: #FFFBF0;
+        border-radius: 4px;
+        border: 1px solid #efe1bb;
+        padding: 18px 20px;
+        font-size: 14px;
+        color: #333;
+        p {
+            margin-bottom: 0px;
+            text-align: left;
+            span {
+                font-weight: bold;
+            }
+        }
+    }
 }
 
 .mobile-list {

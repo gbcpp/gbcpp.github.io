@@ -115,6 +115,12 @@
         <div class="contents">
           <article class="markdown-body">
             {{ page.content }}
+            <div class="post-copyright">
+              <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="{{ site.url }}">{{ site.title }}</a>&nbsp;所有，转载请注明本文链接。</p>
+              {% if site.cclicense %}<p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>{% endif %}
+              <p><span>本文标题：</span>《 {{ page.title }} 》</p>
+              <p><span>本文链接：</span><a href="{{ page.url | prepend: site.url }}">{{ page.url | prepend: site.url }}</a></p>
+            </div>
           </article>
         </div>   
         <div class="table-of-contents">
@@ -125,6 +131,12 @@
       {% else %}
         <article class="markdown-body">
           {{ page.content }}
+          <div class="post-copyright">
+            <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="{{ site.url }}">{{ site.title }}</a>&nbsp;所有，转载请注明本文链接。</p>
+            {% if site.cclicense %}<p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>{% endif %}
+            <p><span>本文标题：</span>《 {{ page.title }} 》</p>
+            <p><span>本文链接：</span><a href="{{ page.url | prepend: site.url }}">{{ page.url | prepend: site.url }}</a></p>
+          </div>
         </article>
       {% endif %}
 
