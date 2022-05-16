@@ -187,11 +187,15 @@ pwa:
 
 (2022年4月30日更新)
 
-&emsp;&emsp;新增全站一键灰度化功能、时间格式配置。在国家公祭日等需要灰度化以示哀悼的时候可以将灰度化配置设置为 true，平常使用默认配置 false。时间格式这里一共提供了 3 种：第一种中英文站点使用皆宜，第二种适用于英文站点，第三种适用于中文站点。默认时间格式为第一种。
+&emsp;&emsp;新增**全站一键灰度化功能**、**时间格式**配置。在国家公祭日等需要灰度化以示哀悼的时候可以将灰度化配置设置为 true，平常使用默认配置 false。时间格式这里一共提供了 3 种：第一种中英文站点使用皆宜，第二种适用于英文站点，第三种适用于中文站点。默认时间格式为第一种。
 
 (2022年5月14日更新)
 
-&emsp;&emsp;新增 [不蒜子](https://busuanzi.ibruce.info/) 统计方式，可以显示全站访问次数、全站访问用户数、文章页面阅读量。如下设置可以开启。
+&emsp;&emsp;新增 [**不蒜子**](https://busuanzi.ibruce.info/) 统计方式，可以显示全站访问次数、全站访问用户数、文章页面阅读量。如下设置可以开启。
+
+(2022年5月16日更新)
+
+&emsp;&emsp;新增 [**umami**](https://github.com/mikecao/umami) 统计方式，需要自行先搭建 umami 然后接入。接入配置只需要如下所示配置跟踪 id 和 JS 脚本地址。
 
 ```yaml
 # Links 友情链接
@@ -211,6 +215,12 @@ formats:
 
 # Busuanzi Analytics
 busuanzi: true
+
+# Umami Analytics
+umami:
+  status: true
+  id: xxxxxxxxxxxxx
+  js: https://umami.example.com/umami.js
 ```
 
 #### 前端自动构建工作流优化
@@ -219,14 +229,14 @@ busuanzi: true
 
 | 运行环境或依赖库 | 版本号 |
 | :--: | :--: |
-| NodeJS | v17.0.0 | 
-| gulp | v4.0.2 | 
-| gulp-clean-css | v4.3.0 | 
-| gulp-rename | v20.0 | 
-| gulp-sass | v5.0.0 | 
-| gulp-uglify | v3.0.2 | 
-| gulp-concat | v2.6.1 | 
-| node-sass | v7.0.0 | 
+| NodeJS | v17.0.0 |
+| gulp | v4.0.2 |
+| gulp-clean-css | v4.3.0 |
+| gulp-rename | v20.0 |
+| gulp-sass | v5.0.0 |
+| gulp-uglify | v3.0.2 |
+| gulp-concat | v2.6.1 |
+| node-sass | v7.0.0 |
 
 ## 使用方法
 
@@ -248,7 +258,7 @@ busuanzi: true
 
 ### 本地测试
 
-&emsp;&emsp;在进行本地测试时，如果需要修改一些样式，则需要先执行 `npm install` 来完成前端自动构建工作流依赖库的安装。注意，这里设定的可用 NodeJS 版本为 v17.0.0，使用老版本会报错。其次，务必使用 `bundle install` 安装主题所需的所有 Ruby 依赖库。最后执行 `bundle exec jekyll serve --livereload` 命令即可在本地实时同步预览。只要不修改 _config.yml 文件，不必中断后再启动。然后就是在 _posts 目录下写 markdown 文章即可。
+&emsp;&emsp;在进行本地测试时，如果需要修改一些样式，则需要先执行 `npm install` 来完成前端自动构建工作流依赖库的安装。注意，这里设定的可用 NodeJS 版本为 v17.0.0，使用老版本会报错。其次，务必使用 `bundle install` 安装主题所需的所有 Ruby 依赖库。最后执行 `bundle exec jekyll serve --livereload` 命令即可在本地实时同步预览。只要不修改 _config.yml 文件，不必中断后再启动。然后就是在 `_posts` 目录下写 markdown 文章即可。
 
 ### 发布部署
 
