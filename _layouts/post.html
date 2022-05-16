@@ -245,9 +245,7 @@
   <script src="{{ "/assets/js/index.min.js" | relative_url }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
-  {% if site.comments.waline %}
-  <script src="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.js"></script>
-  {% endif %}
+  {% include waline.html %}
   <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
   <script>
       // 给图片添加链接
@@ -283,10 +281,9 @@
       });
   </script>
   <script src="https://at.alicdn.com/t/font_3046306_5ex1jlxzv93.js"></script>
-  {% if site.busuanzi %}
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-  {% endif %}
   {% include analytics.html %}
+  {% include umami.html %}
+  {% include busuanzi.html %}
   {% include pwa.html %}
   {% if site.mathjax %}
 	{% include mathjax.html %}

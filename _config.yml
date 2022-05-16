@@ -105,6 +105,12 @@ cnzz:
 # Busuanzi Analytics
 busuanzi: true
 
+# Umami Analytics
+umami:
+  status: true
+  id: 32b3e55b-f520-42d0-9818-d2116acb066c
+  js: https://umami.lep.site/umami.js
+
 # Google Analytics
 # google_analytics: UA-XXXXXXXXX-X
 google_analytics: 
