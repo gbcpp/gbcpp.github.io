@@ -225,7 +225,7 @@ umami:
 
 #### 前端自动构建工作流优化
 
-&emsp;&emsp;H2O 主题中使用了 Gulp + Node-Sass 的方案来自动化前端构建工作流。不得不说，这个方案还是很不错的，只是随着 Gulp 和 Node-Sass 版本的更新，对 NodeJS 环境及其他依赖库都有一些要求。这里，H2O-ac 主题在 package.json 文件中将所有库都更新到目前最新，对应版本列表如下所示。另外，为了减少一些第三方 CSS 样式的请求数，利用自动构建工作流将固定的第三方 CSS 样式文件合并并压缩为 plugins.min.css 文件。app.min.css 仍为多个自编写 CSS 样式文件的合并压缩。
+&emsp;&emsp;H2O 主题中使用了 Gulp + ~~Node-Sass~~ Sass 的方案来自动化前端构建工作流。不得不说，这个方案还是很不错的，只是随着 Gulp 和 ~~Node-Sass~~ Sass 版本的更新，对 NodeJS 环境及其他依赖库都有一些要求。这里，H2O-ac 主题在 package.json 文件中将所有库都更新到目前最新，对应版本列表如下所示。另外，为了减少一些第三方 CSS 样式的请求数，利用自动构建工作流将固定的第三方 CSS 样式文件合并并压缩为 plugins.min.css 文件。app.min.css 仍为多个自编写 CSS 样式文件的合并压缩。
 
 | 运行环境或依赖库 | 版本号 |
 | :--: | :--: |
@@ -236,7 +236,8 @@ umami:
 | gulp-sass | v5.0.0 |
 | gulp-uglify | v3.0.2 |
 | gulp-concat | v2.6.1 |
-| node-sass | v7.0.0 |
+| ~~node-sass~~ | ~~v7.0.0~~ |
+| sass | v1.51.0 |
 
 ## 使用方法
 
