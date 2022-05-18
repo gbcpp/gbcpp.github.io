@@ -13,6 +13,15 @@
     <meta property="og:description" content="{{ site.description }}">
     <meta property="og:site_name" content="{{ site.title }}">
     <meta property="og:gray" content="{{ site.gray }}">
+    <meta property="post-date-format" content="{{ site.formats.time }}">
+    {% case site.formats.time %}
+    {% when 0 %}
+    <meta property="post-date" content="{{ page.date | date: '%Y-%m-%d %H:%M:%S %z' }}" />
+    {% when 1 %}
+    <meta property="post-date" content="{{ page.date | date_to_rfc822 }}" />
+    {% else %}
+    <meta property="post-date" content="{{ page.date | date: '%Y年%-m月%-d日 %H:%M:%S %z'  }}" />
+    {% endcase %}
     {% if site.google_search %}
     <meta name="google-site-verification" content="{{ site.google_search }}" />
     {% endif %}

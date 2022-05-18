@@ -46,14 +46,7 @@
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
-            {% case site.formats.time %}
-            {% when 0 %}
-              {{ page.date | date: "%Y-%m-%d %H:%M:%S %z" }} 
-            {% when 1 %}
-              {{ page.date | date_to_rfc822 }}
-            {% else %}
-              {{ page.date | date: "%Y年%-m月%-d日 %H:%M:%S %z"  }}
-            {% endcase %}
+            <span></span>
           </time>
           {% if site.language == 'zh-cn' %}
           <span class="post-meta-item">
@@ -259,6 +252,7 @@
   <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
   {% include waline.html %}
   <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
   <script>
       // 给图片添加链接
       $(document).ready(function() {
@@ -290,6 +284,16 @@
             });
           {% endif %}
 
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          if(post_date_format == 0){
+            var local_post_date = new dayjs(post_date).format('YYYY-MM-DD HH:mm:ss ZZ');
+          }else if(post_date_format == 1){
+            var local_post_date = new dayjs(post_date).format('YYYY DD MMM HH:mm:ss ZZ');
+          }else {
+            var local_post_date = new dayjs(post_date).format('YYYY年MM月DD日 HH:mm:ss ZZ');
+          }
+          $(".post time span").html(local_post_date);
       });
   </script>
   <script src="https://at.alicdn.com/t/font_3046306_5ex1jlxzv93.js"></script>
