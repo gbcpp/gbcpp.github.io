@@ -253,6 +253,7 @@
   {% include waline.html %}
   <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
   <script>
       // 给图片添加链接
@@ -285,16 +286,19 @@
             });
           {% endif %}
 
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
           dayjs.extend(window.dayjs_plugin_relativeTime);
           var post_date = $("meta[property='post-date']").attr('content');
           var post_date_format = $("meta[property='post-date-format']").attr('content');
           if(post_date_format == 0){
-            var local_post_date = new dayjs(post_date).format('YYYY-MM-DD HH:mm:ss ZZ');
+            var local_post_date = dayjs(post_date, 'YYYY-MM-DD HH:mm:ss ZZ').format('YYYY-MM-DD HH:mm:ss ZZ');
           }else if(post_date_format == 1){
-            var local_post_date = new dayjs(post_date).format('YYYY DD MMM HH:mm:ss ZZ');
+            var local_post_date = dayjs(post_date, 'YYYY DD MMM HH:mm:ss ZZ').format('YYYY DD MMM HH:mm:ss ZZ');
           }else {
-            var local_post_date = new dayjs(post_date).format('YYYY年MM月DD日 HH:mm:ss ZZ');
+            var local_post_date = dayjs(post_date, 'YYYY年MM月DD日 HH:mm:ss ZZ').format('YYYY年MM月DD日 HH:mm:ss ZZ');
           }
+          console.log(post_date);
+          console.log(local_post_date);
           $(".post time span").html(local_post_date);
           var relative_time = dayjs().diff(dayjs(post_date), 'month');
           if(relative_time > 24){
