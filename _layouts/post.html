@@ -291,14 +291,17 @@
           var post_date = $("meta[property='post-date']").attr('content');
           var post_date_format = $("meta[property='post-date-format']").attr('content');
           if(post_date_format == 0){
-            var local_post_date = dayjs(post_date, 'YYYY-MM-DD HH:mm:ss ZZ').format('YYYY-MM-DD HH:mm:ss ZZ');
+            var local_post_date_org = dayjs(post_date, 'YYYY-MM-DD HH:mm:ss ZZ');
+            var local_post_date = local_post_date_org.format('YYYY-MM-DD HH:mm:ss ZZ');
           }else if(post_date_format == 1){
-            var local_post_date = dayjs(post_date, 'YYYY DD MMM HH:mm:ss ZZ').format('YYYY DD MMM HH:mm:ss ZZ');
+            var local_post_date_org = dayjs(post_date, 'YYYY DD MMM HH:mm:ss ZZ');
+            var local_post_date = local_post_date_org.format('YYYY DD MMM HH:mm:ss ZZ');
           }else {
-            var local_post_date = dayjs(post_date, 'YYYY年MM月DD日 HH:mm:ss ZZ').format('YYYY年MM月DD日 HH:mm:ss ZZ');
+            var local_post_date_org = dayjs(post_date, 'YYYY年MM月DD日 HH:mm:ss ZZ');
+            var local_post_date = local_post_date_org.format('YYYY年MM月DD日 HH:mm:ss ZZ');
           }
           $(".post time span").html(local_post_date);
-          var relative_time = dayjs().diff(dayjs(post_date), 'month');
+          var relative_time = dayjs().diff(local_post_date_org, 'month');
           if(relative_time > 24){
             $(".post-copyright").append("<p class='tips'><span>友情提醒：</span>这篇文章发表有点久远了，内容可能有所过时。</p>");
           }
