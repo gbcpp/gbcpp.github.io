@@ -297,8 +297,6 @@
           }else {
             var local_post_date = dayjs(post_date, 'YYYY年MM月DD日 HH:mm:ss ZZ').format('YYYY年MM月DD日 HH:mm:ss ZZ');
           }
-          console.log(post_date);
-          console.log(local_post_date);
           $(".post time span").html(local_post_date);
           var relative_time = dayjs().diff(dayjs(post_date), 'month');
           if(relative_time > 24){
