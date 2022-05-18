@@ -19,13 +19,16 @@ $$
 **这是一个`align`的公式**：
 
 $$
-\text{for OTP : $\qquad$ if }\quad E(k,\:m)=c\\
 \begin{align}
-k\oplus m &= c \\
-k &= m\oplus c
+    \Phi(0,x) = \max_{u \in \mathcal{D}} \bigg[
+        \mathbb{E} & \Phi\left(1, 
+        x + \int_0^1 \sigma^2(s) \, \zeta(s) \, u_s \, ds
+        + \int_0^1 \sigma(s) \, dW_s
+    \right) \\
+        &- \frac{1}{2} \int_0^1 \sigma^2(s) \, \zeta(s) \,
+        \mathbb{E} u_s^2  \, ds
+    \bigg].
 \end{align}
-\\
-\#\{\;k \in \mathscr K : \quad E(k,\:m)=c \;\}=1 \quad \forall m,\:c
 $$
 
 **注意：**公式块要想有较好的显示效果，必须在公式块标记符`$$`**前后**留有空行，否则公式将不能正常居中。行内公式无此问题。
