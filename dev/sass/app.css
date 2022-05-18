@@ -1342,6 +1342,9 @@ a {
 .markdown-body .post-copyright p span {
   font-weight: bold;
 }
+.markdown-body .post-copyright p.tips {
+  color: #e32e00;
+}
 
 .mobile-list {
   position: fixed;
