@@ -1305,6 +1305,7 @@ a {
   display: inline-block;
   margin-bottom: 0 !important;
   margin-top: 0 !important;
+  white-space: nowrap;
 }
 
 .markdown-body a {
