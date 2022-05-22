@@ -199,6 +199,27 @@
         </div>
         {% endif %}
       </section>
+      {% if site.comments.disqus or site.comments.waline %}
+      <section class="post-footer-item comment">
+        <div class="comments-headline">
+          <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-comment"></use>
+          </svg>
+          <span>评论</span>
+        </div>
+        {% if site.comments.disqus and site.comments.waline %}
+        <div id="comments-switch">
+          <span class="first-comment">Disqus</span>
+          <span class="switch-button">
+            <input id="cmn-toggle-4" class="cmn-toggle cmn-toggle-round-flat" type="checkbox">
+            <label for="cmn-toggle-4"></label>
+          </span>
+          <span class="second-comment">Waline</span>
+        </div>
+        {% endif %}
+      </section>      
+      {% endif %}
+   
       {% if site.comments.disqus %}
       <section class="post-footer-item comment">
           <div id="disqus_thread"></div>
@@ -206,7 +227,9 @@
       {% endif %}
 
       {% if site.comments.waline %}
-      <section class="post-footer-item comment" id="waline"></section>
+      <section class="post-footer-item comment">
+          <div id="waline"></div>
+      </section>
       {% endif %}
     </section>
 
@@ -248,6 +271,7 @@
       s.setAttribute('data-timestamp', +new Date());
       (d.head || d.body).appendChild(s);
     })();
+
   </script>
   {% endif %}
 
@@ -289,9 +313,28 @@
               el: '#waline',
               serverURL: '{{ site.comments.waline_url }}',
               comment: true,
-              pageview: true,
             });
           {% endif %}
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
 
           var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
           function dateFormat(date, format){
@@ -329,7 +372,7 @@
           });         
       });
   </script>
-  <script src="https://at.alicdn.com/t/font_3046306_2jov0yduq0n.js"></script>
+  <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script>
   {% include analytics.html %}
   {% include umami.html %}
   {% include busuanzi.html %}

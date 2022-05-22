@@ -427,6 +427,11 @@ $(document).ready(function(){
             $("body").removeClass("night-mode");
         }
         // console.log(mode + "-->" + getCookie("mode"));
+        if($("#disqus_thread").length > 0){
+            DISQUS.reset({
+                reload: true
+            });
+        }
         $(".g-nav li.mode .icon").toggleClass("active");
         $("#mode-toggle .icon").toggleClass("active");
         $(".icon.up.day").toggleClass("active");

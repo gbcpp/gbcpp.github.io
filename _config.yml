@@ -70,9 +70,9 @@ nightMode: false
 # Comments 评论功能
 comments:
   disqus: false
-  disqus_url: 'https://liaokeyu.disqus.com/embed.js'
+  disqus_url: 'https://h2o-ac.disqus.com/embed.js'
   waline: false
-  waline_url: 'https://h2o-ac-waline.vercel.app'
+  waline_url: 'https://h2o-ac-waline.deta.dev/'
 
 # MathJax 公式支持 by Ray-Eldath
 mathjax: true

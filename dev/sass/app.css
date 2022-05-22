@@ -978,8 +978,98 @@ a {
   position: relative;
   top: -35px;
 }
-.author-detail .comment {
-  margin-bottom: 60px;
+.author-detail .comment .wl-gif-popup {
+  max-width: 90%;
+}
+.author-detail .comment #disqus_thread, .author-detail .comment #waline {
+  display: none;
+}
+.author-detail .comment #disqus_thread.active, .author-detail .comment #waline.active {
+  display: block;
+  animation: 0.5s ease 0s 1 normal none running tabshow;
+}
+.author-detail .comment .comments-headline {
+  display: inline-block;
+  vertical-align: middle;
+  font-weight: 700;
+  font-size: 1.43em;
+  margin-bottom: 20px;
+  height: 40px;
+  line-height: 40px;
+}
+.author-detail .comment .comments-headline .icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: -7px;
+}
+.author-detail .comment #comments-switch {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 10px;
+  display: block;
+  float: right;
+  margin-bottom: 10px;
+}
+.author-detail .comment #comments-switch .first-comment {
+  color: #3CD5FF;
+}
+.author-detail .comment #comments-switch .second-comment {
+  color: #FFCE69;
+}
+.author-detail .comment #comments-switch .switch-button {
+  display: inline-block;
+  margin-bottom: -5px;
+}
+.author-detail .comment #comments-switch .switch-button .cmn-toggle {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+.author-detail .comment #comments-switch .switch-button .cmn-toggle + label {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat + label {
+  padding: 2px;
+  width: 40px;
+  height: 20px;
+  background-color: #3CD5FF;
+  border-radius: 15px;
+  transition: background 0.4s;
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat + label:before,
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat + label:after {
+  display: block;
+  position: absolute;
+  content: "";
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat + label:before {
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  right: 2px;
+  background-color: #fff;
+  border-radius: 10px;
+  transition: background 0.4s;
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat + label:after {
+  top: 4px;
+  left: 4px;
+  bottom: 4px;
+  width: 16px;
+  background-color: #3CD5FF;
+  border-radius: 24px;
+  transition: margin 0.4s, background 0.4s;
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat:checked + label {
+  background-color: #FFCE69;
+}
+.author-detail .comment #comments-switch .switch-button input.cmn-toggle-round-flat:checked + label:after {
+  margin-left: 20px;
+  background-color: #FFCE69;
 }
 
 .read-next {

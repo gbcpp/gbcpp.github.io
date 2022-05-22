@@ -749,8 +749,100 @@
 .author-detail {
     position: relative;
     top: -35px;
-    .comment {
-        margin-bottom: 60px;
+    .comment {        
+        .wl-gif-popup {
+            max-width: 90%;
+        }    
+        #disqus_thread, #waline {
+            display: none;
+            &.active {
+                display: block;
+                animation: 0.5s ease 0s 1 normal none running tabshow;
+            }
+        }
+        .comments-headline {
+            display: inline-block;
+            vertical-align: middle;
+            font-weight: 700;
+            font-size: 1.43em;
+            margin-bottom: 20px;
+            height: 40px;
+            line-height: 40px;
+            .icon {
+                width: 30px;
+                height: 30px;
+                margin-bottom: -7px;
+            }
+        } 
+        #comments-switch {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 10px;
+            display: block;
+            float: right;
+            margin-bottom: 10px;
+            .first-comment {
+                color: #3CD5FF;
+            }
+            .second-comment {
+                color: #FFCE69;
+            }
+            .switch-button {
+                display: inline-block;
+                margin-bottom: -5px;
+                .cmn-toggle {
+                    position: absolute;
+                    margin-left: -9999px;
+                    visibility: hidden;
+                }
+                .cmn-toggle + label {
+                    display: block;
+                    position: relative;
+                    cursor: pointer;
+                    outline: none;
+                    user-select: none;
+                }
+                input.cmn-toggle-round-flat + label {
+                    padding: 2px;
+                    width:  40px;
+                    height: 20px;
+                    background-color: #3CD5FF;
+                    border-radius: 15px;
+                    transition: background 0.4s;
+                }
+                input.cmn-toggle-round-flat + label:before,
+                input.cmn-toggle-round-flat + label:after {
+                    display: block;
+                    position: absolute;
+                    content: "";
+                }
+                input.cmn-toggle-round-flat + label:before {
+                    top: 2px;
+                    left: 2px;
+                    bottom: 2px;
+                    right: 2px;
+                    background-color: #fff;
+                    border-radius: 10px;
+                    transition: background 0.4s;
+                }
+                input.cmn-toggle-round-flat + label:after {
+                    top: 4px;
+                    left: 4px;
+                    bottom: 4px;
+                    width: 16px;
+                    background-color: #3CD5FF;
+                    border-radius: 24px;
+                    transition: margin 0.4s, background 0.4s;
+                }
+                input.cmn-toggle-round-flat:checked + label {
+                    background-color: #FFCE69;
+                }
+                input.cmn-toggle-round-flat:checked + label:after {
+                    margin-left: 20px;
+                    background-color: #FFCE69;
+                }
+            }
+        }
     }
 }
 
