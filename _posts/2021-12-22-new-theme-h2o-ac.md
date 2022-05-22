@@ -140,6 +140,37 @@ prism:
 
 &emsp;&emsp;字数统计及阅读时间估计这个小功能其实以前在用 WordPress 的时候比较常见。虽然说统计和估计的结果不一定完全准确，但是还是起到了一定的辅助阅读的作用。效果可以查看本页标题下的基本信息区域。
 
+#### 时间本地化与最近更新时间
+
+(2022年5月22日更新)
+
+&emsp;&emsp;为了支持来自不同时区的读者直接可以看到文章发布对应的本地时间，现已利用 dayjs 新增**时间本地化**功能。并利用 Github API 查询页面的最近一次 commit 更新时间作为文章**最近更新时间**。效果如下图所示。
+
+![构建位置时区 Jekyll deployment timezone](https://i.lisz.top/blog/Anb4xH.webp)
+![读者时区 Reader timezone](https://i.lisz.top/blog/NMPXmQ.webp)
+
+&emsp;&emsp;如需使用**最近更新时间**功能，务必在 _config.yml 文件中添加以下配置项：
+
+```yaml
+# Github
+github:
+  enabled: true
+  owner: github_username
+  repository: github_project_name
+```
+
+&emsp;&emsp;如未正确进行以上配置，默认会将最近更新时间与发布时间保持一致。
+
+#### 版权显式声明
+
+(2022年5月18日更新)
+
+&emsp;&emsp;之前的版本只会在页面底部的信息栏中显示一个 CC 4.0 的小图标，不是很醒目。根据调研其他静态网站主题，发现一般都会在文章的末尾自动生成一个比较醒目的版权声明。另外，在版权声明中也将根据最近更新时间来判断内容是否可能过时。如果最近更新时间距离当前时间大于 365 天，则会显示具体日期并提醒有内容过时的可能。效果如下所示。
+
+![版权显式声明 Copyright](https://i.lisz.top/blog/scNRyd.webp)
+![内容可能过时提醒 Long time ago notification](https://i.lisz.top/blog/C8RWtL.webp)
+
+
 #### 文章侧边索引导航
 
 (2022年1月9日更新)
@@ -166,7 +197,16 @@ comments:
   waline_url: https://xxxxxx.vercel.app
 ```
 
-&emsp;&emsp;目前未对多评论系统同时支持进行优化，所以如果 Disqus 和 Waline 同时开启时，Disqus 在前 Waline 在后同时出现。如果用户环境无法访问 Disqus 即只能看到 Waline。
+&emsp;&emsp;~~目前未对多评论系统同时支持进行优化，所以如果 Disqus 和 Waline 同时开启时，Disqus 在前 Waline 在后同时出现。如果用户环境无法访问 Disqus 即只能看到 Waline。~~
+
+(2022年5月22日更新)
+
+&emsp;&emsp;新增多评论切换按钮：当同时使用 Disqus 和 Waline 时，会在评论区域的右上角看到一个左右滑动切换按钮。如下所示，从左往右滑动即可从 Disqus 切换到 Waline。
+
+&emsp;&emsp;同时修复了手动切换深色模式时 Disqus 不会自动切换模式而造成的显示问题。目前在模式切换时 Disqus 会主动进行重新加载以适应当前模式。
+
+![Disqus 评论系统 Disqus comment](https://i.lisz.top/blog/WBgbUB.webp)
+![Waline 评论系统 Waline comments](https://i.lisz.top/blog/45JQ9H.webp)
 
 #### 支持 PWA
 
