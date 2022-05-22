@@ -21,7 +21,7 @@ baseurl: ''
 github:
   enabled: true
   owner: zhonger
-  repository: zhonger.github.io
+  repository: jekyll-theme-H2O-ac
 
 # PWA
 pwa:
