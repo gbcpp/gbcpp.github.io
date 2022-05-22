@@ -335,7 +335,6 @@
             }
           }
 
-
           var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
           function dateFormat(date, format){
             var date_org = dayjs(date, time_formats[format]);
@@ -347,7 +346,7 @@
           dayjs.extend(window.dayjs_plugin_relativeTime);
           var post_date = $("meta[property='post-date']").attr('content');
           var post_date_format = $("meta[property='post-date-format']").attr('content');
-          var local_post_date = dateFormat(post_date, post_date_format)
+          var local_post_date = dateFormat(post_date, post_date_format);
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
