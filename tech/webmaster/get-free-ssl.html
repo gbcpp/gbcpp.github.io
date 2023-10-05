@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+
+<html lang="zh-Hans">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,106 +13,297 @@
     <meta property="og:title" content="Letsencrypt 泛域名 SSL 证书免费申请 - 仲儿的自留地">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://lisz.me/tech/webmaster/get-free-ssl.html">
+    <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="仲儿的自留地">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/tech/docker/nextcloud.html">
+    
+    
+    <meta property="og:next_url" content="/tech/linux/unbound-dns.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2018-03-14 21:25:44 +0900" />
+    
+    
+    <meta name="alivestart" content="08/08/2015">
+    
+    
+    <meta name="google-site-verification" content="v729JR7Zs4nX-YvgaPeo3p1ise9vTA-6cMhamSu6N5c" />
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
     <link rel="Shortcut Icon" href="/assets/icons/favicon.ico">
+    <link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon" />
     <link rel="bookmark" href="/assets/icons/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css">
-    <link rel="stylesheet" href="https://at.alicdn.com/t/font_roc50gemkxpw4s4i.css">
-    <link rel="stylesheet" href="/assets/css/plugins.min.css">
-    <link rel="preload" href="/assets/fonts/Merriweather-Regular.ttf" as="font" crossorigin=”anonymous”>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
     <link rel="stylesheet" href="/assets/css/app.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-164207041-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'UA-164207041-1');
-    </script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 </head>
-<body>
-    <!--[if lt IE 10]>
-<div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
-<![endif]-->
-<input id="nm-switch" type="hidden" value="false">
 
-<header class="g-header">
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
     <div class="g-logo">
-      <a href="/" aria-label="Homepage"></a>
+      <a href="/" aria-label="logo"></a>
     </div>
     <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
     <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
         <use xlink:href="#icon-menu"></use>
     </svg>
     <nav class="g-nav">
         <ul>
             
-            <li><a href="/">home</a></li>
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
             
-            <li><a href="/blog/index.html">blog</a></li>
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
             
-            <li><a href="/archives.html">archives</a></li>
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
             
-            <li><a href="{"CONQUEST"=>"/tags.html#CONQUEST", "LDAP"=>"/tags.html#LDAP", "博客"=>"/tags.html#blog"}">collections</a></li>
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
             
-            <li><a href="/tags.html">tags</a></li>
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/logs.html" aria-label="logs">
+                                logs
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tos.html" aria-label="tos">
+                                tos
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/cv.html" aria-label="CV">
+                                CV
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/links.html" aria-label="links">
+                                links
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
             
-            <li><a href="{"logs"=>"/logs.html", "tos"=>"/tos.html", "RSS"=>"/feed.xml", "CV"=>"/cv.html", "links"=>"/links.html"}">about</a></li>
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> collections </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/tags.html#CONQUEST" aria-label="CONQUEST">
+                                CONQUEST
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#LDAP" aria-label="LDAP">
+                                LDAP
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#blog" aria-label="博客">
+                                博客
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
             
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
         </ul>
     </nav>
 </header>
 
 
-<header class="g-banner post-header post-pattern-food bgcolor-default " data-theme="default">
-    <div class="post-wrapper">
+    <header
+      class="g-banner post-header post-pattern-food bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
         <div class="post-tags">
+          
             
+              <a href="/tags.html#Letsencrypt" class="post-tag">Letsencrypt</a>
             
-            <a href="/tags.html#Letsencrypt" class="post-tag">Letsencrypt</a>
+              <a href="/tags.html#ssl" class="post-tag">ssl</a>
             
-            <a href="/tags.html#ssl" class="post-tag">ssl</a>
+              <a href="/tags.html#%E6%B3%9B%E5%9F%9F%E5%90%8D" class="post-tag">泛域名</a>
             
-            <a href="/tags.html#%E6%B3%9B%E5%9F%9F%E5%90%8D" class="post-tag">泛域名</a>
+              <a href="/tags.html#%E5%85%8D%E8%B4%B9" class="post-tag">免费</a>
             
-            <a href="/tags.html#%E5%85%8D%E8%B4%B9" class="post-tag">免费</a>
-            
-            
+          
         </div>
         <h1>Letsencrypt 泛域名 SSL 证书免费申请</h1>
         <div class="post-meta">
-            <span class="post-meta-item"><i class="iconfont icon-author"></i><a href="https://lisz.me" target="_blank" rel="author">zhonger</a></span>
-            <time class="post-meta-item" datetime="18-03-14"><i class="iconfont icon-date"></i>Wed, 14 Mar 2018 21:25:44 +0900</time>
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            zhonger
+          </span>
+          <time class="post-meta-item" datetime="18-03-14">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="18-03-14">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  3.2k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 10 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+            <span class="post-meta-item">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-image"></use>
+              </svg>
+              
+                封面图片提供者 <a href="https://unsplash.com/@chengfengrecord" target="_blank">cheng feng</a>
+              
+            </span>
+          
         </div>
-        <div class="post-meta">
-            <span>本文总共 3199 字 <b>·</b> 阅读全文大约需要 10 分钟</span>
-        </div>
-    </div>
-    
-    <div class="filter"></div>
-    <div class="post-cover" style="background: url('https://i.lisz.top/cover/3ruY1v.webp') center no-repeat; background-size: cover;">
-    
-</header>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('https://i.lisz.top/cover/3ruY1v.webp') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">内网站点也可以轻松 HTTPS 化了</h2>
+      
 
-<div class="post-content">
-    
-    <h2 class="post-subtitle">内网站点也可以轻松 HTTPS 化了</h2>
-    
-    <article class="markdown-body" id="lightgallery">
-        <h2 id="https-和-lets-encrypt-简介">HTTPS 和 Let’s encrypt 简介</h2>
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h2 id="https-和-lets-encrypt-简介">HTTPS 和 Let’s encrypt 简介</h2>
 
 <p>  超文本传输安全协议（英语：Hypertext Transfer Protocol Secure，缩写：HTTPS，常称为 HTTP over TLS，HTTP over SSL 或 HTTP Secure）是一种网络安全传输协议。在计算机网络上，HTTPS 经由超文本传输协议进行通信，但利用 SSL/TLS 来加密数据包。HTTPS 开发的主要目的，是提供对网络服务器的身份认证，保护交换数据的隐私与完整性。这个协议由网景公司（Netscape）在1994年首次提出，随后扩展到互联网上。</p>
 
 <p>  HTTPS 连接经常用于万维网上的交易支付和企业信息系统中敏感信息的传输，而如今在 Goolge 、 Mozilla 等大厂的联合推广下， HTTPS 已经成为了每一个站点的安全必备要素。</p>
 
-<p>  然而 HTTPS 要求在一层加密连接（TLS 或 SSL）上来进行常规的 HTTP 协议，因此搭建 HTTPS 站点必须要先获得一个 SSL 证书。 SSL 证书是经过所谓的国际顶级 CA 机构进行颁发，大部分情况下是需要支付一定的费用的。根据支付不同价格的费用，可以分别域名型 DV 、企业型 OV 和增强型 EV ，这个可以参考 <a href="https://cloud.tencent.com/product/ssl">腾讯云 SSL 产品介绍</a> 来理解一下。</p>
+<p>  然而 HTTPS 要求在一层加密连接（TLS 或 SSL）上来进行常规的 HTTP 协议，因此搭建 HTTPS 站点必须要先获得一个 SSL 证书。 SSL 证书是经过所谓的国际顶级 CA 机构进行颁发，大部分情况下是需要支付一定的费用的。根据支付不同价格的费用，可以分别域名型 DV 、企业型 OV 和增强型 EV ，这个可以参考 <a href="https://cloud.tencent.com/product/ssl" rel="nofollow" target="_blank" class="extlinks">腾讯云 SSL 产品介绍</a> 来理解一下。</p>
 
-<p>  由于有了 Google 、 Mozilla 等大厂的 HTTPS 呼吁，他们也想能够提供给站点免费的 SSL 证书借此来提升大家迁移到 HTTPS 站点的热情，于是就有了非常著名的 Let’s encrypt 这样一款非常好看又好玩的产品。 Let’s encrypt 在发展之初仅支持向单域名或者多域名颁发一个证书、60 天有效期，每个证书最多包含 100 个域名，而且需要通过 DNS 解析记录和 HTTP 访问来验证域名的所有权，因此对于站点是否处于公网是有要求的。有人说站点不是都在公网上，难道连内网中的站点也要 HTTPS 化吗？其实如果按照之前的情况来看，内网站点 HTTPS 化只能采用曲线的方式实现。（用一台公网服务器来申请好证书，再将域名解析到内网并且部署证书在内网，这样的坏处就是始终需要通过这样一个方式来更新证书，十分麻烦。）于是，<a href="https://certbot.eff.org">certbot</a> 这款优秀的工具就诞生了。certbot 支持大部分的 web 服务器（例如 Nginx、Apache 、Haproxy 等）和大部分的操作系统（Centos 系列、Debian 系列、Archlinux 等），不得不说是所有 Let’s encrypt 衍生出的 SSL 证书申请工具的佼佼者。</p>
+<p>  由于有了 Google 、 Mozilla 等大厂的 HTTPS 呼吁，他们也想能够提供给站点免费的 SSL 证书借此来提升大家迁移到 HTTPS 站点的热情，于是就有了非常著名的 Let’s encrypt 这样一款非常好看又好玩的产品。 Let’s encrypt 在发展之初仅支持向单域名或者多域名颁发一个证书、60 天有效期，每个证书最多包含 100 个域名，而且需要通过 DNS 解析记录和 HTTP 访问来验证域名的所有权，因此对于站点是否处于公网是有要求的。有人说站点不是都在公网上，难道连内网中的站点也要 HTTPS 化吗？其实如果按照之前的情况来看，内网站点 HTTPS 化只能采用曲线的方式实现。（用一台公网服务器来申请好证书，再将域名解析到内网并且部署证书在内网，这样的坏处就是始终需要通过这样一个方式来更新证书，十分麻烦。）于是，<a href="https://certbot.eff.org" rel="nofollow" target="_blank" class="extlinks">certbot</a> 这款优秀的工具就诞生了。certbot 支持大部分的 web 服务器（例如 Nginx、Apache 、Haproxy 等）和大部分的操作系统（Centos 系列、Debian 系列、Archlinux 等），不得不说是所有 Let’s encrypt 衍生出的 SSL 证书申请工具的佼佼者。</p>
 
-<p>  在2018年3月，Let’s encrypt 在很长一段时间的努力下，终于进一步缩小了 SSL 证书颁发的限制，已经支持颁发泛域名证书(<a href="https://community.letsencrypt.org/t/acme-v2-and-wildcard-certificate-support-is-live/55579">原文</a>)。这样一来，在内网中部署 SSL 证书将不再受限，所有的要求只剩下一点—-你对申请证书的域名具有所有权。在众多的 Let’s encrypt SSL 证书申请工具中，<a href="https://acme.sh">acme.sh</a> 一下子就脱颖而出了。<code class="language-plaintext highlighter-rouge">acme.sh</code> 支持通过 DNS 来验证域名所有权，因此你只需在指定域名时前面加上 <code class="language-plaintext highlighter-rouge">*</code> 就可以申请一枚免费的泛域名了。</p>
+<p>  在2018年3月，Let’s encrypt 在很长一段时间的努力下，终于进一步缩小了 SSL 证书颁发的限制，已经支持颁发泛域名证书(<a href="https://community.letsencrypt.org/t/acme-v2-and-wildcard-certificate-support-is-live/55579" rel="nofollow" target="_blank" class="extlinks">原文</a>)。这样一来，在内网中部署 SSL 证书将不再受限，所有的要求只剩下一点—-你对申请证书的域名具有所有权。在众多的 Let’s encrypt SSL 证书申请工具中，<a href="https://acme.sh" rel="nofollow" target="_blank" class="extlinks">acme.sh</a> 一下子就脱颖而出了。<code class="language-plaintext highlighter-rouge">acme.sh</code> 支持通过 DNS 来验证域名所有权，因此你只需在指定域名时前面加上 <code class="language-plaintext highlighter-rouge">*</code> 就可以申请一枚免费的泛域名了。</p>
 
 <h2 id="ssl-证书申请">SSL 证书申请</h2>
 
@@ -142,7 +335,7 @@ curl https://get.acme.sh | sh
 
 <p>  根据上一步返回的 TXT 记录添加要求，在相应的域名 DNS 服务提供商那里添加好对应的 TXT 记录即可。如下图所示。</p>
 
-<p><img src="https://i.lisz.top/blog/bI1lze.webp" alt="TXT 记录新增 Add TXT record" /></p>
+<p><img src="https://i.lisz.top/blog/bI1lze.webp" alt="TXT 记录新增 Add TXT record"></p>
 
 <h3 id="生成泛域名证书">生成泛域名证书</h3>
 
@@ -209,97 +402,124 @@ curl https://get.acme.sh | sh
 
 <p>  虽然通过这样的方式我们成功实现了免费申请内网 SSL 泛域名证书，但是经过实践发现，目前 Let’s encrypt 所提供的泛域名证书只能支持到最近一级通配。比如说，现在申请的是 <code class="language-plaintext highlighter-rouge">*.shu.aixinwu.org</code> ，如果站点域名为 <code class="language-plaintext highlighter-rouge">www.t.shu.aixinwu.org</code> 即被判别为无效域名，像 <code class="language-plaintext highlighter-rouge">www.shu.aixinwu.org</code> 即可认定为合法 SSL 证书。其实因为这种泛域名证书目前并没有提出任何限制，我们可以多级通配就申请多个即可。</p>
 
-    </article>
-    
-    <div class="social-share-wrapper">
-        <div class="social-share"></div>
-    </div>
-    
-</div>
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://lisz.me" class="cplink">仲儿的自留地</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 Letsencrypt 泛域名 SSL 证书免费申请 》</p>
+              <p><span>本文链接：</span><a href="https://lisz.me/tech/webmaster/get-free-ssl.html" class="cplink">https://lisz.me/tech/webmaster/get-free-ssl.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('https-和-let’s-encrypt-简介')">HTTPS 和 Let’s encrypt 简介</a></li><li><a onclick="scrollToAdjust('ssl-证书申请')">SSL 证书申请</a><ul><li><a onclick="scrollToAdjust('申请泛域名')">申请泛域名</a></li><li><a onclick="scrollToAdjust('下载-acme.sh-工具')">下载 acme.sh 工具</a></li><li><a onclick="scrollToAdjust('提交泛域名')">提交泛域名</a></li><li><a onclick="scrollToAdjust('添加-dns-记录')">添加 DNS 记录</a></li><li><a onclick="scrollToAdjust('生成泛域名证书')">生成泛域名证书</a></li></ul></li><li><a onclick="scrollToAdjust('部署泛域名')">部署泛域名</a><ul><li><a onclick="scrollToAdjust('生成-pem-证书')">生成 pem 证书</a></li><li><a onclick="scrollToAdjust('添加到-nginx-中')">添加到 Nginx 中</a></li></ul></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul>
+        </div>
+      </div>
+      
 
-<section class="author-detail">
-    <section class="post-footer-item author-card">
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
         <div class="avatar">
-            <img src="/assets/img/profile.webp" alt="">
+          <img src="/assets/img/profile.webp" alt="">
         </div>
         <div class="author-name" rel="author">zhonger</div>
         <div class="bio">
-            <p>Developer & Maintainer</p>
+          <p>Developer & Maintainer</p>
         </div>
         
         <ul class="sns-links">
-            
-            <li>
-                <a href="https://scholar.google.com/citations?user=AUupIooAAAAJ" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-google-scholar"></use>
-                    </svg>
-                </a>
-            </li>
-            
-            <li>
-                <a href="https://www.researchgate.net/profile/Shengzhou-Li" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-researchgate"></use>
-                    </svg>
-                </a>
-            </li>
-            
-            <li>
-                <a href="https://orcid.org/0000-0001-6973-3825" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-ORCID"></use>
-                    </svg>
-                </a>
-            </li>
-            
-            <li>
-                <a href="https://github.com/zhonger" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-github"></use>
-                    </svg>
-                </a>
-            </li>
-            
-            <li>
-                <a href="https://www.linkedin.com/in/shengzhouli/" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-linkedin"></use>
-                    </svg>
-                </a>
-            </li>
-            
-            <li>
-                <a href="https://segmentfault.com/u/wuwozhonger" target="_blank">
-                    <svg class="icon" aria-hidden="true">
-                        <use xlink:href="#icon-segmentfault"></use>
-                    </svg>
-                </a>
-            </li>
-            
+          
+          <li>
+            <a href="https://scholar.google.com/citations?user=AUupIooAAAAJ" target="_blank" aria-label="google-scholar">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-google-scholar"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.researchgate.net/profile/Shengzhou-Li" target="_blank" aria-label="researchgate">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-researchgate"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://orcid.org/0000-0001-6973-3825" target="_blank" aria-label="ORCID">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-ORCID"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://github.com/zhonger" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.linkedin.com/in/shengzhouli/" target="_blank" aria-label="linkedin">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-linkedin"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://segmentfault.com/u/wuwozhonger" target="_blank" aria-label="segmentfault">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-segmentfault"></use>
+              </svg>
+            </a>
+          </li>
+          
         </ul>
         
-    </section>
-    <section class="post-footer-item read-next">
+      </section>
+      <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-            <a href="/tech/docker/nextcloud.html" class="read-next-link"></a>
-            <section>
-                <span>Nextcloud 搭建自己的云盘</span>
-                <p>Nextcloud 简介</p>
-            </section>
-            
-            <div class="filter"></div>
-            <img src="https://i.lisz.top/cover/gLQGHs.webp" alt="">
-            
-        </div>
+          <a href="/tech/docker/nextcloud.html" class="read-next-link" aria-label="Nextcloud 搭建自己的云盘"></a>
+          <section>
+            <span>Nextcloud 搭建自己的云盘</span>
+            <p>Nextcloud 简介</p>
+          </section>
+          
+          <div class="filter"></div>
+          <img src="https://i.lisz.top/cover/gLQGHs.webp" alt="">
+          
+      </div>
         
+
         
         <div class="read-next-item">
-            <a href="/tech/linux/unbound-dns.html" class="read-next-link"></a>
+          <a href="/tech/linux/unbound-dns.html" class="read-next-link" aria-label="Unbound + Dnscrypt 搭建无污染 DNS 服务"></a>
             <section>
-                <span>Unbound + Dnscrypt 搭建无污染 DNS 服务</span>
-                <p>前言</p>
+              <span>Unbound + Dnscrypt 搭建无污染 DNS 服务</span>
+              <p>前言</p>
             </section>
             
             <div class="filter"></div>
@@ -307,76 +527,370 @@ curl https://get.acme.sh | sh
             
         </div>
         
+      </section>
+      
+   
+      
+
+      
     </section>
+
     
-</section>
+
 
 <footer class="g-footer">
-    <section>仲儿的自留地 © 
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">仲儿的自留地 ©
+        
         
           2015
           -
         
         2023
         
-        <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks"></a>
         
-    </section>
-    <section>Powered by <a href="//jekyllrb.com">Jekyll</a> & <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">Theme H2O-ac</a> (based on <a href="https://github.com/kaeyleo/jekyll-theme-H2O">Theme H2O</a>)  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" /></a>  <script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280712061'%3E%3C/span%3E%3Cscript src='https://v1.cnzz.com/z_stat.php%3Fid%3D1280712061%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script> </section>
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+          本站已运行 
+          <span class="alivetime_days"></span> 天
+          <span class="alivetime_hours"></span> 小时
+          <span class="alivetime_minutes"></span> 分
+          <span class="alivetime_seconds"></span> 秒
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+      <section class="badges">
+        
+          <a href="https://www.foreverblog.cn/" target="_blank" class="foreverblog"> 
+            <img src="https://img.foreverblog.cn/logo_en_default.png" alt=""> 
+          </a>
+        
+        
+          <a href="https://www.foreverblog.cn/go.html" target="_blank" class="wormhole"> 
+            <img src="https://img.foreverblog.cn/wormhole_3.gif" alt="" title="穿梭虫洞-随机访问十年之约友链博客">
+          </a>
+        
+        
+          <a href="https://notbyai.fyi/" target="_blank" class="notbyAI"> 
+            <img src="/assets/icons/notbyAI-white.png" alt="Written by Human, Not by AI">
+          </a>
+        
+      </section>
+      
+    </div>
+    
+  </div>
 </footer>
-<script src="//at.alicdn.com/t/font_3046306_4quk6r21fv8.js"></script>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
 
-<script src="/assets/js/social-share.min.js"></script>
-<script>
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
     socialShare('.social-share', {
-        sites: ['wechat','weibo','douban','twitter'],
-        wechatQrcodeTitle: "分享到微信朋友圈",
-        wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
     });
-</script>
-<script>
-/**
-*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
-/*
-var disqus_config = function () {
-this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-};
-*/
-(function() { // DON'T EDIT BELOW THIS LINE
-var d = document, s = d.createElement('script');
-/*写入自己的disqus信息*/
-s.src = '';
-s.setAttribute('data-timestamp', +new Date());
-(d.head || d.body).appendChild(s);
-})();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-<script>
-    // 给图片添加链接
-    $(document).ready(function() {
-        $("p img").each(function() {
-            var strA = "<a data-fancybox='gallery' ref='gallery1' href='" + this.src + "'></a>";
-            $(this).wrapAll(strA);
-        });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
 
-        $('[data-fancybox="gallery"]').fancybox();
-    });
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/zhonger/zhonger.github.io/commits?path=_posts/services/2018-03-14-get-free-ssl.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+  
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8SEJ5JNY"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9E8SEJ5JNY');
 </script>
-<script src="/assets/js/prism.js"></script>
-<script src="/assets/js/index.min.js"></script>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script> 
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$']],
-        processEscapes: true
-      }
-    };
+
+  
+<script async defer data-website-id="90ea4822-8012-444e-837a-757ea473e087" src="https://umami.lisz.top/pwiki.js"></script>
+
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
 </script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+  
+<!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BF0y1f49JPDkjSmUYtUb-gRzcVY72squyl0hE2xo7YTA4q7Ch2DAZ0WOZCNktfyakgPlDov92CafKw9ZPAwIDrc' });</script><!-- end webpushr code -->
+ 
 </body>
+
 </html>

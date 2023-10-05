@@ -1,0 +1,36 @@
+name: Tsukuba deploy
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+      - name: 'Generate static files'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1.0'
+          bundler: 'latest'
+          bundler-cache: true
+      - run: bundle exec jekyll build --config _config.tsukuba.yml
+      - name: 'SCP upload for http'
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./_site/*
+          host: ${{ secrets.TSUKUBA_HOST }}
+          remote: ${{ secrets.TSUKUBA_PATH1 }}
+          port: ${{ secrets.TSUKUBA_PORT }}
+          user: ${{ secrets.TSUKUBA_USERNAME }}
+          key: ${{ secrets.TSUKUBA_KEY }}
+      - name: 'SCP upload for https'
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./_site/*
+          host: ${{ secrets.TSUKUBA_HOST }}
+          remote: ${{ secrets.TSUKUBA_PATH2 }}
+          port: ${{ secrets.TSUKUBA_PORT }}
+          user: ${{ secrets.TSUKUBA_USERNAME }}
+          key: ${{ secrets.TSUKUBA_KEY }}
+
+
