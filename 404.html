@@ -34,7 +34,34 @@
 <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
 <![endif]-->
     <input id="nm-switch" type="hidden" value="false">
-    <header class="g-banner np-banner post-pattern-food" data-theme="default">
+    <header class="g-header">
+    <div class="g-logo">
+      <a href="/" aria-label="Homepage"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+            <li><a href="/">home</a></li>
+            
+            <li><a href="/blog/index.html">blog</a></li>
+            
+            <li><a href="/archives.html">archives</a></li>
+            
+            <li>&lt;a href="{"CONQUEST"=&gt;"/tags.html#CONQUEST", "LDAP"=&gt;"/tags.html#LDAP", "博客"=&gt;"/tags.html#blog"}"&gt;collections&lt;/a&gt;</li>
+            
+            <li><a href="/tags.html">tags</a></li>
+            
+            <li>&lt;a href="{"logs"=&gt;"/logs.html", "tos"=&gt;"/tos.html", "RSS"=&gt;"/feed.xml", "CV"=&gt;"/cv.html", "links"=&gt;"/links.html"}"&gt;about&lt;/a&gt;</li>
+            
+        </ul>
+    </nav>
+</header>
+
+<header class="g-banner np-banner post-pattern-food" data-theme="default">
     <div class="post-wrapper">
         <h1>404</h1>
         <span class="subheading">Sorry, Page Not Found :(</span>
