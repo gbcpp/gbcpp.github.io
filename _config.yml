@@ -53,7 +53,7 @@ favicon: "/favicon.ico"
 
 # Footer
 footer:
-  since: 2015
+  since: 2023
 
 # Author 配置博主信息
 author: 'Mr Chen'
@@ -141,7 +141,7 @@ recommend-condition-size: 12 # a tag will be recommended if the size of it is mo
 #   sort_reverse: true
 
 # Build settings
-paginate: 5
+paginate: 10
 paginate_path: 'blog/page:num'
 exclude: ['node_modules', 'dev', 'package.json', 'gulpfile.js', '.gitignore', 'README.md', '*.gemspec', '*.gem']
 
@@ -151,7 +151,7 @@ highlighter: rouge
 kramdown:
   input: GFM
 prism:
-  theme:
+  theme: one-light
   line_numbers: true
 
 # RSS
