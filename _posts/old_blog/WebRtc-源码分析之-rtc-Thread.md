@@ -23,7 +23,7 @@ date: 2018-03-30 06:13:22
 
 ## rtc::Thread 成员
 
-~~~c++
+~~~cpp
 // 继承自此类的子类，必须在其析构中主动调用 Stop 方法
 class RTC_LOCKABLE Thread : public MessageQueue {
  public:
@@ -217,7 +217,7 @@ class RTC_LOCKABLE Thread : public MessageQueue {
 
 - 创建实例
 
-~~~c++
+~~~cpp
 shared_ptr<rtc::Thread> _worker_thread_ptr(std::move(rtc::Thread::CreateWithSocketServer()));
 shared_ptr<rtc::Thread> _signal_thread_ptr(std::move(rtc::Thread::CreateWithSocketServer()));
 _worker_thread_ptr->Start();
@@ -240,7 +240,7 @@ rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm_ptr =
 
 - 创建 PC 工厂类
 
-~~~c++
+~~~cpp
 rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerconn_factory_ptr = 		webrtc::CreatePeerConnectionFactory(
         _worker_thread_ptr.get(), _worker_thread_ptr.get(), _signal_thread_ptr.get(), _adm_ptr, nullptr, nullptr);
 ~~~

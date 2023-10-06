@@ -47,7 +47,7 @@ date: 2019-05-28 09:40:18
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void BubbleSort(int* src, int count)
 {
     if(!src || count <= 1) {
@@ -83,7 +83,7 @@ n个记录的直接选择排序可经过n-1趟直接选择排序得到有序结�
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void SelectSort(int* src, int count)
 {
     if (!src || count <= 1) {
@@ -166,7 +166,7 @@ void InsertSort(int *src, int count)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void ShellSort(int *src, int count)
 {
     int i, j, k, group;
@@ -206,7 +206,7 @@ void ShellSort(int *src, int count)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void Merge(int* src_left, int left_count, int* src_right, int right_count, int *dest)
 {
     int left_index(0), right_index(0), index(0);
@@ -278,7 +278,7 @@ void MergeSort(int* src, int count)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void QuikSort(int* src, int left, int right)
 {
     if (!src || left >= right) {
@@ -328,7 +328,7 @@ void QuikSort(int* src, int left, int right)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 // 构建大顶堆
 void HeapBuild(int* src, int root, int count)
 {
@@ -396,7 +396,7 @@ void HeapSort(int* src, int count)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void CountSort(vector<int>& src_vec, int max_val)
 {
     if (src_vec.empty()) {
@@ -457,7 +457,7 @@ void CountSort(vector<int>& src_vec, int max_val)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 void BucketSort(vector<int>& vec)
 {
     int length = vec.size();
@@ -499,7 +499,7 @@ void BucketSort(vector<int>& vec)
 
 #### 代码实现
 
-~~~c++
+~~~cpp
 //radix sort
 //基数排序也是基于一种假设，假设所有数都是非负的整数
 //基数排序的基本思路是从低位至高位依次比较每个数的对应位，并排序；对应位的比较采用计数排序也可以采用桶排序；

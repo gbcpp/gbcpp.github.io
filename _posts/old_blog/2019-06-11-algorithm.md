@@ -1,9 +1,12 @@
 ---
+layout: post
 title: 经典算法题
-tags: C++ 算法
-categories: C++
-abbrlink: f9801b05
-date: 2019-06-11 10:24:41
+date: 2019-06-11
+author: Mr Chen
+# cover: '/assets/img/shan.jpg'
+tags: 
+- 算法
+- c++
 ---
 
 ## 二叉树遍历
@@ -24,7 +27,7 @@ date: 2019-06-11 10:24:41
 
 二叉树数据结构：
 
-~~~c++
+~~~cpp
 struct TreeNode{
     int value;
     TreeNode* left;
@@ -37,7 +40,7 @@ struct TreeNode{
 
 - 递归遍历
 
-~~~c++
+~~~cpp
 void PreTraverse(TreeNode* root)
 {
     if (!root) {
@@ -51,7 +54,7 @@ void PreTraverse(TreeNode* root)
 
 - 非递归遍历
 
-~~~c++
+~~~cpp
 void PreTraverse(TreeNode* root)
 {
     if (!root) {
@@ -76,7 +79,7 @@ void PreTraverse(TreeNode* root)
 
 - 递归遍历
 
-~~~c++
+~~~cpp
 void MiddleTraverse(TreeNode* root)
 {
     if (!root) {
@@ -90,7 +93,7 @@ void MiddleTraverse(TreeNode* root)
 
 - 非递归遍历
 
-~~~c++
+~~~cpp
 void MiddleTraverse(TreeNode* root) 
 {
     stack<TreeNode*> stack_list;
@@ -112,7 +115,7 @@ void MiddleTraverse(TreeNode* root)
 
 - 递归遍历
 
-~~~c++
+~~~cpp
 void MiddleTraverse(TreeNode* root)
 {
     if (!root) {
@@ -126,7 +129,7 @@ void MiddleTraverse(TreeNode* root)
 
 - 非递归遍历
 
-~~~c++
+~~~cpp
 void MiddleTraverse(TreeNode* root) 
 {
     stack<TreeNode*> stack_list;
@@ -146,7 +149,7 @@ void MiddleTraverse(TreeNode* root)
 
 ## 广度优先/层次遍历
 
-~~~c++
+~~~cpp
 /**
  * Definition for a binary tree node.
  * struct TreeNode {
@@ -191,7 +194,7 @@ public:
 
 ## 求二叉树最大宽度
 
-~~~c++
+~~~cpp
 class Solution {
 public:
     int widthOfBinaryTree(TreeNode* root) {
@@ -225,7 +228,7 @@ public:
 
 - 递归判断
 
-~~~c++
+~~~cpp
 bool IsMirror(TreeNode* left, TreeNode* right)
 {
     if (!left && !right) {
@@ -247,7 +250,7 @@ bool IsMirror(TreeNode* root)
 
 - 非递归/迭代法判断
 
-~~~c++
+~~~cpp
 bool IsMirror(TreeNode* root)
 {
     if (!root) {
@@ -283,7 +286,7 @@ bool IsMirror(TreeNode* root)
 将3，4分别于6相乘，记录低位的进位，然后将3，4对5进行相同的操作，知道第二个乘数的最高位乘完，算法结束。 
 所以我们可以保存每个位数的相乘结果，最后统一进位转换。
 
-~~~c++
+~~~cpp
 #include<iostream>
 #include<deque>
 #include<sstream>
@@ -335,7 +338,7 @@ std::string BigNumMultiply(std::string s1, std::string s2)
 
 在遍历列表时，将当前节点的 next 指针改为指向前一个元素。由于节点没有引用其上一个节点，因此必须事先存储其前一个元素。在更改引用之前，还需要另一个指针来存储下一个节点。不要忘记在最后返回新的头引用！
 
-~~~c++
+~~~cpp
 ListNode* ReverseList(ListNode* root)
 {
     if (!root || !root->next) {
@@ -375,7 +378,7 @@ ListNode* ReverseList(ListNode* root)
 
 要小心的是 n1 的下一个必须指向 Ø 。如果你忽略了这一点，你的链表中可能会产生循环。如果使用大小为 2 的链表测试代码，则可能会捕获此错误。
 
-~~~c++
+~~~cpp
 ListNode* ReverseList(ListNode* root)
 {
     if (!root || !root->next)
@@ -403,7 +406,7 @@ ListNode* ReverseList(ListNode* root)
 
 代码实现（递归）：
 
-~~~c++
+~~~cpp
 #include<stdio.h>
 #include<stdlib.h>
  
@@ -517,7 +520,7 @@ Output: 7 -> 0 -> 8
 
 代码实现：
 
-~~~c++
+~~~cpp
 struct ListNode {
     int value;
     ListNode* next;
@@ -564,7 +567,7 @@ ListNode* AddTwoListNumbers(ListNode* list1, ListNode* list2)
 
 代码实现：
 
-~~~c++
+~~~cpp
 string GetMaxString(const string& src_str)
 {
     if (src_str.empty()) {
