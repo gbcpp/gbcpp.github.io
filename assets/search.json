@@ -25,6 +25,12 @@
     } ,
   
     {
+      "title"    : "经典算法题",
+      "tags"     : "算法 c++",
+      "url"      : "/algorithm.html"
+    } ,
+  
+    {
       "title"    : "解决 WebRTC 花屏问题记录",
       "tags"     : "WebRTC",
       "url"      : "/resolve_webrtc_video_blurry_frame_issue.html"
