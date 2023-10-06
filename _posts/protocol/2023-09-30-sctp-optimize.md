@@ -7,6 +7,7 @@ author: Mr Chen
 cover: '/assets/img/shan.png'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
+pin: true
 tags: 
 - 协议
 ---
