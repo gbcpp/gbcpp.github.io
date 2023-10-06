@@ -25,6 +25,12 @@
     } ,
   
     {
+      "title"    : "解决 WebRTC 花屏问题记录",
+      "tags"     : "WebRTC",
+      "url"      : "/resolve_webrtc_video_blurry_frame_issue.html"
+    } ,
+  
+    {
       "title"    : "MathJax Test",
       "tags"     : "mathjax",
       "url"      : "/test/mathjax-test.html"
