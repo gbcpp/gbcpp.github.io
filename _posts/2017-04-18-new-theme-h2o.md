@@ -5,7 +5,7 @@ subtitle: '或许是最漂亮的Jekyll主题'
 date: 2017-04-18
 categories: tech
 author: kaeyleo
-cover: 'https://images.unsplash.com/photo-1465189684280-6a8fa9b19a7a?w=1600&q=900'
+cover: '/assets/img/hu.png'
 tags: jekyll 前端开发 设计
 ---
 

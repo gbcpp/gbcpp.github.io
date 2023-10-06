@@ -3,7 +3,7 @@ layout: post
 title: '后台服务绑定 CPU 核'
 date: 2023-09-30
 author: Mr Chen
-cover: '/assets/img/shan.png'
+# cover: '/assets/img/shan.jpg'
 #cover: 'https://images.unsplash.com/photo-1653629154302-8687b83825e2'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'

@@ -4,10 +4,9 @@ title: 'RtcDataChannel(sctp) protocol optimize'
 subtitle: '实现 RTCDataChannel 类似于裸 UDP 的传输效率'
 date: 2023-09-30
 author: Mr Chen
-cover: '/assets/img/shan.png'
+# cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
-pin: true
 tags: 
 - 协议
 ---
