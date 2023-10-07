@@ -15,7 +15,7 @@ date: 2019-04-16 11:56:05
 
 修复方式比较简单，修改 `audio_device_alsa_linux.cc` 文件中的 `StartPlayout` 方法如下：
 
-```C++
+~~~cpp
 int32_t AudioDeviceLinuxALSA::StartPlayout() {
   if (!_playIsInitialized) {
     return -1;
@@ -52,6 +52,6 @@ int32_t AudioDeviceLinuxALSA::StartPlayout() {
 
   return 0;
 }
-```
+~~~
 
 > **StartRecording 最好也调整下调用顺序。**

@@ -16,7 +16,7 @@ WebRTC 自 M68 版本推出新的重载方法 `GetStats` 以后，使用新的�
 
 > 文件为： api/stats/rtcstats_objects.h 
 
-```c++
+~~~cpp
 class RTCOutboundRTPStreamStats final : public RTCRTPStreamStats {
  public:
   WEBRTC_RTCSTATS_DECL();
@@ -35,7 +35,7 @@ class RTCOutboundRTPStreamStats final : public RTCRTPStreamStats {
   RTCStatsMember<int32_t> packets_lost;
   RTCStatsMember<int32_t> rtt_ms;
 };
-```
+~~~
 
 ## 初始化新字段
 
@@ -43,7 +43,7 @@ class RTCOutboundRTPStreamStats final : public RTCRTPStreamStats {
 
 - 构造函数的初始化列表增加 `RTCStatsMember` 键值对的初始化
 
-```c++
+~~~cpp
 RTCOutboundRTPStreamStats::RTCOutboundRTPStreamStats(
     std::string&& id, int64_t timestamp_us)
     : RTCRTPStreamStats(std::move(id), timestamp_us),
@@ -54,11 +54,11 @@ RTCOutboundRTPStreamStats::RTCOutboundRTPStreamStats(
       packets_lost("packetsLost"),
       rtt_ms("rttMs") {
 }
-```
+~~~
 
 - 拷贝构造函数初始化
 
-```c++
+~~~cpp
 RTCOutboundRTPStreamStats::RTCOutboundRTPStreamStats(
     const RTCOutboundRTPStreamStats& other)
     : RTCRTPStreamStats(other),
@@ -69,13 +69,13 @@ RTCOutboundRTPStreamStats::RTCOutboundRTPStreamStats(
       packets_lost(other.packets_lost),
       rtt_ms(other.rtt_ms) {
 }
-```
+~~~
 
 - `outbound-rtp` 中增加 Json 导出字段
 
 > 如果不增加，在上层 ToJoin 时是没有 `packetLost` 和 `rttMs` 字段的。
 
-```c++
+~~~cpp
 // clang-format off
 WEBRTC_RTCSTATS_IMPL(
     RTCOutboundRTPStreamStats, RTCRTPStreamStats, "outbound-rtp",
@@ -86,11 +86,11 @@ WEBRTC_RTCSTATS_IMPL(
     &packets_lost,
     &rtt_ms);
 // clang-format on
-```
+~~~
 
 ## 为新字段赋值
 
-```c++
+~~~cpp
 // Provides the media independent counters (both audio and video).
 void SetOutboundRTPStreamStatsFromMediaSenderInfo(
     const cricket::MediaSenderInfo& media_sender_info,
@@ -110,13 +110,13 @@ void SetOutboundRTPStreamStatsFromMediaSenderInfo(
   outbound_stats->rtt_ms =
       static_cast<int32_t>(media_sender_info.rtt_ms);
 }
-```
+~~~
 
 ## 验证
 
 通过 `PeerConnectionInterface` 的 `GetStats` 获取到的 `RTCStatsReport` 结构体 转换为 Json 字符串后，可以发现 `outbound-rtp` 节点中已经有了以上我们新增的 `packetsLost` 和 `rttMs` 两个字段。
 
-```json
+~~~json
 [
     ..... 其它节点请忽略，这里只展示 outbound-rtp
     {
@@ -155,7 +155,7 @@ void SetOutboundRTPStreamStatsFromMediaSenderInfo(
         "rttMs": 13
     }
 ]
-```
+~~~
 
 解析 Json 字符串获取 `packetsLost` 前后两次的差值，除以时间差便可以获取到此时间段内的丢包率了。
 

@@ -42,7 +42,7 @@ date: 2019-01-23 10:56:31
 
 webrtc 内部各模块配置了不同的 rtti 属性，开、关各不相同，默认情况下，加载 libwebrtc.a 会产生 `undefined reference to `typeinfo for [classname]'` 错误，为此我们可以在链接 libwebrtc.a 的根编译脚本文件中配置统一去除 rtti 属性，以解决此类问题，打开根目录下的 BUILD.gn 文件，在 `rtc_static_library("webrtc")` 尾部添加 `cflags_cc = [" -fno-rtti" ]` 即可，如下：
 
-```
+~~~
 if (!build_with_chromium) {
 # Target to build all the WebRTC production code.
 rtc_static_library("webrtc") {
@@ -52,7 +52,7 @@ rtc_static_library("webrtc") {
     cflags_cc = [" -fno-rtti" ]
     }
 }
-```
+~~~
 
 这样便可以解决所有 undefined reference to `typeinfo for [classname]'` 类的错误。
 
@@ -64,9 +64,9 @@ rtc_static_library("webrtc") {
 
 编译命令如下：
 
-```
+~~~
 gn gen -C out/linux/Release  --args="is_debug=false target_cpu=\"x64\" rtc_include_tests=false rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\" is_component_build=false is_clang=false treat_warnings_as_errors=false use_custom_libcxx=false strip_debug_info=true use_rtti=false"
-```
+~~~
 其中 `rtc_include_tests=false` 为禁止编译单元测试程序，可大大节省编译时间；
 `rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\"` 为激活内部 H.264 编解码器。
 
@@ -75,7 +75,7 @@ gn gen -C out/linux/Release  --args="is_debug=false target_cpu=\"x64\" rtc_inclu
 
 ### 编译测试程序加载并调用 webrtc 接口。
 
-```c++
+~~~cpp
 #include <stdio.h>
 #include <string>
 
@@ -97,11 +97,11 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
-```
+~~~
 
 ### 编写 CMakeLists.txt 脚本文件
 
-```
+~~~
 cmake_minimum_required(VERSION 3.5)
 project(demo)
 
@@ -152,10 +152,10 @@ TARGET_LINK_LIBRARIES(demo pthread stdc++)
 
 set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
 
-```
+~~~
 
 ### 编译
 
-```
+~~~
 cmake && make
-```
+~~~

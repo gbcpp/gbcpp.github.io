@@ -20,9 +20,9 @@ GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android
 
 启动命令：
 
-```
+~~~
 go run main.go -addr="127.0.0.1:6688" -prefix="/v1/aecm/" -user="root" -password="123456"
-```
+~~~
 
 > 实际部署后根据实际目标名称进行启动，但启动参数不变，可通过 -h 查看帮助。
 
@@ -34,7 +34,7 @@ API 查询接口提供两种，一是查询指定 `Model` 是否存在于此白�
 
 > 这里及以后均假设 SEV_ADDR 即为 服务器地址。
 
-```
+~~~
 Request Url:
 SEV_ADDR/v1/aecm
 Method: OPTIONS
@@ -44,14 +44,14 @@ model=xxx
 
 Result:
 200 ok
-```
+~~~
 
 
 > 通过返回 http status 判断 xxx 是否在白名单中，200 为是，否则为 否。
 
 ### 2、查询所有白名单
 
-```
+~~~
 Request Url:
 SEV_ADDR/v1/aecm
 Method: QUERY
@@ -60,11 +60,11 @@ Result:
 200 ok
 Content type: text/json
 body: json string
-```
+~~~
 
 > 如果返回 200 ok，则说明查询成功，可通过 content body 的 json string 进行解析，格式如下：
 
-```json
+~~~json
 {
     "7": {
         "author": "gobert",
@@ -85,14 +85,14 @@ body: json string
         "sdkVersion": "0.0.0"
     }
 }
-```
+~~~
 
 
 ## 添加新机型
 
 通过以下 API 即可添加
 
-```
+~~~
 Request Url:
 SEV_ADDR/v1/aecm
 Method: ADD
@@ -107,12 +107,12 @@ author=gobert
 
 Result:
 200 ok
-```
+~~~
 
 
 ## 删除已有机型
 
-```
+~~~
 Request Url:
 SEV_ADDR/v1/aecm
 Method:DELETE
@@ -122,5 +122,5 @@ model=xxx
 
 Result:
 200 ok
-```
+~~~
 
