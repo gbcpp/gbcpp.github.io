@@ -151,7 +151,7 @@ highlighter: rouge
 kramdown:
   input: GFM
 prism:
-  theme:
+  theme: one-light
   line_numbers: true
 
 # RSS
