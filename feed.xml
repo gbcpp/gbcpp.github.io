@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-07T14:00:48+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-07T14:05:07+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
 
 <p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
 
@@ -792,7 +792,7 @@ Unlock
 
 <p>有了正确的判断包序号大小的方法，再配合 std::map 可自定义的 key_compare 便可实现对产生回绕的包序号自动排序能力，完整的 Example：</p>
 
-<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义 UINT_MAX 的一半</span>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义 UINT_MAX 的一半</span>
 <span class="c1">// BIN: 01111111111111111111111111111111; HEX:7FFFFFFF; DEC:2147483647</span>
 <span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">kPacketNumberMask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1u</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> 
 

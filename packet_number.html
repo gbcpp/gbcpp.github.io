@@ -216,7 +216,7 @@
 
 <p>有了正确的判断包序号大小的方法，再配合 std::map 可自定义的 key_compare 便可实现对产生回绕的包序号自动排序能力，完整的 Example：</p>
 
-<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义 UINT_MAX 的一半</span>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义 UINT_MAX 的一半</span>
 <span class="c1">// BIN: 01111111111111111111111111111111; HEX:7FFFFFFF; DEC:2147483647</span>
 <span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">kPacketNumberMask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1u</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> 
 
