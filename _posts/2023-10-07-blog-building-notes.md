@@ -1,6 +1,7 @@
 ---
 layout: post
 title: 'GitPages 博客搭建记录'
+subtitle: 重启 GitPages 博客建设
 date: 2023-10-07
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
@@ -11,8 +12,6 @@ tags:
 - GitPages
 - 博客
 ---
-
-> 重启 GitPages 博客建设
 
 # 寻找博客构建框架
 
