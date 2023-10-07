@@ -30,7 +30,7 @@ tags:
 
 有了正确的判断包序号大小的方法，再配合 std::map 可自定义的 key_compare 便可实现对产生回绕的包序号自动排序能力，完整的 Example：
 
-```c++
+~~~cpp
 // 定义 UINT_MAX 的一半
 // BIN: 01111111111111111111111111111111; HEX:7FFFFFFF; DEC:2147483647
 const uint32_t kPacketNumberMask = (1u << 31) - 1; 
@@ -66,12 +66,12 @@ bool lessEqual(uint32_t left, uint32_t right) {
   }
 }
 
-```
+~~~
 
 
 - Example:
 
-```c++​
+~~~c++​
 
 #include <map>
 #include <climits>
@@ -132,14 +132,14 @@ int main()
 
   return 0;
 }
-```
+~~~
 
 
 - 运行结果：
 
   > 编译：g++  main.cpp -std=c++17  -o main.exe
 
-```bash
+~~~bash
 -------------------------------------------------
 UINT_MAX: 4294967295, +1 = 0
 3 - UINT_MAX = 4
@@ -150,15 +150,15 @@ key: 4294967294, value: UINT_MAX - 1
 key: 4294967295, value: UINT_MAX - 0
 key: 1, value: 1
 key: 2, value: 2
-```
+~~~
 
 ### 方案二
 内核中使用的方法：
 
-```cpp
+~~~cpp
 static inline bool before(uint32_t seq1, uint32_t seq2)
 {
         return (int32_t)(seq1-seq2) < 0;
 }
 #define after(seq2, seq1)   before(seq1, seq2)
-```
+~~~
