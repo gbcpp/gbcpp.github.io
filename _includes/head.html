@@ -29,7 +29,8 @@
     {% if site.prism.theme %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-{{site.prism.theme}}.min.css">
     {% else %}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism.min.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism.min.css"> -->
+    <link rel="stylesheet" href="{{ "/assets/css/prism.min.css" | prepend: site.baseurl }}" />
     {% endif %}
     {% if site.prism.line_numbers %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
