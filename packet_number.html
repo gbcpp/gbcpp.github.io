@@ -257,67 +257,67 @@
   <li>Example:</li>
 </ul>
 
-<pre><code class="language-c++​">
-#include &lt;map&gt;
-#include &lt;climits&gt;
-#include &lt;iostream&gt;
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="cp">#include</span> <span class="cpf">&lt;map&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;climits&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
 
-using namespace std;
 
+<span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">kPacketNumberMask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1u</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
 
-const uint32_t kPacketNumberMask = (1u &lt;&lt; 31) - 1;
+<span class="kt">bool</span> <span class="nf">greaterThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-bool greaterThan(uint32_t left, uint32_t right) {
-  if ((kPacketNumberMask &amp; (left - right)) &lt; (kPacketNumberMask &gt;&gt; 1)) {
-    return true;
-  } else {
-    return false;
-  }
-}
+<span class="kt">bool</span> <span class="nf">lessThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">greaterThan</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">left</span><span class="p">);</span>
+<span class="p">}</span>
 
-bool lessThan(uint32_t left, uint32_t right) {
-        return greaterThan(right, left);
-}
+<span class="kt">bool</span> <span class="nf">lessEqual</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">left</span> <span class="o">==</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-bool lessEqual(uint32_t left, uint32_t right) {
-  if (left == right) {
-    return true;
-  }
-  if ((kPacketNumberMask &amp; (left - right)) &gt; (kPacketNumberMask &gt;&gt; 1)) {
-    return true;
-  } else {
-    return false;
-  }
-}
+<span class="k">struct</span> <span class="nc">CompareUint</span> <span class="o">:</span> <span class="k">public</span> <span class="n">std</span><span class="o">::</span><span class="n">binary_function</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span> <span class="kt">uint32_t</span><span class="p">,</span> <span class="kt">bool</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="kt">bool</span> <span class="k">operator</span><span class="p">()(</span><span class="kt">uint32_t</span> <span class="n">lhs</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">rhs</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="c1">// return !greaterThan(lhs, rhs);</span>
+    <span class="k">return</span> <span class="n">lessEqual</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">);</span>
+ <span class="p">}</span>
+<span class="p">};</span>
 
-struct CompareUint : public std::binary_function&lt;uint32_t, uint32_t, bool&gt; {
-  bool operator()(uint32_t lhs, uint32_t rhs) const {
-    // return !greaterThan(lhs, rhs);
-    return lessEqual(lhs, rhs);
- }
-};
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">CompareUint</span><span class="o">&gt;</span> <span class="n">pkt_map</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 3"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 2"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 1"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 0"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">"1"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s">"2"</span><span class="p">;</span>
 
-int main()
-{
-  std::map&lt;uint32_t, std::string, CompareUint&gt; pkt_map;
-  pkt_map[UINT_MAX - 3] = "UINT_MAX - 3";
-  pkt_map[UINT_MAX - 2] = "UINT_MAX - 2";
-  pkt_map[UINT_MAX - 1] = "UINT_MAX - 1";
-  pkt_map[UINT_MAX - 0] = "UINT_MAX - 0";
-  pkt_map[1] = "1";
-  pkt_map[2] = "2";
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"-------------------------------------------------</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"UINT_MAX: "</span> <span class="o">&lt;&lt;</span> <span class="n">UINT_MAX</span> <span class="o">&lt;&lt;</span> <span class="s">", +1 = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">UINT_MAX</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"3 - UINT_MAX = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span><span class="n">UINT_MAX</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"0 - UINT_MAX = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">0</span> <span class="o">-</span><span class="n">UINT_MAX</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="n">itor</span> <span class="o">:</span> <span class="n">pkt_map</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"key: "</span> <span class="o">&lt;&lt;</span> <span class="n">itor</span><span class="p">.</span><span class="n">first</span> <span class="o">&lt;&lt;</span> <span class="s">", value: "</span> <span class="o">&lt;&lt;</span> <span class="n">itor</span><span class="p">.</span><span class="n">second</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="p">}</span>
 
-  std::cout &lt;&lt; "-------------------------------------------------\n";
-  std::cout &lt;&lt; "UINT_MAX: " &lt;&lt; UINT_MAX &lt;&lt; ", +1 = " &lt;&lt; (UINT_MAX + 1) &lt;&lt; std::endl;
-  std::cout &lt;&lt; "3 - UINT_MAX = " &lt;&lt; (3 -UINT_MAX) &lt;&lt; std::endl;
-  std::cout &lt;&lt; "0 - UINT_MAX = " &lt;&lt; (0 -UINT_MAX) &lt;&lt; std::endl;
-  for (auto&amp; itor : pkt_map) {
-    std::cout &lt;&lt; "key: " &lt;&lt; itor.first &lt;&lt; ", value: " &lt;&lt; itor.second &lt;&lt; std::endl;
-  }
-
-  return 0;
-}
-</code></pre>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <ul>
   <li>
