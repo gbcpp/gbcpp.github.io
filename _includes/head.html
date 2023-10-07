@@ -22,7 +22,8 @@
     <link rel="Shortcut Icon" href="{{ site.favicon | prepend: site.baseurl }}">
     <link rel="icon" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
     <link rel="bookmark" href="{{ site.favicon | prepend: site.baseurl }}" type="image/x-icon" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" async>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" async> -->
+    <link rel="stylesheet" href="{{ "/assets/css/normalize.min.css" | prepend: site.baseurl }}" async>
     <link rel="stylesheet" href="{{ "/assets/css/plugins.min.css" | prepend: site.baseurl }}">
     <link rel="preload" href="{{ "/assets/fonts/Merriweather-Regular.ttf" | prepend: site.baseurl }}" as="font" crossorigin="anonymous">
     {% if site.prism.theme %}
