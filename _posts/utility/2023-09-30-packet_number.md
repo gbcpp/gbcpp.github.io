@@ -30,7 +30,7 @@ tags:
 
 有了正确的判断包序号大小的方法，再配合 std::map 可自定义的 key_compare 便可实现对产生回绕的包序号自动排序能力，完整的 Example：
 
-```cpp
+```c++
 // 定义 UINT_MAX 的一半
 // BIN: 01111111111111111111111111111111; HEX:7FFFFFFF; DEC:2147483647
 const uint32_t kPacketNumberMask = (1u << 31) - 1; 
@@ -65,13 +65,14 @@ bool lessEqual(uint32_t left, uint32_t right) {
     return false;
   }
 }
-​```
 
+```
 
 
 - Example:
 
-​```cpp
+```c++​
+
 #include <map>
 #include <climits>
 #include <iostream>
