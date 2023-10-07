@@ -5,12 +5,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitPages 博客搭建记录 - Mr Chen</title>
+    <title>GitHub Pages 博客搭建记录 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="GitPages 博客搭建记录">
-    <meta name="keywords"  content="GitPages, 博客">
+    <meta name="description" content="GitHub Pages 博客搭建记录">
+    <meta name="keywords"  content="GitPages, blog">
     <!-- Open Graph -->
-    <meta property="og:title" content="GitPages 博客搭建记录 - Mr Chen">
+    <meta property="og:title" content="GitHub Pages 博客搭建记录 - Mr Chen">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gbcpp.github.io/blog-building-notes.html">
     <meta property="og:baseurl" content="">
@@ -124,7 +124,7 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
       data-theme="default"
     >
       <div class="post-wrapper">
@@ -133,11 +133,11 @@
             
               <a href="/tags.html#GitPages" class="post-tag">GitPages</a>
             
-              <a href="/tags.html#%E5%8D%9A%E5%AE%A2" class="post-tag">博客</a>
+              <a href="/tags.html#blog" class="post-tag">blog</a>
             
           
         </div>
-        <h1>GitPages 博客搭建记录</h1>
+        <h1>GitHub Pages 博客搭建记录</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -163,13 +163,13 @@
               <use xlink:href="#icon-words"></use>
             </svg>
             
-          本文总共  20  字
+          本文总共  3.5k  字
           </span>
           <span class="post-meta-item">
             <svg class="icon time" aria-hidden="true">
               <use xlink:href="#icon-time"></use>
             </svg>
-             阅读全文大约需要 1 分钟
+             阅读全文大约需要 10 分钟
           </span>
           
           <span class="post-meta-item">
@@ -183,36 +183,142 @@
         </div>
       </div>
       
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+      
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">重启 GitPages 博客建设</h2>
+      <h2 class="post-subtitle">重启 GitHub Pages 博客建设</h2>
       
 
       
       <div class="container">  
         <div class="contents">
           <article class="markdown-body">
-            <h1 id="寻找博客构建框架">寻找博客构建框架</h1>
+            <h1 id="渊源">渊源</h1>
 
-<h1 id="博客主题">博客主题</h1>
+<p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
+
+<h1 id="博客构建框架">博客构建框架</h1>
+
+<p>  搭建个人博客，大部分人都是通过 GitHub 的 Pages 进行白嫖，但是已有的主题都不是非常完美，对于一个从事非前端开发的人来说，优化调整博客主题到自己满意的程度是非常难的，长时间搞不到自己满意的程度，结局大概率都是废弃。
+在看到这篇基于<a href="https://blog.lui8.cn/tech/new-theme-h2o-ac.html">H2O-ac 主题</a> 搭建的的博客后，我决定就是它了，瞬间重拾搭建个人博客的兴趣。</p>
+
+<p>  早些时候，我使用的 GitHub blog 是通过 <code class="language-plaintext highlighter-rouge">Hexo</code> 构建的，<code class="language-plaintext highlighter-rouge">Hexo</code> 是基于 <code class="language-plaintext highlighter-rouge">Node.js</code> 驱动的，而上述博客是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 构建，该框架基于 <code class="language-plaintext highlighter-rouge">Ruby</code> 驱动，它们都是开源的，通过 GitHub 的 star 和 fork 数量，可以看到 <code class="language-plaintext highlighter-rouge">Jekyll</code> 的热度要高于 <code class="language-plaintext highlighter-rouge">Hexo</code>，但是不知道当时自己怎么没有注意到这一点，可能是因为当时是摸着别人过的河，没有了自己的思考。</p>
+
+<p>  由于该主题是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 框架构建的，所以我们就此切换到 <code class="language-plaintext highlighter-rouge">Jekyll</code>，主题就用 <code class="language-plaintext highlighter-rouge">H2O-ac</code>。</p>
 
 <h1 id="初始化">初始化</h1>
 
+<p>  首先创建一个自己的专门用户博客的 public 仓库，这里建议直接从 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 主题作者的 repo <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">jekyll-theme-H2O-ac</a> 中 fork，在命名新的 repo 时，一定要命名自己的 GitHub <code class="language-plaintext highlighter-rouge">name</code> + ‘.github.io’，比如我自己的：gbcpp.github.io，其中 <code class="language-plaintext highlighter-rouge">gbcpp</code> 便是我的 GitHub name，这样做也是官方建议的，同时 Fork 过去的 repo 才可以直接 Publish，而不用做其它任何链接失效之类的修复，而我因为当初好几年没有再折腾过 GitHub 的博客，早已经忘记了这一点，起了个非此模板的名字：<code class="language-plaintext highlighter-rouge">blog</code>、 <code class="language-plaintext highlighter-rouge">webindex</code> 等，部署上的博客有好几处都是无效的链接，需要自行查找并修改，同时博客的 Url 中也要增加子路径。</p>
+
+<p>Fork 后，在该 repo 的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，找到 <code class="language-plaintext highlighter-rouge">Pages</code>，在 <code class="language-plaintext highlighter-rouge">Build and deployment</code> 中选择 <code class="language-plaintext highlighter-rouge">master</code> 分支进行发布，目录就选择 <code class="language-plaintext highlighter-rouge">/(root)</code>, Save 后等待约 3 分钟，即可通过 <code class="language-plaintext highlighter-rouge">xxx.github.io</code> 进行访问。</p>
+
+<p><img src="/assets/img/github_settings.png" alt="" /></p>
+
+<h1 id="个人信息调整">个人信息调整</h1>
+
+<p>虽然经过上述的简单操作，已经能够访问到自己新搭建的博客，但是还有一些个人信息需要调整，在 <code class="language-plaintext highlighter-rouge">.github/workflow</code> 中，每次提交，均会触发 GitHub Actions Workflow，重新执行 Jekyll build &amp; deploy CI 操作，所以我们要为自己的 repo 增加一个 <code class="language-plaintext highlighter-rouge">GITHUB_TOKEN</code>，否则每次 CI 均会报错。如下图所示：</p>
+
+<p><img src="/assets/img/github_token.png" alt="GitHub Token" /></p>
+
+<p>GitHub 的 CI 每次构建完成后会将生成的 <code class="language-plaintext highlighter-rouge">_site</code> 目录 Push 到 <a href="https://jupyterbook.org/en/stable/publish/gh-pages.html"><code class="language-plaintext highlighter-rouge">gh-pages</code></a> 分支。</p>
+
+<p>在该作者的 repo 中，添加的 GitHub workflow 不止 <code class="language-plaintext highlighter-rouge">GitHub</code> 一个，还有亚马逊等其它家，用于网站加速，不过，我个人并没有使用这种多个 workflow 的方式，我删除了除了 ‘jekyll.yml’ 以外所有的 workflow，网站加速请继续往下看。</p>
+
 <h1 id="部署-cdn">部署 CDN</h1>
+
+<p>博客初步建立后，直接访问是非常慢的，没有任何的 CDN 托管加速，而 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 的作者开通了多家国内外 CDN 厂家的托管，访问速度要比直接 xxx.github.io 快很多。</p>
+
+<p>这里我选择了提供全球节点的 <code class="language-plaintext highlighter-rouge">Cloudflare</code> <a href="https://dash.cloudflare.com/">官网</a> 进行托管，主要是因为它对于个人站点是完全免费的，并且操作简单，易上手。</p>
+
+<h2 id="cloudflare-新建-pages">Cloudflare 新建 Pages</h2>
+
+<p>注册并登陆 Cloudflare，进入到个人 <code class="language-plaintext highlighter-rouge">账户主页</code>，进入 <code class="language-plaintext highlighter-rouge">Worker 和 Pages</code>，选择 <code class="language-plaintext highlighter-rouge">Pages</code> 选项，<strong>注意</strong>我们这里选择 <code class="language-plaintext highlighter-rouge">连接到 Git</code>，选择自己的仓库和分支，自动部署即可，如下图：</p>
+
+<p><a href="/assets/img/Cloudflare_GitPages.png"></a></p>
+
+<p>由于我们仅使用了 <code class="language-plaintext highlighter-rouge">jekyll.yml</code> 一个 GitHub Action，该 CI 完成后，会将 <code class="language-plaintext highlighter-rouge">_site</code> 目录自动 push 到 <code class="language-plaintext highlighter-rouge">gp-pages</code> 分支，所以在 <code class="language-plaintext highlighter-rouge">Cloudflare</code> 的 <code class="language-plaintext highlighter-rouge">Pages</code> 配置中，我们选择 <strong>分支</strong> 为 <code class="language-plaintext highlighter-rouge">gh-pages</code>，同时不要添加任何的构建框架和执行命令，只要选择自动选择更新即可。添加完成后的配置如下，可做参考：
+<a href="/assets/img/Cloudflare_GitPages2.png"></a></p>
+
+<h2 id="自定义域名">自定义域名</h2>
+
+<p>上述部署完成，可以生成自己博客在 Cloudflare 的域名，比如：xxx-github-io.pages.dev，执行以下步骤将 xxx.github.io 重定向到 xxx-github-io.pages.dev。</p>
+
+<h3 id="cname">CNAME</h3>
+<p>Custom domain 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 
+博客仓库中新建 <code class="language-plaintext highlighter-rouge">CNAME</code> 文件，填充 Cloudflare 生成的 ‘xxx-github-io.pages.dev’ 域名，并提交。</p>
+
+<h3 id="pages-自定义域名配置">Pages 自定义域名配置</h3>
+
+<p>回到 GitHub 博客仓库的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，在 <code class="language-plaintext highlighter-rouge">Pages</code> 子页面的 <code class="language-plaintext highlighter-rouge">Custom domain</code> 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 保存。以后每次访问自己的 xxx.github.io 便会自动跳转到 xxx-github-io.pages.dev。</p>
+
+<p>当然这样的白嫖效果也就一般般，访问速度并不能完全达到国内建站的速度。</p>
+
+<h1 id="绊脚石">绊脚石</h1>
+
+<h2 id="jekyll-安装">Jekyll 安装</h2>
+
+<p>本人的环境是在 WSL2 下的 Ubuntu Linux 安装的，发现 Jekyll 官方提供的 Installing docs 在 Ubuntu 18.04 及以下由于版本兼容问题已经无法正常的安装了，在 Ubuntu 20.04 中较为顺利，依次执行以下命令不太会遇到太多的问题：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="nt">-y</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span>  ruby-full build-essential zlib1g-dev
+<span class="nb">echo</span> <span class="s1">'# Install Ruby Gems to ~/gems'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">echo</span> <span class="s1">'export GEM_HOME="$HOME/gems"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">echo</span> <span class="s1">'export PATH="$HOME/gems/bin:$PATH"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
+
+<span class="c"># 这里 proxychains 为本人配置的 代理，否则容易出现下载失败</span>
+<span class="nb">sudo </span>proxychains gem <span class="nb">install </span>jekyll bundler
+<span class="nb">sudo </span>proxychains bundle <span class="nb">install</span>
+</code></pre></div></div>
+
+<h2 id="h2o-ac-blog-页面异常">H2O-ac Blog 页面异常</h2>
+
+<p>基于作者的最新版本 <code class="language-plaintext highlighter-rouge">master</code> 或者 <code class="language-plaintext highlighter-rouge">tag: v1.2.1</code>，在 <code class="language-plaintext highlighter-rouge">Blog</code> 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 升级到 <code class="language-plaintext highlighter-rouge">v1.1.7</code> 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 版本。</p>
+
+<p><a href="/assets/img/jekyll_blog_bug.png"></a></p>
+
+<h2 id="cloudflare-部署报错">Cloudflare 部署报错</h2>
+
+<p>当 Blog 中存在文件 size ~&gt; 25MB 时，Cloudflare 会报错而终止部署，对此需要删除 repo 中所有 size 过大的文件（一般是图片），根据报错，通过以下命令查找并删除所有相关文件的历史记录。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 其中 assets/img/shan.png 为要删除的文件</span>
+git filter-branch <span class="nt">--force</span> <span class="nt">--index-filter</span> <span class="s1">'git rm --cached --ignore-unmatch assets/img/shan.png'</span> <span class="nt">--prune-empty</span> <span class="nt">--tag-name-filter</span> <span class="nb">cat</span> <span class="nt">--</span> <span class="nt">--all</span>
+</code></pre></div></div>
+
+<p>排查结束后，会显示涉及到该文件的分支列表，如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ref <span class="s1">'refs/heads/gh-pages'</span> was rewritten
+Ref <span class="s1">'refs/heads/master'</span> was rewritten
+Ref <span class="s1">'refs/remotes/origin/master'</span> was rewritten
+Ref <span class="s1">'refs/remotes/origin/dev'</span> was rewritten
+Ref <span class="s1">'refs/remotes/origin/gh-pages'</span> was rewritten
+WARNING: Ref <span class="s1">'refs/remotes/origin/master'</span> is unchanged
+</code></pre></div></div>
+
+<p>将 <code class="language-plaintext highlighter-rouge">rewritten</code> 的本地分支 push 到 GitHub，然后在 Cloudflare 上重新部署。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout master
+git push <span class="nt">-f</span> origin master
+
+git checkout gh-pages
+git push <span class="nt">-f</span> origin gh-pages
+</code></pre></div></div>
 
 
             <div class="post-copyright">
               <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="https://gbcpp.github.io">Mr Chen</a>&nbsp;所有，转载请注明本文链接。</p>
               <p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>
-              <p><span>本文标题：</span>《 GitPages 博客搭建记录 》</p>
+              <p><span>本文标题：</span>《 GitHub Pages 博客搭建记录 》</p>
               <p><span>本文链接：</span><a href="https://gbcpp.github.io/blog-building-notes.html">https://gbcpp.github.io/blog-building-notes.html</a></p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a href="#寻找博客构建框架">寻找博客构建框架</a></li><li><a href="#博客主题">博客主题</a></li><li><a href="#初始化">初始化</a></li><li><a href="#部署-cdn">部署 CDN</a></li></ul>
+          <ul><li><a href="#渊源">渊源</a></li><li><a href="#博客构建框架">博客构建框架</a></li><li><a href="#初始化">初始化</a></li><li><a href="#个人信息调整">个人信息调整</a></li><li><a href="#部署-cdn">部署 CDN</a><ul><li><a href="#cloudflare-新建-pages">Cloudflare 新建 Pages</a></li><li><a href="#自定义域名">自定义域名</a><ul><li><a href="#cname">CNAME</a></li><li><a href="#pages-自定义域名配置">Pages 自定义域名配置</a></li></ul></li></ul></li><li><a href="#绊脚石">绊脚石</a><ul><li><a href="#jekyll-安装">Jekyll 安装</a></li><li><a href="#h2o-ac-blog-页面异常">H2O-ac Blog 页面异常</a></li><li><a href="#cloudflare-部署报错">Cloudflare 部署报错</a></li></ul></li></ul>
         </div>
       </div>
       

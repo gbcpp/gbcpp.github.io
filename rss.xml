@@ -5,19 +5,122 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 07 Oct 2023 07:41:08 +0000</pubDate>
-    <lastBuildDate>Sat, 07 Oct 2023 07:41:08 +0000</lastBuildDate>
+    <pubDate>Sat, 07 Oct 2023 10:04:11 +0000</pubDate>
+    <lastBuildDate>Sat, 07 Oct 2023 10:04:11 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
     
       <item>
-        <title>GitPages 博客搭建记录</title>
-        <description>&lt;h1 id=&quot;寻找博客构建框架&quot;&gt;寻找博客构建框架&lt;/h1&gt;
+        <title>GitHub Pages 博客搭建记录</title>
+        <description>&lt;h1 id=&quot;渊源&quot;&gt;渊源&lt;/h1&gt;
 
-&lt;h1 id=&quot;博客主题&quot;&gt;博客主题&lt;/h1&gt;
+&lt;p&gt;  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。&lt;/p&gt;
+
+&lt;h1 id=&quot;博客构建框架&quot;&gt;博客构建框架&lt;/h1&gt;
+
+&lt;p&gt;  搭建个人博客，大部分人都是通过 GitHub 的 Pages 进行白嫖，但是已有的主题都不是非常完美，对于一个从事非前端开发的人来说，优化调整博客主题到自己满意的程度是非常难的，长时间搞不到自己满意的程度，结局大概率都是废弃。
+在看到这篇基于&lt;a href=&quot;https://blog.lui8.cn/tech/new-theme-h2o-ac.html&quot;&gt;H2O-ac 主题&lt;/a&gt; 搭建的的博客后，我决定就是它了，瞬间重拾搭建个人博客的兴趣。&lt;/p&gt;
+
+&lt;p&gt;  早些时候，我使用的 GitHub blog 是通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Hexo&lt;/code&gt; 构建的，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Hexo&lt;/code&gt; 是基于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Node.js&lt;/code&gt; 驱动的，而上述博客是基于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt; 构建，该框架基于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ruby&lt;/code&gt; 驱动，它们都是开源的，通过 GitHub 的 star 和 fork 数量，可以看到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt; 的热度要高于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Hexo&lt;/code&gt;，但是不知道当时自己怎么没有注意到这一点，可能是因为当时是摸着别人过的河，没有了自己的思考。&lt;/p&gt;
+
+&lt;p&gt;  由于该主题是基于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt; 框架构建的，所以我们就此切换到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt;，主题就用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;H2O-ac&lt;/code&gt;。&lt;/p&gt;
 
 &lt;h1 id=&quot;初始化&quot;&gt;初始化&lt;/h1&gt;
 
+&lt;p&gt;  首先创建一个自己的专门用户博客的 public 仓库，这里建议直接从 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;H2O-ac&lt;/code&gt; 主题作者的 repo &lt;a href=&quot;https://github.com/zhonger/jekyll-theme-H2O-ac&quot;&gt;jekyll-theme-H2O-ac&lt;/a&gt; 中 fork，在命名新的 repo 时，一定要命名自己的 GitHub &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;name&lt;/code&gt; + ‘.github.io’，比如我自己的：gbcpp.github.io，其中 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gbcpp&lt;/code&gt; 便是我的 GitHub name，这样做也是官方建议的，同时 Fork 过去的 repo 才可以直接 Publish，而不用做其它任何链接失效之类的修复，而我因为当初好几年没有再折腾过 GitHub 的博客，早已经忘记了这一点，起了个非此模板的名字：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;blog&lt;/code&gt;、 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;webindex&lt;/code&gt; 等，部署上的博客有好几处都是无效的链接，需要自行查找并修改，同时博客的 Url 中也要增加子路径。&lt;/p&gt;
+
+&lt;p&gt;Fork 后，在该 repo 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Settings&lt;/code&gt; 页面，找到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Pages&lt;/code&gt;，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Build and deployment&lt;/code&gt; 中选择 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;master&lt;/code&gt; 分支进行发布，目录就选择 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/(root)&lt;/code&gt;, Save 后等待约 3 分钟，即可通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xxx.github.io&lt;/code&gt; 进行访问。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/github_settings.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;个人信息调整&quot;&gt;个人信息调整&lt;/h1&gt;
+
+&lt;p&gt;虽然经过上述的简单操作，已经能够访问到自己新搭建的博客，但是还有一些个人信息需要调整，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.github/workflow&lt;/code&gt; 中，每次提交，均会触发 GitHub Actions Workflow，重新执行 Jekyll build &amp;amp; deploy CI 操作，所以我们要为自己的 repo 增加一个 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GITHUB_TOKEN&lt;/code&gt;，否则每次 CI 均会报错。如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/github_token.png&quot; alt=&quot;GitHub Token&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;GitHub 的 CI 每次构建完成后会将生成的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_site&lt;/code&gt; 目录 Push 到 &lt;a href=&quot;https://jupyterbook.org/en/stable/publish/gh-pages.html&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh-pages&lt;/code&gt;&lt;/a&gt; 分支。&lt;/p&gt;
+
+&lt;p&gt;在该作者的 repo 中，添加的 GitHub workflow 不止 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GitHub&lt;/code&gt; 一个，还有亚马逊等其它家，用于网站加速，不过，我个人并没有使用这种多个 workflow 的方式，我删除了除了 ‘jekyll.yml’ 以外所有的 workflow，网站加速请继续往下看。&lt;/p&gt;
+
 &lt;h1 id=&quot;部署-cdn&quot;&gt;部署 CDN&lt;/h1&gt;
+
+&lt;p&gt;博客初步建立后，直接访问是非常慢的，没有任何的 CDN 托管加速，而 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;H2O-ac&lt;/code&gt; 的作者开通了多家国内外 CDN 厂家的托管，访问速度要比直接 xxx.github.io 快很多。&lt;/p&gt;
+
+&lt;p&gt;这里我选择了提供全球节点的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Cloudflare&lt;/code&gt; &lt;a href=&quot;https://dash.cloudflare.com/&quot;&gt;官网&lt;/a&gt; 进行托管，主要是因为它对于个人站点是完全免费的，并且操作简单，易上手。&lt;/p&gt;
+
+&lt;h2 id=&quot;cloudflare-新建-pages&quot;&gt;Cloudflare 新建 Pages&lt;/h2&gt;
+
+&lt;p&gt;注册并登陆 Cloudflare，进入到个人 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;账户主页&lt;/code&gt;，进入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Worker 和 Pages&lt;/code&gt;，选择 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Pages&lt;/code&gt; 选项，&lt;strong&gt;注意&lt;/strong&gt;我们这里选择 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;连接到 Git&lt;/code&gt;，选择自己的仓库和分支，自动部署即可，如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/Cloudflare_GitPages.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;由于我们仅使用了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll.yml&lt;/code&gt; 一个 GitHub Action，该 CI 完成后，会将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_site&lt;/code&gt; 目录自动 push 到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gp-pages&lt;/code&gt; 分支，所以在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Cloudflare&lt;/code&gt; 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Pages&lt;/code&gt; 配置中，我们选择 &lt;strong&gt;分支&lt;/strong&gt; 为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh-pages&lt;/code&gt;，同时不要添加任何的构建框架和执行命令，只要选择自动选择更新即可。添加完成后的配置如下，可做参考：
+&lt;a href=&quot;/assets/img/Cloudflare_GitPages2.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;自定义域名&quot;&gt;自定义域名&lt;/h2&gt;
+
+&lt;p&gt;上述部署完成，可以生成自己博客在 Cloudflare 的域名，比如：xxx-github-io.pages.dev，执行以下步骤将 xxx.github.io 重定向到 xxx-github-io.pages.dev。&lt;/p&gt;
+
+&lt;h3 id=&quot;cname&quot;&gt;CNAME&lt;/h3&gt;
+&lt;p&gt;Custom domain 中填入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xxx-github-io.pages.dev&lt;/code&gt; 
+博客仓库中新建 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CNAME&lt;/code&gt; 文件，填充 Cloudflare 生成的 ‘xxx-github-io.pages.dev’ 域名，并提交。&lt;/p&gt;
+
+&lt;h3 id=&quot;pages-自定义域名配置&quot;&gt;Pages 自定义域名配置&lt;/h3&gt;
+
+&lt;p&gt;回到 GitHub 博客仓库的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Settings&lt;/code&gt; 页面，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Pages&lt;/code&gt; 子页面的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Custom domain&lt;/code&gt; 中填入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xxx-github-io.pages.dev&lt;/code&gt; 保存。以后每次访问自己的 xxx.github.io 便会自动跳转到 xxx-github-io.pages.dev。&lt;/p&gt;
+
+&lt;p&gt;当然这样的白嫖效果也就一般般，访问速度并不能完全达到国内建站的速度。&lt;/p&gt;
+
+&lt;h1 id=&quot;绊脚石&quot;&gt;绊脚石&lt;/h1&gt;
+
+&lt;h2 id=&quot;jekyll-安装&quot;&gt;Jekyll 安装&lt;/h2&gt;
+
+&lt;p&gt;本人的环境是在 WSL2 下的 Ubuntu Linux 安装的，发现 Jekyll 官方提供的 Installing docs 在 Ubuntu 18.04 及以下由于版本兼容问题已经无法正常的安装了，在 Ubuntu 20.04 中较为顺利，依次执行以下命令不太会遇到太多的问题：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt upgrade &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt-get &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt;  ruby-full build-essential zlib1g-dev
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;# Install Ruby Gems to ~/gems&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; ~/.bashrc
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;export GEM_HOME=&quot;$HOME/gems&quot;&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; ~/.bashrc
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;export PATH=&quot;$HOME/gems/bin:$PATH&quot;&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; ~/.bashrc
+&lt;span class=&quot;nb&quot;&gt;source&lt;/span&gt; ~/.bashrc
+
+&lt;span class=&quot;c&quot;&gt;# 这里 proxychains 为本人配置的 代理，否则容易出现下载失败&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;proxychains gem &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;jekyll bundler
+&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;proxychains bundle &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;h2o-ac-blog-页面异常&quot;&gt;H2O-ac Blog 页面异常&lt;/h2&gt;
+
+&lt;p&gt;基于作者的最新版本 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;master&lt;/code&gt; 或者 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tag: v1.2.1&lt;/code&gt;，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Blog&lt;/code&gt; 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;v1.1.6&lt;/code&gt; 升级到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;v1.1.7&lt;/code&gt; 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;v1.1.6&lt;/code&gt; 版本。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/assets/img/jekyll_blog_bug.png&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;cloudflare-部署报错&quot;&gt;Cloudflare 部署报错&lt;/h2&gt;
+
+&lt;p&gt;当 Blog 中存在文件 size ~&amp;gt; 25MB 时，Cloudflare 会报错而终止部署，对此需要删除 repo 中所有 size 过大的文件（一般是图片），根据报错，通过以下命令查找并删除所有相关文件的历史记录。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 其中 assets/img/shan.png 为要删除的文件&lt;/span&gt;
+git filter-branch &lt;span class=&quot;nt&quot;&gt;--force&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--index-filter&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;git rm --cached --ignore-unmatch assets/img/shan.png&apos;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--prune-empty&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--tag-name-filter&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--all&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;排查结束后，会显示涉及到该文件的分支列表，如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/heads/gh-pages&apos;&lt;/span&gt; was rewritten
+Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/heads/master&apos;&lt;/span&gt; was rewritten
+Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/remotes/origin/master&apos;&lt;/span&gt; was rewritten
+Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/remotes/origin/dev&apos;&lt;/span&gt; was rewritten
+Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/remotes/origin/gh-pages&apos;&lt;/span&gt; was rewritten
+WARNING: Ref &lt;span class=&quot;s1&quot;&gt;&apos;refs/remotes/origin/master&apos;&lt;/span&gt; is unchanged
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rewritten&lt;/code&gt; 的本地分支 push 到 GitHub，然后在 Cloudflare 上重新部署。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git checkout master
+git push &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; origin master
+
+git checkout gh-pages
+git push &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; origin gh-pages
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 </description>
         <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
@@ -26,7 +129,7 @@
         
         <category>GitPages</category>
         
-        <category>博客</category>
+        <category>blog</category>
         
         
       </item>
