@@ -71,7 +71,7 @@ bool lessEqual(uint32_t left, uint32_t right) {
 
 - Example:
 
-~~~c++​
+~~~cpp
 
 #include <map>
 #include <climits>
