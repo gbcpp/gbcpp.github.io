@@ -105,7 +105,7 @@ sudo proxychains bundle install
 
 ## H2O-ac Blog 页面异常
 
-基于作者的最新版本 `master` 或者 `tag: v1.2.1`，在 `Blog` 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 `v1.1.6` 升级到 `v1.1.7` 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 `v1.1.6` 版本。
+基于作者的最新版本 `master` 或者 `tag: v1.2.1`，在 `Blog` 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者, [ISSUE](https://github.com/zhonger/jekyll-theme-H2O-ac/issues/13)，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 `v1.1.6` 升级到 `v1.1.7` 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 `v1.1.6` 版本。
 
 [](/assets/img/jekyll_blog_bug.png)
 
