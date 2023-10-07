@@ -5,9 +5,35 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 07 Oct 2023 07:21:17 +0000</pubDate>
-    <lastBuildDate>Sat, 07 Oct 2023 07:21:17 +0000</lastBuildDate>
+    <pubDate>Sat, 07 Oct 2023 07:30:57 +0000</pubDate>
+    <lastBuildDate>Sat, 07 Oct 2023 07:30:57 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
+    
+      <item>
+        <title>GitPages 博客搭建记录</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;重启 GitPages 博客建设&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;寻找博客构建框架&quot;&gt;寻找博客构建框架&lt;/h1&gt;
+
+&lt;h1 id=&quot;博客主题&quot;&gt;博客主题&lt;/h1&gt;
+
+&lt;h1 id=&quot;初始化&quot;&gt;初始化&lt;/h1&gt;
+
+&lt;h1 id=&quot;部署-cdn&quot;&gt;部署 CDN&lt;/h1&gt;
+
+</description>
+        <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/blog-building-notes.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/blog-building-notes.html</guid>
+        
+        <category>GitPages</category>
+        
+        <category>博客</category>
+        
+        
+      </item>
     
       <item>
         <title>后台服务绑定 CPU 核</title>

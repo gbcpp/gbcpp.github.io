@@ -1,6 +1,12 @@
 [
   
     {
+      "title"    : "GitPages 博客搭建记录",
+      "tags"     : "GitPages 博客",
+      "url"      : "/blog-building-notes.html"
+    } ,
+  
+    {
       "title"    : "后台服务绑定 CPU 核",
       "tags"     : "后台",
       "url"      : "/service-bind-cpu.html"
