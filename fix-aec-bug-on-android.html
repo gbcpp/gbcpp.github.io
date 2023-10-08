@@ -5,21 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>解决 WebRTC 花屏问题记录 - Mr Chen</title>
+    <title>Android AEC 无效的解决方案 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="解决 WebRTC 花屏问题记录">
-    <meta name="keywords"  content="WebRTC">
+    <meta name="description" content="Android AEC 无效的解决方案">
+    <meta name="keywords"  content="Audio, WebRTC, Android">
     <!-- Open Graph -->
-    <meta property="og:title" content="解决 WebRTC 花屏问题记录 - Mr Chen">
+    <meta property="og:title" content="Android AEC 无效的解决方案 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html">
+    <meta property="og:url" content="https://gbcpp.github.io/fix-aec-bug-on-android.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2018-03-19 00:00:00 +0000" />
+    <meta property="post-date" content="2019-01-23 00:00:00 +0000" />
     
     
     <meta name="theme-color" content="#81BBFF" />
@@ -138,11 +138,15 @@
         <div class="post-tags">
           
             
+              <a href="/tags.html#Audio" class="post-tag">Audio</a>
+            
               <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
+            
+              <a href="/tags.html#Android" class="post-tag">Android</a>
             
           
         </div>
-        <h1>解决 WebRTC 花屏问题记录</h1>
+        <h1>Android AEC 无效的解决方案</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -150,13 +154,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="19-01-23">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="19-01-23">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,123 +195,138 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">实现 RTCDataChannel 类似于裸 UDP 的传输效率</h2>
-      
 
       
       <div class="container">  
         <div class="contents">
           <article class="markdown-body">
-            <blockquote>
-  <p>现象：WebRTC native 层经常打印 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code>，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。</p>
-</blockquote>
+            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。</p>
+
+<p>因为只有部分机型才会出现此类问题，并且会不断产生新的机型出现，如果在代码中写 HardCode，那么产品的发布将会很被动，因为随时可能会有新的问题机型产生，为此开发一套特殊机型下发的服务，在 APP 启动时向此服务发起请求，校验此机型是否需要配置为 16KHz，然后再启动 RTC 进行音视频通话。此服务通过 Go 进行开发。</p>
+
+<p>GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android</p>
 
 <!--more-->
 
-<h1 id="情景描述">情景描述</h1>
+<h2 id="启动服务">启动服务</h2>
 
-<p>当前基于 WebRTC 开发自己的音视频实时通话的产品，服务器选择了 licode，在多端 H5、Android、iOS、C++ Native 端均有一定的概率会出现绿屏、花屏的现象，特别是在弱网下出现的概率更高；</p>
+<p>启动命令：</p>
 
-<p>在出现绿屏、花屏时，native log 也会经常输出的 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log，花屏时，或者完全无法播放（有流量，但无画面），此 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log 出现的概率更高；</p>
-
-<p>当前已排除不同订阅终端在同一房间内跨运营商的网络问题，但依然会存在此类问题；</p>
-
-<p>RTP/RTCP</p>
-
-<ul>
-  <li>
-    <p>SR（Sender Report） 发送端报告</p>
-  </li>
-  <li>
-    <p>RR（Receiver Report）接收端报告</p>
-  </li>
-  <li>
-    <p>REMB (Receiver Estimated Maximum Bitrate)</p>
-  </li>
-</ul>
-
-<p>接收端最大接收码率估测，接收端会估计本地接收的最大带宽能力，并通过RTCP REMB 消息返回给对端，这样对端可以调整自己的发送端码率，达到动态调整带宽的目的，具体消息类型通过rtcp的属性 `
-Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分是 </code>REMG` 消息，此部分是四个字节，</p>
-
-<p>REMG 信令协商：webrtc里面的协商格式是：<code class="language-plaintext highlighter-rouge">a=rtcp-fb:100 goog-remb，100 是codec payload</code>; 这里goog 实际上是 google 实现了自己版本的remb。</p>
-
-<ul>
-  <li>
-    <p>GCC 码率估计算法（接收端），用来生成 <code class="language-plaintext highlighter-rouge">REMG</code> 包</p>
-  </li>
-  <li>
-    <p>TMMBR（Temporal Max Media Bitrate Request），表示临时最大码率请求。表明接收端当前带宽受限，告诉发送端控制码率。</p>
-  </li>
-  <li>
-    <p>TMMBN（Temporal Max Media Bitrate Notification）临时最大码率通知。</p>
-  </li>
-  <li>
-    <p>SDES 源描述，主要功能是作为会话成员有关标识信息的载体，如用户名、邮件地址、电话号码等，此外还具有向会话成员传达会话控制信息的功能。</p>
-  </li>
-  <li>
-    <p>BYE　通知离开，主要功能是指示某一个或者几个源不再有效，即通知会话中的其他成员自己将退出会话。</p>
-  </li>
-  <li>
-    <p>APP　由应用程序自己定义，解决了RTCP的扩展性问题，并且为协议的实现者提供了很大的灵活性。</p>
-  </li>
-</ul>
-
-<p><strong>关键帧请求</strong></p>
-
-<ul>
-  <li>
-    <p>PLI（Picture Loss Indication）</p>
-  </li>
-  <li>
-    <p>SLI（Slice Loss Indication）</p>
-  </li>
-</ul>
-
-<p>发送方接收到接收方反馈的PLI或SLI需要重新让编码器生成关键帧并发送给接收端。</p>
-
-<ul>
-  <li>FIR（Full Intra Request）</li>
-</ul>
-
-<p>这里面 Intra 的含义是图像内编码，不需要其他图像信息即可解码；Inter 指图像间编码，解码需要参考帧。所以 Intra Frame 其实就是指 I 帧，Inter Frame指 P 帧或 B 帧。</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go run main.go <span class="nt">-addr</span><span class="o">=</span><span class="s2">"127.0.0.1:6688"</span> <span class="nt">-prefix</span><span class="o">=</span><span class="s2">"/v1/aecm/"</span> <span class="nt">-user</span><span class="o">=</span><span class="s2">"root"</span> <span class="nt">-password</span><span class="o">=</span><span class="s2">"123456"</span>
+</code></pre></div></div>
 
 <blockquote>
-  <p>那么为什么在 PLI 和 SLI 之外还需要一个 FIR 呢？
-原因是使用场景不同，FIR 更多是在一个中心化的 Video Conference 中，新的参与者加入，就需要发送一个 FIR，其他的参与者给他发送一个关键帧这样才能解码，而 PLI 和 SLI 的含义更多是在发生丢包或解码错误时使用。</p>
+  <p>实际部署后根据实际目标名称进行启动，但启动参数不变，可通过 -h 查看帮助。</p>
 </blockquote>
 
-<p><strong>重传请求</strong></p>
+<h2 id="android-端查询接口">Android 端查询接口</h2>
 
-<ul>
-  <li>RTX／NACK／RPSI</li>
-</ul>
+<p>API 查询接口提供两种，一是查询指定 <code class="language-plaintext highlighter-rouge">Model</code> 是否存在于此白名单列表中，二是查询所有的白名单列表；</p>
 
-<p>这个重传跟关键帧请求的区别是它可以要求任意帧进行重传;</p>
+<h3 id="1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></h3>
 
-<ul>
-  <li>
-    <p>RED（redundant packet）冗余包，配合 FEC 使用。</p>
-  </li>
-  <li>
-    <p>FEC 前向纠错算法，经 FEC 算法计算后，通过 RED 生成冗余包。</p>
-  </li>
-  <li>
-    <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747">参考 ULR</a></p>
-  </li>
-</ul>
+<blockquote>
+  <p>这里及以后均假设 SEV_ADDR 即为 服务器地址。</p>
+</blockquote>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: OPTIONS
+
+Request Headers:
+model=xxx
+
+Result:
+200 ok
+</code></pre></div></div>
+
+<blockquote>
+  <p>通过返回 http status 判断 xxx 是否在白名单中，200 为是，否则为 否。</p>
+</blockquote>
+
+<h3 id="2查询所有白名单">2、查询所有白名单</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: QUERY
+
+Result:
+200 ok
+Content type: text/json
+body: json string
+</code></pre></div></div>
+
+<blockquote>
+  <p>如果返回 200 ok，则说明查询成功，可通过 content body 的 json string 进行解析，格式如下：</p>
+</blockquote>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"7"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:37"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"8"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:39"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="添加新机型">添加新机型</h2>
+
+<p>通过以下 API 即可添加</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: ADD
+
+Request Headers:
+osVersion=Android 6.2
+brand=postman_brand
+model=xxx
+sdkVersion=1.0.0
+packageName=com.org.xxx
+author=gobert
+
+Result:
+200 ok
+</code></pre></div></div>
+
+<h2 id="删除已有机型">删除已有机型</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method:DELETE
+
+Request Headers:
+model=xxx
+
+Result:
+200 ok
+</code></pre></div></div>
 
 
             <div class="post-copyright">
               <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="https://gbcpp.github.io">Mr Chen</a>&nbsp;所有，转载请注明本文链接。</p>
               <p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>
-              <p><span>本文标题：</span>《 解决 WebRTC 花屏问题记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html">https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html</a></p>
+              <p><span>本文标题：</span>《 Android AEC 无效的解决方案 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/fix-aec-bug-on-android.html">https://gbcpp.github.io/fix-aec-bug-on-android.html</a></p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a href="#情景描述">情景描述</a></li></ul>
+          <ul><li><a href="#启动服务">启动服务</a></li><li><a href="#android-端查询接口">Android 端查询接口</a><ul><li><a href="#1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></a></li><li><a href="#2查询所有白名单">2、查询所有白名单</a></li></ul></li><li><a href="#添加新机型">添加新机型</a></li><li><a href="#删除已有机型">删除已有机型</a></li></ul>
         </div>
       </div>
       
@@ -353,10 +372,10 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
+          <a href="/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
           <section>
-            <span>Android AEC 无效的解决方案</span>
-            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
+            <span>mediasoup 公网环境部署</span>
+            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
           </section>
           
       </div>
@@ -364,14 +383,11 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
 
         
         <div class="read-next-item">
-          <a href="/test/mathjax-test.html" class="read-next-link" aria-label="MathJax Test"></a>
+          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
             <section>
-              <span>MathJax Test</span>
-              <p>mathjax in markdown :)</p>
+              <span>解决 WebRTC 花屏问题记录</span>
+              <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/hu.png" alt="">
             
         </div>
         
@@ -541,7 +557,7 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-19-resolve_webrtc_video_blurry_frame_issue.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-fix-aec-bug-on-android.md")
           .then((response) => {
             return response.json();
           })
