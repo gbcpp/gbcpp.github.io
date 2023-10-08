@@ -1,11 +1,16 @@
 ---
+layout: post
 title: Android AEC 无效的解决方案
-tags: Android AEC 16KHz
-categories: RTC
-abbrlink: 1837193558
-date: 2019-01-23 10:12:21
+date: 2019-01-23
+author: Mr Chen
+# cover: '/assets/img/shan.jpg'
+#cover_author: 'rogov'
+#cover_author_link: 'https://unsplash.com/@rogovca'
+tags: 
+- Audio
+- WebRTC
+- Android
 ---
-
 
 
 Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。
@@ -20,7 +25,7 @@ GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android
 
 启动命令：
 
-~~~
+~~~bash
 go run main.go -addr="127.0.0.1:6688" -prefix="/v1/aecm/" -user="root" -password="123456"
 ~~~
 

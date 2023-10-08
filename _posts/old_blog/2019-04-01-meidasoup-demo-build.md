@@ -1,10 +1,18 @@
 ---
+layout: post
 title: mediasoup 公网环境部署
-categories: RTC
-abbrlink: 3784820804
-date: 2019-04-01 23:42:10
-tags:
+subtitle: 源码编译部署 mediasoup，快速搭建实时音视频通话
+date: 2019-04-01
+author: Mr Chen
+# cover: '/assets/img/shan.jpg'
+#cover_author: 'rogov'
+#cover_author_link: 'https://unsplash.com/@rogovca'
+tags: 
+- 开源
+- WebRTC
+- mediasoup
 ---
+
 
 最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。
 
@@ -24,7 +32,7 @@ tags:
 
 # 安装 mediasoup
 
-~~~
+~~~bash
 λ ssh gobert@47.100.110.xxx
 gobert@47.100.110.xxx's password:
 Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-38-generic x86_64)
@@ -43,7 +51,7 @@ $ git clone git@github.com:versatica/mediasoup-demo.git
 
 ## 在线安装 nginx
 
-~~~
+~~~bash
 $ sudo apt-get install nginx
 ~~~
 
@@ -51,21 +59,21 @@ $ sudo apt-get install nginx
 
 > 将 mediasoup 中的 server 目录拷贝到 nginx 根目录下。
 
-~~~
+~~~bash
 $ sudo mkdir -p /var/www/mediasoup
 $ sudo cp -r medissoup-demo/server/ /var/www/mediasoup/
 ~~~
 
 配置 nginx 解析到以上目录，编辑 `/etc/nginx/sites-available/default` 配置文件，将 server 根路径下的 root 属性修改为 `/var/www/mediasoup/server/public;`,即：
 
-~~~
-        # 以上省略
-        #root /var/www/html;
-        root /var/www/mediasoup/server/public;
+~~~bash
+ # 以上省略
+ #root /var/www/html;
+ root /var/www/mediasoup/server/public;
 
-        # Add index.php to the list if you are using PHP
-        index index.html index.htm index.nginx-debian.html;
-        # 以下省略
+ # Add index.php to the list if you are using PHP
+ index index.html index.htm index.nginx-debian.html;
+ # 以下省略
 ~~~
 
 ## 配置 https 服务
@@ -76,20 +84,20 @@ $ sudo cp -r medissoup-demo/server/ /var/www/mediasoup/
 
 > letsencrpt 安装的 ssl 证书只有三个月的有效期，所以为了防止证书过期，建议添加系统定时任务，定期执行脚本命令更新证书：
 
-~~~
+~~~bash
 $ su -
 $ certbot renew --dry-run
 ~~~
 
 正常情况下，你的 nginx 已经开启了 https 服务, ssl 证书及秘钥存放位置记录在 `/etc/nginx/sites-available/default` 配置文件中，打开 `/etc/nginx/sites-available/default` 文件，发现 letsencrpty 自动在脚本末尾增加了一项 server 配置，将 `root` 路径配置为以上 `/var/www/mediasoup/server/public;` 目录，同时记录下其 ssl_certificate 目录，后面 nginx 配置中需要指定：
 
-~~~
-    listen [::]:443 ssl ipv6only=on; # managed by Certbot
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/www.gobert.top/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/www.gobert.top/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+~~~bash
+listen [::]:443 ssl ipv6only=on; # managed by Certbot
+listen 443 ssl; # managed by Certbot
+ssl_certificate /etc/letsencrypt/live/www.gobert.top/fullchain.pem; # managed by Certbot
+ssl_certificate_key /etc/letsencrypt/live/www.gobert.top/privkey.pem; # managed by Certbot
+include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 ~~~
 
 ## 配置 nginx 开启 gzip
@@ -97,19 +105,19 @@ $ certbot renew --dry-run
 mediasoup 中 `mediasoup-demo-app.js` 有 12MB 大小，如果 server 带宽比较低的话，用户首次拉取会比较慢，由于 nginx 默认配置是不开启 gzip 压缩的，所以需要我们手动开启 gzip 压缩，修改 nginx 的配置文件（全站配置）`/etc/nginx/nginx.conf`，将以下内容的注释全部取消：
 
 ~~~
-        gzip on;
+gzip on;
 
-        gzip_vary on;
-        gzip_proxied any;
-        gzip_comp_level 6;
-        gzip_buffers 16 8k;
-        gzip_http_version 1.1;
-        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_buffers 16 8k;
+gzip_http_version 1.1;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 ~~~
 
 然后重启 nginx 服务即可：
 
-~~~
+~~~bash
 sudo /etc/init.d/nginx reload
 ~~~
 
@@ -118,7 +126,7 @@ sudo /etc/init.d/nginx reload
 
 - 配置自定义脚本：
 
-~~~
+~~~bash
 $ copy config.example.js config.js
 ~~~
 
@@ -198,6 +206,8 @@ module.exports =
         }
 };
 ~~~
+
+
 - 修改 Server 监听端口
 
 > 此处修改 server 的监听端口其实没什么意义，可以忽略。
@@ -211,7 +221,7 @@ module.exports =
 
 > 如果上一步中没有修改 server 的监听端口的话，这一步也可忽略。
 
-~~~
+~~~node.js
 function getProtooUrl(peerName, roomId, forceH264) {
   var hostname = window.location.hostname;
   var url = "wss://".concat(hostname, ":5678/?peerName=").concat(peerName, "&roomId=").concat(roomId);
@@ -220,25 +230,21 @@ function getProtooUrl(peerName, roomId, forceH264) {
 }
 ~~~
 
+
 ## 启动 mediasoup server
 
-~~~
+~~~bash
 $ cd /var/www/mediasoup/server
 $ sudo DEBUG="*mediasoup* *ERROR* *WARN*" INTERACTIVE="true" node server.js
 ~~~
 
 ## 重启 nginx
 
-~~~
+~~~bash
 $ sudo nginx -s reload
 ~~~
 # 在线体验
 
 > 此主机带宽比较低，初次打开比较慢，需耐心等待加载完成，后面缓冲后速度会变化，音视频延迟不受影响。
 
-在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 `https://www.gobert.top/?roomId=123456` 即可体验，RoomId 可自定义，效果图：
-
-![连麦效果图](/images/mediasoup-brower.png)
-
-
-
+在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 `https://www.gobert.top/?roomId=123456` 即可体验，RoomId 可自定义。
