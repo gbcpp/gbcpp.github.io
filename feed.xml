@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-08T14:40:39+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-09T09:00:01+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
 
 <p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
 
@@ -107,7 +107,16 @@ git push <span class="nt">-f</span> origin master
 
 git checkout gh-pages
 git push <span class="nt">-f</span> origin gh-pages
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="GitPages" /><category term="blog" /><summary type="html"><![CDATA[渊源]]></summary></entry><entry><title type="html">RtcDataChannel(sctp) protocol optimize</title><link href="https://gbcpp.github.io/sctp-optimize.html" rel="alternate" type="text/html" title="RtcDataChannel(sctp) protocol optimize" /><published>2023-09-30T00:00:00+00:00</published><updated>2023-09-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/sctp-optimize</id><content type="html" xml:base="https://gbcpp.github.io/sctp-optimize.html"><![CDATA[<h1 id="datachannel-实现">DataChannel 实现</h1>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="GitPages" /><category term="blog" /><summary type="html"><![CDATA[渊源]]></summary></entry><entry><title type="html">PlantUML-Language Pdf</title><link href="https://gbcpp.github.io/PlantUML-Language-book.html" rel="alternate" type="text/html" title="PlantUML-Language Pdf" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/PlantUML-Language-book</id><content type="html" xml:base="https://gbcpp.github.io/PlantUML-Language-book.html"><![CDATA[<h1 id="plantuml-语法字典">PlantUML 语法字典</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td>查看</td>
+      <td>下载地址：<a href="/assets/books/PlantUML_Language_Reference_Guide_zh.pdf">PlantUML-Language</a></td>
+    </tr>
+  </tbody>
+</table>]]></content><author><name>Mr Chen</name></author><category term="GitPages" /><category term="blog" /><summary type="html"><![CDATA[PlantUML 语法字典]]></summary></entry><entry><title type="html">RtcDataChannel(sctp) protocol optimize</title><link href="https://gbcpp.github.io/sctp-optimize.html" rel="alternate" type="text/html" title="RtcDataChannel(sctp) protocol optimize" /><published>2023-09-30T00:00:00+00:00</published><updated>2023-09-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/sctp-optimize</id><content type="html" xml:base="https://gbcpp.github.io/sctp-optimize.html"><![CDATA[<h1 id="datachannel-实现">DataChannel 实现</h1>
 <p>DataChannel 的实现有两种，webrtc 目前使用自行基于 C++ 开发的 dcsctp，mediasoup 和 libdatachannel 基于 usrsctp，usrsctp 为开源 sctp 协议实现，均遵守 rfc 4960 标准。
 RFC：https://tools.ietf.org/html/rfc4960</p>
 
@@ -2309,23 +2318,4 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
   <li>
     <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747">参考 ULR</a></p>
   </li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="WebRTC" /><summary type="html"><![CDATA[现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet, err=9，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。]]></summary></entry><entry><title type="html">MathJax Test</title><link href="https://gbcpp.github.io/test/mathjax-test.html" rel="alternate" type="text/html" title="MathJax Test" /><published>2017-07-30T00:00:00+00:00</published><updated>2017-07-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/test/mathjax-test</id><content type="html" xml:base="https://gbcpp.github.io/test/mathjax-test.html"><![CDATA[<p>mathjax in markdown :)</p>
-
-<p><strong>这是一个不<code class="language-plaintext highlighter-rouge">align</code>的公式</strong>：</p>
-
-\[\forall \alpha \in A, \quad a \cdot b = 0\]
-
-<p><strong>这是一个<code class="language-plaintext highlighter-rouge">align</code>的公式</strong>：</p>
-
-\[\begin{align}
-    \Phi(0,x) = \max_{u \in \mathcal{D}} \bigg[
-        \mathbb{E} &amp; \Phi\left(1, 
-        x + \int_0^1 \sigma^2(s) \, \zeta(s) \, u_s \, ds
-        + \int_0^1 \sigma(s) \, dW_s
-    \right) \\
-        &amp;- \frac{1}{2} \int_0^1 \sigma^2(s) \, \zeta(s) \,
-        \mathbb{E} u_s^2  \, ds
-    \bigg].
-\end{align}\]
-
-<p><strong>注意：</strong>公式块要想有较好的显示效果，必须在公式块标记符<code class="language-plaintext highlighter-rouge">$$</code><strong>前后</strong>留有空行，否则公式将不能正常居中。行内公式无此问题。</p>]]></content><author><name>Mr Chen</name></author><category term="test" /><category term="mathjax" /><summary type="html"><![CDATA[mathjax in markdown :)]]></summary></entry></feed>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="WebRTC" /><summary type="html"><![CDATA[现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet, err=9，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。]]></summary></entry></feed>

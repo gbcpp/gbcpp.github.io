@@ -5,9 +5,34 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 08 Oct 2023 14:40:39 +0000</pubDate>
-    <lastBuildDate>Sun, 08 Oct 2023 14:40:39 +0000</lastBuildDate>
+    <pubDate>Mon, 09 Oct 2023 09:00:01 +0000</pubDate>
+    <lastBuildDate>Mon, 09 Oct 2023 09:00:01 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
+    
+      <item>
+        <title>PlantUML-Language Pdf</title>
+        <description>&lt;h1 id=&quot;plantuml-语法字典&quot;&gt;PlantUML 语法字典&lt;/h1&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;查看&lt;/td&gt;
+      &lt;td&gt;下载地址：&lt;a href=&quot;/assets/books/PlantUML_Language_Reference_Guide_zh.pdf&quot;&gt;PlantUML-Language&lt;/a&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+</description>
+        <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/PlantUML-Language-book.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/PlantUML-Language-book.html</guid>
+        
+        <category>GitPages</category>
+        
+        <category>blog</category>
+        
+        
+      </item>
     
       <item>
         <title>GitHub Pages 博客搭建记录</title>
@@ -2468,40 +2493,6 @@ Unique identifier&lt;code class=&quot;language-plaintext highlighter-rouge&quot;
         
         <category>WebRTC</category>
         
-        
-      </item>
-    
-      <item>
-        <title>MathJax Test</title>
-        <description>&lt;p&gt;mathjax in markdown :)&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;这是一个不&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;align&lt;/code&gt;的公式&lt;/strong&gt;：&lt;/p&gt;
-
-\[\forall \alpha \in A, \quad a \cdot b = 0\]
-
-&lt;p&gt;&lt;strong&gt;这是一个&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;align&lt;/code&gt;的公式&lt;/strong&gt;：&lt;/p&gt;
-
-\[\begin{align}
-    \Phi(0,x) = \max_{u \in \mathcal{D}} \bigg[
-        \mathbb{E} &amp;amp; \Phi\left(1, 
-        x + \int_0^1 \sigma^2(s) \, \zeta(s) \, u_s \, ds
-        + \int_0^1 \sigma(s) \, dW_s
-    \right) \\
-        &amp;amp;- \frac{1}{2} \int_0^1 \sigma^2(s) \, \zeta(s) \,
-        \mathbb{E} u_s^2  \, ds
-    \bigg].
-\end{align}\]
-
-&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt;公式块要想有较好的显示效果，必须在公式块标记符&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$$&lt;/code&gt;&lt;strong&gt;前后&lt;/strong&gt;留有空行，否则公式将不能正常居中。行内公式无此问题。&lt;/p&gt;
-</description>
-        <pubDate>Sun, 30 Jul 2017 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/test/mathjax-test.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/test/mathjax-test.html</guid>
-        
-        <category>mathjax</category>
-        
-        
-        <category>test</category>
         
       </item>
     
