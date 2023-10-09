@@ -13,7 +13,7 @@ tags:
 
 # PlantUML 语法字典
 
-查看 | 下载地址：[PlantUML-Language](/assets/books/PlantUML_Language_Reference_Guide_zh.pdf)
+查看 和 下载地址：[PlantUML-Language](/assets/books/PlantUML_Language_Reference_Guide_zh.pdf)
 
 
 
