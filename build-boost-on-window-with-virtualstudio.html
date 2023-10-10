@@ -5,21 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>解决 WebRTC 花屏问题记录 - Mr Chen</title>
+    <title>BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="解决 WebRTC 花屏问题记录">
-    <meta name="keywords"  content="WebRTC">
+    <meta name="description" content="BOOST 在 Windows 下通过 VS 进行编译">
+    <meta name="keywords"  content="BOOST">
     <!-- Open Graph -->
-    <meta property="og:title" content="解决 WebRTC 花屏问题记录 - Mr Chen">
+    <meta property="og:title" content="BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html">
+    <meta property="og:url" content="https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2018-03-19 00:00:00 +0000" />
+    <meta property="post-date" content="2018-03-12 00:00:00 +0000" />
     
     
     <meta name="theme-color" content="#81BBFF" />
@@ -131,18 +131,18 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
       data-theme="default"
     >
       <div class="post-wrapper">
         <div class="post-tags">
           
             
-              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
+              <a href="/tags.html#BOOST" class="post-tag">BOOST</a>
             
           
         </div>
-        <h1>解决 WebRTC 花屏问题记录</h1>
+        <h1>BOOST 在 Windows 下通过 VS 进行编译</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -150,13 +150,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -168,13 +168,13 @@
               <use xlink:href="#icon-words"></use>
             </svg>
             
-          本文总共  1.4k  字
+          本文总共  2.0k  字
           </span>
           <span class="post-meta-item">
             <svg class="icon time" aria-hidden="true">
               <use xlink:href="#icon-time"></use>
             </svg>
-             阅读全文大约需要 5 分钟
+             阅读全文大约需要 6 分钟
           </span>
           
           <span class="post-meta-item">
@@ -188,111 +188,80 @@
         </div>
       </div>
       
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/boost_logo.webp') center no-repeat; background-size: cover;"></div>
+      
     </header>
     <div class="post-content visible">
-      
-      <h2 class="post-subtitle">实现 RTCDataChannel 类似于裸 UDP 的传输效率</h2>
       
 
       
       <div class="container">  
         <div class="contents">
           <article class="markdown-body">
-            <blockquote>
-  <p>现象：WebRTC native 层经常打印 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code>，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。</p>
-</blockquote>
+            <h1 id="下载-boost-源码">下载 Boost 源码</h1>
 
 <!--more-->
 
-<h1 id="情景描述">情景描述</h1>
+<p>从官方下载 Boost 源码，之前用的一直是 boost 1.58.0，今天去官方网站看到最新的已经是 boost 1.66.0，最新版本的下载地址是：<a href="https://akamai.bintray.com/59/596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628?__gda__=exp=1520835412~hmac=6d6c97450b9b0b9421f696c922c483f87493fe9a10890fc7235a1c30c120f8e1&amp;response-content-disposition=attachment%3Bfilename%3D%22boost_1_66_0.7z%22&amp;response-content-type=application%2Fx-7z-compressed&amp;requestInfo=U2FsdGVkX19TK62uO_jw5nC8JAtKkRu4cX28_lg3Z3y4xQkcbs9DqFSaTA0PDQKfCQ9Q94pRYGu60LzIyLyeN5mNvuokt1GI_MdVPpMBQLpNhTWhePsfBOrGtyhg6MOCF0JFr3mSugB0Sihk9fO5Wr1BR4MLQS9n78rtxF7JwNmR7sZ6on6X6jtu9UTYTMBy&amp;response-X-Checksum-Sha1=075d0b43980614054b1f1bafd189f863bba6600e&amp;response-X-Checksum-Sha2=596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628">下载地址</a></p>
 
-<p>当前基于 WebRTC 开发自己的音视频实时通话的产品，服务器选择了 licode，在多端 H5、Android、iOS、C++ Native 端均有一定的概率会出现绿屏、花屏的现象，特别是在弱网下出现的概率更高；</p>
+<p>建议使用迅雷进行下载，通过浏览器下的比较慢。
+下载后解压到自己的开源项目目录下，如：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code></p>
 
-<p>在出现绿屏、花屏时，native log 也会经常输出的 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log，花屏时，或者完全无法播放（有流量，但无画面），此 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log 出现的概率更高；</p>
+<h1 id="windows-下通过-visual-studio-2015-编译">Windows 下通过 Visual Studio 2015 编译</h1>
 
-<p>当前已排除不同订阅终端在同一房间内跨运营商的网络问题，但依然会存在此类问题；</p>
+<p>启动 VS2015 的 X86 本机工具命令提示符，即 <code class="language-plaintext highlighter-rouge">VS2015 x86 Native Tools Command Prompt</code> ，进入 boost 源码目录：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>，然后执行以下命令：</p>
 
-<p>RTP/RTCP</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    bootstrap.bat   //首先执行此命令生成 b2 编译工具
+    bjam stage --toolset=msvc-14.0 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14" link=static runtime-link=static runtime-link=static threading=multi debug release  
+</code></pre></div></div>
 
+<p>以上命令生成 32bit 静态库；如果希望生成 64bit，则使用以下命令：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bjam stage --toolset=msvc-14.0 architecture=x86 address-model=64 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14-x64" link=static runtime-link=static runtime-link=static threading=multi debug release
+</code></pre></div></div>
+
+<h1 id="相关编译选项">相关编译选项</h1>
+
+<p>下面详细解释一下每个参数的含义：</p>
 <ul>
   <li>
-    <p>SR（Sender Report） 发送端报告</p>
+    <p>stage/install：
+stage表示只生成库（dll和lib），install还会生成包含头文件的include目录。本人推荐使用stage，因为install生成的这个include目录实际就是boost安装包解压缩后的boost目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0\boost</code>，只比include目录多几个非hpp文件，都很小），所以可以直接使用，而且不同的IDE都可以使用同一套头文件，这样既节省编译时间，也节省硬盘空间。</p>
   </li>
   <li>
-    <p>RR（Receiver Report）接收端报告</p>
+    <p>toolset：
+指定编译器，可选的如borland、gcc、msvc（VC6）、msvc-14.0（VS2015）等。</p>
   </li>
   <li>
-    <p>REMB (Receiver Estimated Maximum Bitrate)</p>
-  </li>
-</ul>
-
-<p>接收端最大接收码率估测，接收端会估计本地接收的最大带宽能力，并通过RTCP REMB 消息返回给对端，这样对端可以调整自己的发送端码率，达到动态调整带宽的目的，具体消息类型通过rtcp的属性 `
-Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分是 </code>REMG` 消息，此部分是四个字节，</p>
-
-<p>REMG 信令协商：webrtc里面的协商格式是：<code class="language-plaintext highlighter-rouge">a=rtcp-fb:100 goog-remb，100 是codec payload</code>; 这里goog 实际上是 google 实现了自己版本的remb。</p>
-
-<ul>
-  <li>
-    <p>GCC 码率估计算法（接收端），用来生成 <code class="language-plaintext highlighter-rouge">REMG</code> 包</p>
+    <p>without/with：
+选择不编译/编译哪些库。因为python、mpi等库我都用不着，所以排除之。还有wave、graph、math、regex、test、program_options、serialization、signals这几个库编出的静态lib都非常大，所以不需要的也可以without掉。这可以根据各人需要进行选择，默认是全部编译。但是需要注意，如果选择编译python的话，是需要python语言支持的，应该到 python <a href="http://www.python.org/">官方主页</a>下载安装。查看boost包含库的命令是bjam –show-libraries。</p>
   </li>
   <li>
-    <p>TMMBR（Temporal Max Media Bitrate Request），表示临时最大码率请求。表明接收端当前带宽受限，告诉发送端控制码率。</p>
+    <p>stagedir/prefix：
+stage时使用stagedir，install时使用prefix，表示编译生成文件的路径。推荐给不同的IDE指定不同的目录。</p>
   </li>
   <li>
-    <p>TMMBN（Temporal Max Media Bitrate Notification）临时最大码率通知。</p>
+    <p>build-dir：编译生成的中间文件的路径。这个本人这里没用到，默认就在根目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>）下，目录名为bin.v2，等编译完成后可将这个目录全部删除（没用了），所以不需要去设置。</p>
   </li>
   <li>
-    <p>SDES 源描述，主要功能是作为会话成员有关标识信息的载体，如用户名、邮件地址、电话号码等，此外还具有向会话成员传达会话控制信息的功能。</p>
+    <p>link：
+生成动态链接库/静态链接库。生成动态链接库需使用shared方式，生成静态链接库需使用static方式。一般boost库可能都是以static方式编译，因为最终发布程序带着boost的dll感觉会比较累赘。</p>
   </li>
   <li>
-    <p>BYE　通知离开，主要功能是指示某一个或者几个源不再有效，即通知会话中的其他成员自己将退出会话。</p>
+    <p>runtime-link：
+动态/静态链接C/C++运行时库。同样有shared和static两种方式，这样runtime-link和link一共可以产生4种组合方式，各人可以根据自己的需要选择编译。一般link只选static的话，只需要编译2种组合即可，即link=static runtime-link=shared和link=static runtime-link=static，本人一般就编这两种组合。</p>
   </li>
   <li>
-    <p>APP　由应用程序自己定义，解决了RTCP的扩展性问题，并且为协议的实现者提供了很大的灵活性。</p>
-  </li>
-</ul>
-
-<p><strong>关键帧请求</strong></p>
-
-<ul>
-  <li>
-    <p>PLI（Picture Loss Indication）</p>
+    <p>threading：
+单/多线程编译。一般都写多线程程序，当然要指定multi方式了；如果需要编写单线程程序，那么还需要编译单线程库，可以使用single方式。</p>
   </li>
   <li>
-    <p>SLI（Slice Loss Indication）</p>
-  </li>
-</ul>
-
-<p>发送方接收到接收方反馈的PLI或SLI需要重新让编码器生成关键帧并发送给接收端。</p>
-
-<ul>
-  <li>FIR（Full Intra Request）</li>
-</ul>
-
-<p>这里面 Intra 的含义是图像内编码，不需要其他图像信息即可解码；Inter 指图像间编码，解码需要参考帧。所以 Intra Frame 其实就是指 I 帧，Inter Frame指 P 帧或 B 帧。</p>
-
-<blockquote>
-  <p>那么为什么在 PLI 和 SLI 之外还需要一个 FIR 呢？
-原因是使用场景不同，FIR 更多是在一个中心化的 Video Conference 中，新的参与者加入，就需要发送一个 FIR，其他的参与者给他发送一个关键帧这样才能解码，而 PLI 和 SLI 的含义更多是在发生丢包或解码错误时使用。</p>
-</blockquote>
-
-<p><strong>重传请求</strong></p>
-
-<ul>
-  <li>RTX／NACK／RPSI</li>
-</ul>
-
-<p>这个重传跟关键帧请求的区别是它可以要求任意帧进行重传;</p>
-
-<ul>
-  <li>
-    <p>RED（redundant packet）冗余包，配合 FEC 使用。</p>
+    <p>debug/release：
+编译debug/release版本。一般都是程序的debug版本对应库的debug版本，所以两个都编译。</p>
   </li>
   <li>
-    <p>FEC 前向纠错算法，经 FEC 算法计算后，通过 RED 生成冗余包。</p>
-  </li>
-  <li>
-    <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747">参考 ULR</a></p>
+    <p>address-model=32/64 	
+寻址模式(生成32位还是64位库)</p>
   </li>
 </ul>
 
@@ -300,14 +269,14 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
             <div class="post-copyright">
               <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="https://gbcpp.github.io">Mr Chen</a>&nbsp;所有，转载请注明本文链接。</p>
               <p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>
-              <p><span>本文标题：</span>《 解决 WebRTC 花屏问题记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html">https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html</a></p>
+              <p><span>本文标题：</span>《 BOOST 在 Windows 下通过 VS 进行编译 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html">https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html</a></p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a href="#情景描述">情景描述</a></li></ul>
+          <ul><li><a href="#下载-boost-源码">下载 Boost 源码</a></li><li><a href="#windows-下通过-visual-studio-2015-编译">Windows 下通过 Visual Studio 2015 编译</a></li><li><a href="#相关编译选项">相关编译选项</a></li></ul>
         </div>
       </div>
       
@@ -353,10 +322,10 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
+          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
           <section>
-            <span>Android AEC 无效的解决方案</span>
-            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
+            <span>解决 WebRTC 花屏问题记录</span>
+            <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
           </section>
           
       </div>
@@ -364,14 +333,14 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
 
         
         <div class="read-next-item">
-          <a href="/build-boost-on-window-with-virtualstudio.html" class="read-next-link" aria-label="BOOST 在 Windows 下通过 VS 进行编译"></a>
+          <a href="/test/mathjax-test.html" class="read-next-link" aria-label="MathJax Test"></a>
             <section>
-              <span>BOOST 在 Windows 下通过 VS 进行编译</span>
-              <p>下载 Boost 源码</p>
+              <span>MathJax Test</span>
+              <p>mathjax in markdown :)</p>
             </section>
             
             <div class="filter"></div>
-            <img src="/assets/img/boost_logo.webp" alt="">
+            <img src="/assets/img/hu.png" alt="">
             
         </div>
         
@@ -541,7 +510,7 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-19-resolve_webrtc_video_blurry_frame_issue.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-12-build-boost-on-window-with-virtualstudio.md")
           .then((response) => {
             return response.json();
           })

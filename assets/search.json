@@ -61,6 +61,12 @@
     } ,
   
     {
+      "title"    : "BOOST 在 Windows 下通过 VS 进行编译",
+      "tags"     : "BOOST",
+      "url"      : "/build-boost-on-window-with-virtualstudio.html"
+    } ,
+  
+    {
       "title"    : "MathJax Test",
       "tags"     : "mathjax",
       "url"      : "/test/mathjax-test.html"
