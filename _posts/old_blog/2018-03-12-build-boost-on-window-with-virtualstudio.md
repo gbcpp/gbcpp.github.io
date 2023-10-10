@@ -1,10 +1,15 @@
 ---
+layout: post
 title: BOOST 在 Windows 下通过 VS 进行编译
-categories: C++
-abbrlink: 827497819
-date: 2018-03-12 14:19:16
-tags:
+date: 2018-03-12
+author: Mr Chen
+cover: '/assets/img/boost_logo.webp'
+#cover_author: 'rogov'
+#cover_author_link: 'https://unsplash.com/@rogovca'
+tags: 
+- BOOST
 ---
+
 
 # 下载 Boost 源码
 
