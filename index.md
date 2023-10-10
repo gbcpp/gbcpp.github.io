@@ -11,9 +11,9 @@ lang: "zh-Hans"
 
 ## 关于我
 
-&emsp;&emsp;一个从业十几年流媒体、C++ 开发的软件工程师
+&emsp;&emsp;从事 C++ 开发，致力于流媒体和网络协议方向的软件工程师。
 
-## 论文发表
+## 个人主页
 
 1. Github [[DOI]](https://github.com/gbcpp)
 2. CSDN [[DOI]](https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)
