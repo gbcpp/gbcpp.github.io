@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-10T16:13:44+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.2">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2023-10-12T15:47:09+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
 
 <p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
 
@@ -1864,7 +1864,554 @@ Output: 7 -&gt; 0 -&gt; 8</p>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">dest_str</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="算法" /><category term="c++" /><summary type="html"><![CDATA[二叉树遍历]]></summary></entry><entry><title type="html">mediasoup 公网环境部署</title><link href="https://gbcpp.github.io/meidasoup-demo-build.html" rel="alternate" type="text/html" title="mediasoup 公网环境部署" /><published>2019-04-01T00:00:00+00:00</published><updated>2019-04-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/meidasoup-demo-build</id><content type="html" xml:base="https://gbcpp.github.io/meidasoup-demo-build.html"><![CDATA[<p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。</p>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="算法" /><category term="c++" /><summary type="html"><![CDATA[二叉树遍历]]></summary></entry><entry><title type="html">C++算法大全</title><link href="https://gbcpp.github.io/c-algorithm-notes.html" rel="alternate" type="text/html" title="C++算法大全" /><published>2019-05-28T00:00:00+00:00</published><updated>2019-05-28T00:00:00+00:00</updated><id>https://gbcpp.github.io/c-algorithm-notes</id><content type="html" xml:base="https://gbcpp.github.io/c-algorithm-notes.html"><![CDATA[<blockquote>
+  <p>以内内容为互联网收集，非原创。</p>
+</blockquote>
+
+<h2 id="算法分类">算法分类</h2>
+
+<p>常见的排序算法分为两类：</p>
+
+<ul>
+  <li>
+    <p><strong>比较类排序：</strong>通过比较来决定元素间的相对次序，由于其时间复杂度不能突破O(nlogn)，因此也称为非线性时间比较类排序。</p>
+  </li>
+  <li>
+    <p><strong>非比较类排序：</strong>不通过比较来决定元素间的相对次序，它可以突破基于比较排序的时间下界，以线性时间运行，因此也称为线性时间非比较类排序。</p>
+  </li>
+</ul>
+
+<!--more-->
+
+<p><img src="/assets/img/old_blog/algorithm/算法分类.png" alt="算法分类" /></p>
+
+<h2 id="算法复杂度">算法复杂度</h2>
+
+<p><img src="/assets/img/old_blog/algorithm/算法复杂度.png" alt="算法复杂度" /></p>
+
+<ul>
+  <li><strong>时间复杂度：</strong>对排序数据的总的操作次数。反映当n变化时，操作次数呈现什么规律。</li>
+  <li><strong>空间复杂度：</strong>是指算法在计算机内执行时所需存储空间的度量，它也是数据规模n的函数。</li>
+</ul>
+
+<h2 id="经典排序">经典排序</h2>
+
+<h3 id="冒泡排序">冒泡排序</h3>
+
+<p>冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果它们的顺序错误就把它们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越小的元素会经由交换慢慢“浮”到数列的顶端。</p>
+
+<h4 id="算法描述">算法描述</h4>
+<ul>
+  <li>比较相邻的元素。如果第一个比第二个大，就交换它们两个；</li>
+  <li>对每一对相邻元素作同样的工作，从开始第一对到结尾的最后一对，这样在最后的元素应该会是最大的数；</li>
+  <li>针对所有的元素重复以上的步骤，除了最后一个；</li>
+  <li>重复步骤1~3，直到排序完成。</li>
+</ul>
+
+<h4 id="动图演示">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/冒泡排序.gif" alt="插入排序" /></p>
+
+<h4 id="代码实现">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">BubbleSort</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">src</span> <span class="o">||</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">count</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="p">{</span>
+                <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+                <span class="n">src</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+                <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="选择排序selection-sort">选择排序（Selection Sort）</h3>
+
+<p>选择排序(Selection-sort)是一种简单直观的排序算法。它的工作原理：首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置，然后，再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。以此类推，直到所有元素均排序完毕。</p>
+
+<h4 id="算法描述-1">算法描述</h4>
+
+<p>n个记录的直接选择排序可经过n-1趟直接选择排序得到有序结果。具体算法描述如下：</p>
+
+<ul>
+  <li>初始状态：无序区为R[1..n]，有序区为空；</li>
+  <li>第i趟排序(i=1,2,3…n-1)开始时，当前有序区和无序区分别为R[1..i-1]和R(i..n）。该趟排序从当前无序区中-选出关键字最小的记录 R[k]，将它与无序区的第1个记录R交换，使R[1..i]和R[i+1..n)分- 别变为记录个数增加1个的新有序区和记录个数减少1个的新无序区；</li>
+  <li>n-1趟结束，数组有序化了。</li>
+</ul>
+
+<h4 id="动图演示-1">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/选择排序.gif" alt="插入排序" /></p>
+
+<h4 id="代码实现-1">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">SelectSort</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">src</span> <span class="o">||</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">min_num</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">min_value</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_value</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">min_num</span> <span class="o">=</span> <span class="n">j</span><span class="p">;</span>
+                <span class="n">min_value</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">min_num</span> <span class="o">!=</span> <span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">int</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">min_num</span><span class="p">];</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">min_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="插入排序">插入排序</h3>
+
+<p>插入排序（Insertion-Sort）的算法描述是一种简单直观的排序算法。它的工作原理是通过构建有序序列，对于未排序数据，在已排序序列中从后向前扫描，找到相应位置并插入。</p>
+
+<h4 id="算法描述-2">算法描述</h4>
+
+<p>一般来说，插入排序都采用in-place在数组上实现。具体算法描述如下：</p>
+
+<ul>
+  <li>从第一个元素开始，该元素可以认为已经被排序；</li>
+  <li>取出下一个元素，在已经排序的元素序列中从后向前扫描；</li>
+  <li>如果该元素（已排序）大于新元素，将该元素移到下一位置；</li>
+  <li>重复步骤3，直到找到已排序的元素小于或者等于新元素的位置；</li>
+  <li>将新元素插入到该位置后；</li>
+  <li>重复步骤2~5。</li>
+</ul>
+
+<h4 id="动图演示-2">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/插入排序.gif" alt="插入排序" /></p>
+
+<h4 id="代码实现-2">代码实现</h4>
+
+<pre><code class="language-C">void InsertSort(int *src, int count)
+{
+    if(!src || count &lt;= 1) {
+        return;
+    }
+    int pre_index(0), cur_value(0);
+    for (int i(1); i &lt; count; ++i) {
+        pre_index = i - 1;
+        cur_value = src[i];
+        while (pre_index &gt;= 0 &amp;&amp; src[pre_index] &gt; cur_value) {
+            src[pre_index + 1] = src[pre_index];
+            --pre_index;
+        }
+        src[pre_index + 1] = cur_value;
+    }
+}
+</code></pre>
+
+<h3 id="希尔排序insertion-sort">希尔排序（Insertion Sort）</h3>
+
+<p>1959年Shell发明，第一个突破O(n2)的排序算法，是简单插入排序的改进版。它与插入排序的不同之处在于，它会优先比较距离较远的元素。希尔排序又叫缩小增量排序。</p>
+
+<h4 id="算法描述-3">算法描述</h4>
+<p>先将整个待排序的记录序列分割成为若干子序列分别进行直接插入排序，具体算法描述：</p>
+
+<ul>
+  <li>选择一个增量序列t1，t2，…，tk，其中ti&gt;tj，tk=1；</li>
+  <li>按增量序列个数k，对序列进行k 趟排序；</li>
+  <li>每趟排序，根据对应的增量ti，将待排序列分割成若干长度为m 的子序列，分别对各子表进行直接插入排序。仅增量因子为1 时，整个序列作为一个表来处理，表长度即为整个序列的长度。</li>
+</ul>
+
+<h4 id="动图演示-3">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/希尔排序.gif" alt="插入排序" /></p>
+
+<h4 id="代码实现-3">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">ShellSort</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">group</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">group</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span> <span class="n">group</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="n">group</span> <span class="o">/=</span> <span class="mi">2</span><span class="p">)</span><span class="c1">//增量序列为n/2,n/4....直到1</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">group</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">group</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="n">j</span> <span class="o">+=</span> <span class="n">group</span><span class="p">)</span> <span class="p">{</span>
+                <span class="c1">//对每个分组进行插入排序</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="n">group</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="p">{</span>
+                    <span class="kt">int</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="n">group</span><span class="p">;</span>
+                    <span class="k">while</span> <span class="p">(</span><span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">src</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">temp</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="n">src</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="n">group</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">k</span><span class="p">];</span>
+                        <span class="n">k</span> <span class="o">-=</span> <span class="n">group</span><span class="p">;</span>
+                    <span class="p">}</span>
+                    <span class="n">src</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="n">group</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="归并排序merge-sort">归并排序（Merge Sort）</h3>
+
+<p>归并排序是建立在归并操作上的一种有效的排序算法。该算法是采用分治法（Divide and Conquer）的一个非常典型的应用。将已有序的子序列合并，得到完全有序的序列；即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为2-路归并。</p>
+
+<h4 id="算法描述-4">算法描述</h4>
+
+<p>把长度为n的输入序列分成两个长度为n/2的子序列；
+对这两个子序列分别采用归并排序；
+将两个排序好的子序列合并成一个最终的排序序列。</p>
+
+<h4 id="动图演示-4">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/归并排序.gif" alt="插入排序" /></p>
+
+<h4 id="代码实现-4">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">Merge</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src_left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">left_count</span><span class="p">,</span> <span class="kt">int</span><span class="o">*</span> <span class="n">src_right</span><span class="p">,</span> <span class="kt">int</span> <span class="n">right_count</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">dest</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">left_index</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">right_index</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">left_index</span> <span class="o">&lt;</span> <span class="n">left_count</span> <span class="o">&amp;&amp;</span> <span class="n">right_index</span> <span class="o">&lt;</span> <span class="n">right_count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">src_left</span><span class="p">[</span><span class="n">left_index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">src_right</span><span class="p">[</span><span class="n">right_index</span><span class="p">])</span> <span class="p">{</span>
+            <span class="n">dest</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_left</span><span class="p">[</span><span class="n">left_index</span><span class="p">];</span>
+            <span class="o">++</span><span class="n">left_index</span><span class="p">;</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">dest</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_right</span><span class="p">[</span><span class="n">right_index</span><span class="p">];</span>
+            <span class="o">++</span><span class="n">right_index</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="o">++</span><span class="n">index</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">left_index</span> <span class="o">&lt;</span> <span class="n">left_count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">dest</span><span class="p">[</span><span class="n">index</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_left</span><span class="p">[</span><span class="n">left_index</span><span class="o">++</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">right_index</span> <span class="o">&lt;</span> <span class="n">right_count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">dest</span><span class="p">[</span><span class="n">index</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">src_right</span><span class="p">[</span><span class="n">right_index</span><span class="o">++</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">MergeSort</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">src</span> <span class="o">||</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// 首先拆分成 2 个数组</span>
+    <span class="kt">int</span> <span class="n">middle</span> <span class="o">=</span> <span class="n">count</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">left_count</span> <span class="o">=</span> <span class="n">middle</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">right_count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">-</span> <span class="n">middle</span><span class="p">;</span>
+
+    <span class="kt">int</span> <span class="o">*</span><span class="n">src_left</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="n">left_count</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">src_right</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int</span><span class="p">[</span><span class="n">right_count</span><span class="p">];</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">left_count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">src_left</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">right_count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">src_right</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">middle</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="c1">// 递归 归并排序</span>
+    <span class="n">MergeSort</span><span class="p">(</span><span class="n">src_left</span><span class="p">,</span> <span class="n">left_count</span><span class="p">);</span>
+    <span class="n">MergeSort</span><span class="p">(</span><span class="n">src_right</span><span class="p">,</span> <span class="n">right_count</span><span class="p">);</span>
+
+    <span class="n">Merge</span><span class="p">(</span><span class="n">src_left</span><span class="p">,</span> <span class="n">left_count</span><span class="p">,</span> <span class="n">src_right</span><span class="p">,</span> <span class="n">right_count</span><span class="p">,</span> <span class="n">src</span><span class="p">);</span>
+
+    <span class="k">delete</span><span class="p">[]</span><span class="n">src_left</span><span class="p">;</span>
+    <span class="k">delete</span><span class="p">[]</span><span class="n">src_right</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="算法分析">算法分析</h4>
+
+<p>归并排序是一种稳定的排序方法。和选择排序一样，归并排序的性能不受输入数据的影响，但表现比选择排序好的多，因为始终都是O(nlogn）的时间复杂度。代价是需要额外的内存空间。</p>
+
+<h3 id="快速排序">快速排序</h3>
+
+<p>快速排序的基本思想：通过一趟排序将待排记录分隔成独立的两部分，其中一部分记录的关键字均比另一部分的关键字小，则可分别对这两部分记录继续进行排序，以达到整个序列有序。</p>
+
+<h4 id="算法描述-5">算法描述</h4>
+
+<ul>
+  <li>先从数列中取出一个数作为key值；</li>
+  <li>将比这个数小的数全部放在它的左边，大于或等于它的数全部放在它的右边；</li>
+  <li>对左右两个小数列重复第二步，直至各区间只有1个数；</li>
+</ul>
+
+<h4 id="动图演示-5">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/快速排序.gif" alt="快速排序" /></p>
+
+<h4 id="代码实现-5">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">QuikSort</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">right</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">src</span> <span class="o">||</span> <span class="n">left</span> <span class="o">&gt;=</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="n">left</span><span class="p">),</span> <span class="n">j</span><span class="p">(</span><span class="n">right</span><span class="p">);</span>
+    <span class="kt">int</span> <span class="n">key</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">left</span><span class="p">];</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 从右至左查找第一个小于 key 的值</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">&amp;&amp;</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>
+            <span class="o">--</span><span class="n">j</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+            <span class="o">++</span><span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">// 从左至右查找第一个大于 key 的值</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="o">&amp;&amp;</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>
+            <span class="o">++</span><span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+            <span class="o">--</span><span class="n">j</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">src</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span><span class="p">;</span>
+    <span class="n">QuikSort</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">QuikSort</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">right</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="堆排序">堆排序</h3>
+
+<p>堆排序（Heapsort）是指利用堆这种数据结构所设计的一种排序算法。堆积是一个近似完全二叉树的结构，并同时满足堆积的性质：即子结点的键值或索引总是小于（或者大于）它的父节点。</p>
+
+<h4 id="算法描述-6">算法描述</h4>
+
+<p>将初始待排序关键字序列(R1,R2….Rn)构建成大顶堆，此堆为初始的无序区；
+将堆顶元素R[1]与最后一个元素R[n]交换，此时得到新的无序区(R1,R2,……Rn-1)和新的有序区(Rn),且满足R[1,2…n-1]&lt;=R[n]；
+由于交换后新的堆顶R[1]可能违反堆的性质，因此需要对当前无序区(R1,R2,……Rn-1)调整为新堆，然后再次将R[1]与无序区最后一个元素交换，得到新的无序区(R1,R2….Rn-2)和新的有序区(Rn-1,Rn)。不断重复此过程直到有序区的元素个数为n-1，则整个排序过程完成。</p>
+
+<h4 id="动图演示-6">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/堆排序.gif" alt="堆排序" /></p>
+
+<h4 id="代码实现-6">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 构建大顶堆</span>
+<span class="kt">void</span> <span class="nf">HeapBuild</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">root</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">src</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="kt">int</span> <span class="n">left</span> <span class="o">=</span> <span class="n">root</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">left</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">int</span> <span class="n">max_num</span> <span class="o">=</span> <span class="n">left</span><span class="p">;</span> <span class="c1">// 先默认左节点为最大值的下标</span>
+        <span class="kt">int</span> <span class="n">right</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">right</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">right</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">src</span><span class="p">[</span><span class="n">max_num</span><span class="p">])</span> <span class="p">{</span>
+                <span class="n">max_num</span> <span class="o">=</span> <span class="n">right</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">src</span><span class="p">[</span><span class="n">root</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">src</span><span class="p">[</span><span class="n">max_num</span><span class="p">])</span> <span class="p">{</span>
+            <span class="c1">// 交换比父节点大的最大子节点</span>
+            <span class="kt">int</span> <span class="n">tmp_val</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">root</span><span class="p">];</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">root</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">max_num</span><span class="p">];</span>
+            <span class="n">src</span><span class="p">[</span><span class="n">max_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_val</span><span class="p">;</span>
+            <span class="c1">// 从此次最大子节点的那个位置开始递归建堆</span>
+            <span class="n">HeapBuild</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">max_num</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">HeapSort</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">src</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">src</span> <span class="o">||</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// 从最后一个非叶子节点的父节点开始建堆，这样才能保证顺序</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="mi">2</span><span class="p">);</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">HeapBuild</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 将已经建好的大顶堆进行排序，1、将最前和最后两个元素对调；2、重新建堆；3、重复第一步</span>
+    <span class="c1">// j 表示数组此时的长度，因为 count 长度已经建过了</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">j</span><span class="p">(</span><span class="n">count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 交换首尾元素，将最大值交换到数组的最后位置</span>
+        <span class="kt">int</span> <span class="n">tmp_val</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+        <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+        <span class="n">src</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_val</span><span class="p">;</span>
+        <span class="c1">// 去除最后元素重新建堆</span>
+        <span class="n">HeapBuild</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="计数排序">计数排序</h3>
+
+<p>计数排序不是基于比较的排序算法，其核心在于将输入的数据值转化为键存储在额外开辟的数组空间中。 作为一种线性时间复杂度的排序，计数排序要求输入的数据必须是有确定范围的整数。</p>
+
+<h4 id="算法描述-7">算法描述</h4>
+
+<ul>
+  <li>找出待排序的数组中最大和最小的元素；</li>
+  <li>统计数组中每个值为i的元素出现的次数，存入数组C的第i项；</li>
+  <li>对所有的计数累加（从C中的第一个元素开始，每一项和前一项相加）；</li>
+  <li>反向填充目标数组：将每个元素i放在新数组的第C(i)项，每放一个元素就将C(i)减去1。</li>
+</ul>
+
+<h4 id="动图演示-7">动图演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/计数排序.gif" alt="计数排序" /></p>
+
+<h4 id="代码实现-7">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">CountSort</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">src_vec</span><span class="p">,</span> <span class="kt">int</span> <span class="n">max_val</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">src_vec</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// 新建一个数组</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">count</span><span class="p">(</span><span class="n">max_val</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">tmp</span><span class="p">(</span><span class="n">src_vec</span><span class="p">);</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">val</span> <span class="o">:</span> <span class="n">src_vec</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">count</span><span class="p">[</span><span class="n">val</span><span class="p">]</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="nf">i</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">max_val</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">count</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">src_vec</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">src_vec</span><span class="p">[</span><span class="n">count</span><span class="p">[</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="n">count</span><span class="p">[</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">--</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="算法分析-1">算法分析</h4>
+
+<p>计数排序是一个稳定的排序算法。当输入的元素是 n 个 0到 k 之间的整数时，时间复杂度是O(n+k)，空间复杂度也是O(n+k)，其排序速度快于任何比较排序算法。当k不是很大并且序列比较集中时，计数排序是一个很有效的排序算法。</p>
+
+<h3 id="桶排序">桶排序</h3>
+
+<p>桶排序是计数排序的升级版。它利用了函数的映射关系，高效与否的关键就在于这个映射函数的确定。桶排序 (Bucket sort)的工作的原理：假设输入数据服从均匀分布，将数据分到有限数量的桶里，每个桶再分别排序（有可能再使用别的排序算法或是以递归方式继续使用桶排序进行排）。</p>
+
+<h4 id="算法描述-8">算法描述</h4>
+
+<ul>
+  <li>设置一个定量的数组当作空桶；</li>
+  <li>遍历输入数据，并且把数据一个一个放到对应的桶里去；</li>
+  <li>对每个不是空的桶进行排序；</li>
+  <li>从不是空的桶里把排好序的数据拼接起来。</li>
+</ul>
+
+<h4 id="图片演示">图片演示</h4>
+
+<p><img src="/assets/img/old_blog/algorithm/桶排序.png" alt="桶排序" /></p>
+
+<h4 id="算法分析-2">算法分析</h4>
+
+<p>现在假设我有一堆蛋，包括麻雀蛋、鸡蛋、恐龙蛋，现在我要将这几种蛋排序下序；
+有点常识就知道，这三种类别的蛋大小是不一样的,而且每一类蛋的大小也是有区别的，现在我对这三种蛋进行排序，我是这样排的：
+准备三个桶，把同一类别的蛋放到同一个桶中，然后对每一个桶内的蛋进行排序，然后按顺序从三个桶中取出相应蛋排序；
+即，从放有麻雀蛋的桶里取出所有麻雀蛋，因为已经有序，直接取出即可，然后再将鸡蛋取出，最后取出恐龙蛋，排序完成；
+桶排序即先将大小相近的蛋（或“同一类蛋”）放入到同一个桶中，然后对桶内的蛋进行排序，由于每个桶内蛋的数量比较有限，所以排序效率较高</p>
+
+<p>桶排序是一种时间复杂度为O（n）的排序方法，但并不意味着它有多优秀，上帝打开一扇门的同时也会关上一扇窗
+桶排序的局限如下：
+1）桶排序耗用较大的辅助空间，所需要的辅助空间一般与被排序的数列的最大值与最小值有关；
+2）听到“桶”，很容易联想到哈希表，因为哈希表的冲突解决方法之一开链法也相当于一个个桶,事实上，这两种桶的原理是基本相同的；
+3）并非所有数列都适合桶排序,桶排序适合分布比较均匀的数列，如1，2，3，6，4，像0，999，558，10000这种就不太适合
+4）桶排序是一种稳定的排序算法
+5）桶排序需要维护一个链表，但也有一类简单的桶排序算例如下，所有不同键值是放在不同的桶当中的，所以不用维护链表，当然，下面这种方法也不再稳定</p>
+
+<h4 id="代码实现-8">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">BucketSort</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">vec</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+    <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">buckets</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span><span class="c1">//准备一堆桶，容器的下标即待排序数组的键值或键值经过转化后的值</span>
+                                   <span class="c1">//此时每个桶中都是没有放蛋的，所以都是0</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">buckets</span><span class="p">[</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">++</span><span class="p">;</span><span class="c1">//把每个蛋放入到对应的桶中</span>
+    <span class="p">}</span>
+
+    <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span><span class="c1">//把蛋取出，空桶则直接跳过</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">buckets</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">vec</span><span class="p">[</span><span class="n">index</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="基数排序">基数排序</h3>
+
+<p>基数排序(Radix Sort)是桶排序的扩展，它的基本思想是：将整数按位数切割成不同的数字，然后按每个位数分别比较。 
+具体做法是：将所有待比较数值统一为同样的数位长度，数位较短的数前面补零。然后，从最低位开始，依次进行一次排序。这样从最低位排序一直到最高位排序完成以后, 数列就变成一个有序序列。</p>
+
+<h4 id="图文说明">图文说明</h4>
+
+<p>通过基数排序对数组{53, 3, 542, 748, 14, 214, 154, 63, 616}，它的示意图如下：</p>
+
+<p><img src="/assets/img/old_blog/algorithm/基数排序.png" alt="基数排序" /></p>
+
+<p>在上图中，首先将所有待比较树脂统一为统一位数长度，接着从最低位开始，依次进行排序。</p>
+<ol>
+  <li>按照个位数进行排序。</li>
+  <li>按照十位数进行排序。</li>
+  <li>按照百位数进行排序。 
+排序后，数列就变成了一个有序序列。</li>
+</ol>
+
+<p>为什么要从个数开始比较，低位是有序的，高位中如果有相同的值，则只需在保持稳定的前提下对高位进行排序，结果自然有序</p>
+
+<h4 id="代码实现-9">代码实现</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//radix sort</span>
+<span class="c1">//基数排序也是基于一种假设，假设所有数都是非负的整数</span>
+<span class="c1">//基数排序的基本思路是从低位至高位依次比较每个数的对应位，并排序；对应位的比较采用计数排序也可以采用桶排序；</span>
+<span class="c1">//基数排序是一种稳定的排序方法，不稳定的话也没法排序，因为某一位相同并不代表两个数相同； </span>
+<span class="cp">#include</span><span class="cpf">&lt;iostream&gt;</span><span class="cp">
+#include</span><span class="cpf">&lt;vector&gt;</span><span class="c1"> </span><span class="cp">
+</span><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">countSort</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">vec</span><span class="p">,</span><span class="kt">int</span> <span class="n">exp</span><span class="p">)</span>
+<span class="p">{</span>   <span class="c1">//计数排序</span>
+	<span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+ 
+	<span class="kt">int</span> <span class="n">length</span><span class="o">=</span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+	<span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">tmpVec</span><span class="p">(</span><span class="n">length</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+ 
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">length</span><span class="p">;</span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">range</span><span class="p">[(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">exp</span><span class="p">)</span><span class="o">%</span><span class="mi">10</span><span class="p">]</span><span class="o">++</span><span class="p">;</span>
+	<span class="p">}</span>
+ 
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">range</span><span class="p">.</span><span class="n">size</span><span class="p">();</span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">range</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">range</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span><span class="c1">//统计本应该出现的位置</span>
+	<span class="p">}</span>
+ 
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="n">length</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span><span class="n">i</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">;</span><span class="o">--</span><span class="n">i</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">tmpVec</span><span class="p">[</span><span class="n">range</span><span class="p">[(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">exp</span><span class="p">)</span><span class="o">%</span><span class="mi">10</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+		<span class="n">range</span><span class="p">[(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">exp</span><span class="p">)</span><span class="o">%</span><span class="mi">10</span><span class="p">]</span><span class="o">--</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="n">vec</span><span class="o">=</span><span class="n">tmpVec</span><span class="p">;</span>
+<span class="p">}</span>
+ 
+<span class="kt">void</span> <span class="nf">radixSort</span><span class="p">(</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">vec</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="n">length</span><span class="o">=</span><span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+	<span class="kt">int</span> <span class="n">max</span><span class="o">=-</span><span class="mi">1</span><span class="p">;</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">length</span><span class="p">;</span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+	<span class="p">{</span>
+        <span class="c1">//提取出最大值</span>
+		<span class="k">if</span><span class="p">(</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="n">max</span><span class="p">)</span>
+			<span class="n">max</span><span class="o">=</span><span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+	<span class="p">}</span>
+	
+	<span class="c1">//提取每一位并进行比较，位数不足的高位补0</span>
+	<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">exp</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span><span class="n">max</span><span class="o">/</span><span class="n">exp</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">;</span><span class="n">exp</span><span class="o">*=</span><span class="mi">10</span><span class="p">)</span>
+		<span class="n">countSort</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span><span class="n">exp</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="algorithm" /><summary type="html"><![CDATA[以内内容为互联网收集，非原创。]]></summary></entry><entry><title type="html">mediasoup 公网环境部署</title><link href="https://gbcpp.github.io/meidasoup-demo-build.html" rel="alternate" type="text/html" title="mediasoup 公网环境部署" /><published>2019-04-01T00:00:00+00:00</published><updated>2019-04-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/meidasoup-demo-build</id><content type="html" xml:base="https://gbcpp.github.io/meidasoup-demo-build.html"><![CDATA[<p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。</p>
 
 <!--more-->
 
@@ -2215,100 +2762,4 @@ model=xxx
 
 Result:
 200 ok
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Audio" /><category term="WebRTC" /><category term="Android" /><summary type="html"><![CDATA[Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。]]></summary></entry><entry><title type="html">解决 WebRTC 花屏问题记录</title><link href="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html" rel="alternate" type="text/html" title="解决 WebRTC 花屏问题记录" /><published>2018-03-19T00:00:00+00:00</published><updated>2018-03-19T00:00:00+00:00</updated><id>https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue</id><content type="html" xml:base="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html"><![CDATA[<blockquote>
-  <p>现象：WebRTC native 层经常打印 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code>，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。</p>
-</blockquote>
-
-<!--more-->
-
-<h1 id="情景描述">情景描述</h1>
-
-<p>当前基于 WebRTC 开发自己的音视频实时通话的产品，服务器选择了 licode，在多端 H5、Android、iOS、C++ Native 端均有一定的概率会出现绿屏、花屏的现象，特别是在弱网下出现的概率更高；</p>
-
-<p>在出现绿屏、花屏时，native log 也会经常输出的 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log，花屏时，或者完全无法播放（有流量，但无画面），此 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log 出现的概率更高；</p>
-
-<p>当前已排除不同订阅终端在同一房间内跨运营商的网络问题，但依然会存在此类问题；</p>
-
-<p>RTP/RTCP</p>
-
-<ul>
-  <li>
-    <p>SR（Sender Report） 发送端报告</p>
-  </li>
-  <li>
-    <p>RR（Receiver Report）接收端报告</p>
-  </li>
-  <li>
-    <p>REMB (Receiver Estimated Maximum Bitrate)</p>
-  </li>
-</ul>
-
-<p>接收端最大接收码率估测，接收端会估计本地接收的最大带宽能力，并通过RTCP REMB 消息返回给对端，这样对端可以调整自己的发送端码率，达到动态调整带宽的目的，具体消息类型通过rtcp的属性 `
-Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分是 </code>REMG` 消息，此部分是四个字节，</p>
-
-<p>REMG 信令协商：webrtc里面的协商格式是：<code class="language-plaintext highlighter-rouge">a=rtcp-fb:100 goog-remb，100 是codec payload</code>; 这里goog 实际上是 google 实现了自己版本的remb。</p>
-
-<ul>
-  <li>
-    <p>GCC 码率估计算法（接收端），用来生成 <code class="language-plaintext highlighter-rouge">REMG</code> 包</p>
-  </li>
-  <li>
-    <p>TMMBR（Temporal Max Media Bitrate Request），表示临时最大码率请求。表明接收端当前带宽受限，告诉发送端控制码率。</p>
-  </li>
-  <li>
-    <p>TMMBN（Temporal Max Media Bitrate Notification）临时最大码率通知。</p>
-  </li>
-  <li>
-    <p>SDES 源描述，主要功能是作为会话成员有关标识信息的载体，如用户名、邮件地址、电话号码等，此外还具有向会话成员传达会话控制信息的功能。</p>
-  </li>
-  <li>
-    <p>BYE　通知离开，主要功能是指示某一个或者几个源不再有效，即通知会话中的其他成员自己将退出会话。</p>
-  </li>
-  <li>
-    <p>APP　由应用程序自己定义，解决了RTCP的扩展性问题，并且为协议的实现者提供了很大的灵活性。</p>
-  </li>
-</ul>
-
-<p><strong>关键帧请求</strong></p>
-
-<ul>
-  <li>
-    <p>PLI（Picture Loss Indication）</p>
-  </li>
-  <li>
-    <p>SLI（Slice Loss Indication）</p>
-  </li>
-</ul>
-
-<p>发送方接收到接收方反馈的PLI或SLI需要重新让编码器生成关键帧并发送给接收端。</p>
-
-<ul>
-  <li>FIR（Full Intra Request）</li>
-</ul>
-
-<p>这里面 Intra 的含义是图像内编码，不需要其他图像信息即可解码；Inter 指图像间编码，解码需要参考帧。所以 Intra Frame 其实就是指 I 帧，Inter Frame指 P 帧或 B 帧。</p>
-
-<blockquote>
-  <p>那么为什么在 PLI 和 SLI 之外还需要一个 FIR 呢？
-原因是使用场景不同，FIR 更多是在一个中心化的 Video Conference 中，新的参与者加入，就需要发送一个 FIR，其他的参与者给他发送一个关键帧这样才能解码，而 PLI 和 SLI 的含义更多是在发生丢包或解码错误时使用。</p>
-</blockquote>
-
-<p><strong>重传请求</strong></p>
-
-<ul>
-  <li>RTX／NACK／RPSI</li>
-</ul>
-
-<p>这个重传跟关键帧请求的区别是它可以要求任意帧进行重传;</p>
-
-<ul>
-  <li>
-    <p>RED（redundant packet）冗余包，配合 FEC 使用。</p>
-  </li>
-  <li>
-    <p>FEC 前向纠错算法，经 FEC 算法计算后，通过 RED 生成冗余包。</p>
-  </li>
-  <li>
-    <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747">参考 ULR</a></p>
-  </li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="WebRTC" /><summary type="html"><![CDATA[现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet, err=9，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。]]></summary></entry></feed>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Audio" /><category term="WebRTC" /><category term="Android" /><summary type="html"><![CDATA[Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。]]></summary></entry></feed>

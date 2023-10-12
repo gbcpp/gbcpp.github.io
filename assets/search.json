@@ -43,6 +43,12 @@
     } ,
   
     {
+      "title"    : "C++算法大全",
+      "tags"     : "algorithm",
+      "url"      : "/c-algorithm-notes.html"
+    } ,
+  
+    {
       "title"    : "mediasoup 公网环境部署",
       "tags"     : "开源 WebRTC mediasoup",
       "url"      : "/meidasoup-demo-build.html"
@@ -64,6 +70,12 @@
       "title"    : "BOOST 在 Windows 下通过 VS 进行编译",
       "tags"     : "BOOST",
       "url"      : "/build-boost-on-window-with-virtualstudio.html"
+    } ,
+  
+    {
+      "title"    : "c++ 开源日志库 spdlog",
+      "tags"     : "spdlog",
+      "url"      : "/cpp-log-library-spdlog.html"
     } ,
   
     {
