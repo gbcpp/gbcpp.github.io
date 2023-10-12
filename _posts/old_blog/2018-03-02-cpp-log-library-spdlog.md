@@ -1,10 +1,13 @@
 ---
-title: C++ 开源日志库 spdlog
-categories: C++
-abbrlink: 1178514105
+layout: post
+title: c++ 开源日志库 spdlog
 date: 2018-03-02 00:04:36
+author: Mr Chen
+# cover: '/assets/img/boost_logo.webp'
 tags:
+ - spdlog
 ---
+
 
 # C++日志组件 spdlog
 
@@ -15,14 +18,14 @@ tags:
 ## 线程安全
 
 命名空间 `spdlog` 之下的大多数函数都是线程安全的，除了：
-~~~C++
+~~~cpp
 void spdlog::set_pattern(const std::string&);
 void spdlog::set_formatter(formatter_ptr);
 void spdlog::set_error_handler(log_err_handler);
 ~~~
 
 日志器对象的大部分方法也是线程安全的，除了：
-~~~C++
+~~~cpp
 void spdlog::logger::set_pattern(const std::string&);
 void spdlog::logger::set_formatter(formatter_ptr);
 void spdlog::set_error_handler(log_err_handler);
@@ -31,7 +34,7 @@ void spdlog::set_error_handler(log_err_handler);
 所有以 `_mt` 结尾的 Sink 都是用于多线程的，以 `_st` 结尾的则是用于单线程的，不过现在单线程的程序很少了吧，建议直接用以 `_mt` 结尾的多线程安全的日志对象；
 
 ## 代码示例
-~~~C++
+~~~cpp
 #include "spdlog/spdlog.h"
 #include <iostream>
  
@@ -101,7 +104,7 @@ spdlog默认的输出格式为：
 [2018-03-01 23:46:59.678] [info] [my_loggername] Some message
 ~~~
 要定制输出格式，可以调用：
-~~~C++
+~~~cpp
 //估计大部分人都喜欢下面这样的格式输出格式：
 spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e][%t][%l] %v");
 //或者实现自己的格式化器：
@@ -153,7 +156,7 @@ Pattern 格式说明
 
 根据个人的习惯，喜欢在开发后端程序时，喜欢将 log 同时输出到控制台和文件中，那么根据 spdlog 的接口，需要在创建对象时将 console 和 file sink 均传入即可，代码如下：
 
-~~~C++
+~~~cpp
     spdlog::set_async_mode(4096);
     spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e][%t][%l] %v");
     //创建控制台对象指针

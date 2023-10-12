@@ -1,10 +1,16 @@
 ---
+layout: post
 title: C++算法大全
-tags: C++ 算法
-categories: C++
-abbrlink: e828fac3
-date: 2019-05-28 09:40:18
+date: 2019-05-28
+author: Mr Chen
+# cover: '/assets/assets/img/shan.jpg'
+#cover_author: 'rogov'
+#cover_author_link: 'https://unsplash.com/@rogovca'
+tags: 
+- algorithm
 ---
+
+
 
 > 以内内容为互联网收集，非原创。
 
@@ -18,18 +24,17 @@ date: 2019-05-28 09:40:18
 
 <!--more-->
 
-![算法分类](/images/algorithm/算法分类.png)
+![算法分类](/assets/img/old_blog/algorithm/算法分类.png)
 
 ## 算法复杂度
 
-![算法复杂度](/images/algorithm/算法复杂度.png)
+![算法复杂度](/assets/img/old_blog/algorithm/算法复杂度.png)
 
 - **时间复杂度：**对排序数据的总的操作次数。反映当n变化时，操作次数呈现什么规律。
 - **空间复杂度：**是指算法在计算机内执行时所需存储空间的度量，它也是数据规模n的函数。 
 
 
 ## 经典排序
-
 
 ### 冒泡排序
 
@@ -43,7 +48,7 @@ date: 2019-05-28 09:40:18
 
 #### 动图演示
 
-![插入排序](/images/algorithm/冒泡排序.gif)
+![插入排序](/assets/img/old_blog/algorithm/冒泡排序.gif)
 
 #### 代码实现
 
@@ -79,7 +84,7 @@ n个记录的直接选择排序可经过n-1趟直接选择排序得到有序结�
 
 #### 动图演示
 
-![插入排序](/images/algorithm/选择排序.gif)
+![插入排序](/assets/img/old_blog/algorithm/选择排序.gif)
 
 #### 代码实现
 
@@ -125,7 +130,7 @@ void SelectSort(int* src, int count)
 
 #### 动图演示
 
-![插入排序](/images/algorithm/插入排序.gif)
+![插入排序](/assets/img/old_blog/algorithm/插入排序.gif)
 
 #### 代码实现
 
@@ -162,7 +167,7 @@ void InsertSort(int *src, int count)
 
 #### 动图演示
 
-![插入排序](/images/algorithm/希尔排序.gif)
+![插入排序](/assets/img/old_blog/algorithm/希尔排序.gif)
 
 #### 代码实现
 
@@ -202,7 +207,7 @@ void ShellSort(int *src, int count)
 
 #### 动图演示
 
-![插入排序](/images/algorithm/归并排序.gif)
+![插入排序](/assets/img/old_blog/algorithm/归并排序.gif)
 
 #### 代码实现
 
@@ -274,7 +279,7 @@ void MergeSort(int* src, int count)
 
 #### 动图演示
 
-![快速排序](/images/algorithm/快速排序.gif)
+![快速排序](/assets/img/old_blog/algorithm/快速排序.gif)
 
 #### 代码实现
 
@@ -324,7 +329,7 @@ void QuikSort(int* src, int left, int right)
 
 #### 动图演示
 
-![堆排序](/images/algorithm/堆排序.gif)
+![堆排序](/assets/img/old_blog/algorithm/堆排序.gif)
 
 #### 代码实现
 
@@ -392,7 +397,7 @@ void HeapSort(int* src, int count)
 
 #### 动图演示
 
-![计数排序](/images/algorithm/计数排序.gif)
+![计数排序](/assets/img/old_blog/algorithm/计数排序.gif)
 
 #### 代码实现
 
@@ -436,7 +441,7 @@ void CountSort(vector<int>& src_vec, int max_val)
 
 #### 图片演示
 
-![桶排序](/images/algorithm/桶排序.png)
+![桶排序](/assets/img/old_blog/algorithm/桶排序.png)
 
 #### 算法分析
 
@@ -487,7 +492,7 @@ void BucketSort(vector<int>& vec)
 
 通过基数排序对数组{53, 3, 542, 748, 14, 214, 154, 63, 616}，它的示意图如下：
 
-![基数排序](/images/algorithm/基数排序.png)
+![基数排序](/assets/img/old_blog/algorithm/基数排序.png)
 
 在上图中，首先将所有待比较树脂统一为统一位数长度，接着从最低位开始，依次进行排序。 
 1. 按照个位数进行排序。 
