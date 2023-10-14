@@ -477,7 +477,8 @@
 
     <div>
      
-     <section class="post-footer-item comment">
+     <!-- <section class="post-footer-item comment"> -->
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
      <div id="gitalk_container"></div>
      <div id="disqus_thread"></div>
      </section>
@@ -547,10 +548,23 @@
       
    
       
-
-      
     </section>
 
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2018-03-02 00:04:36 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392', 
+      repo: 'gbcpp.github.io', 
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'false'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
     <footer class="g-footer">
   <section>Mr Chen ©
   
@@ -734,22 +748,6 @@
 
   <!-- <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script> -->
   <script src="/assets/js/font_3046306_j3cma4iq93.js"></script>
-
-  
-  <script>
-    var gitalk = new Gitalk({
-      id: '2018-03-02 00:04:36 +0000',
-      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
-      clientSecret: '3c90889603d18c17cfd73289591b50a716925392', 
-      repo: 'gbcpp.github.io', 
-      owner: 'gbcpp',
-      admin: 'gbcpp',
-      distractionFreeMode: 'false'
-    })
-
-    gitalk.render('disqus_thread')
-  </script>
-  
 
   
   
