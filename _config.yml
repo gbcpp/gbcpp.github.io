@@ -68,11 +68,22 @@ search: true
 nightMode: false
 
 # Comments 评论功能
+# comments:
+  # disqus: false
+  # disqus_url: 'https://h2o-ac.disqus.com/embed.js'
+  # waline: false
+  # waline_url: 'https://h2o-ac-waline.deta.dev/'
+
+
 comments:
-  disqus: false
-  disqus_url: 'https://h2o-ac.disqus.com/embed.js'
-  waline: false
-  waline_url: 'https://h2o-ac-waline.deta.dev/'
+  gitalk: true
+  clientId: 7795ee35cc3373147f6e
+  clientSecret: 3c90889603d18c17cfd73289591b50a716925392
+  repo: gbcpp.github.io
+  owner: gbcpp
+  admin: gbcpp
+  distractionFreeMode: true # 若设置为true，则当在评论框输入时，周围区域会变暗
+
 
 # MathJax 公式支持 by Ray-Eldath
 mathjax: true
