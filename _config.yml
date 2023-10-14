@@ -67,14 +67,6 @@ search: true
 # Night mode
 nightMode: false
 
-# Comments 评论功能
-# comments:
-  # disqus: false
-  # disqus_url: 'https://h2o-ac.disqus.com/embed.js'
-  # waline: false
-  # waline_url: 'https://h2o-ac-waline.deta.dev/'
-
-
 comments:
   gitalk: true
   clientId: 7795ee35cc3373147f6e
@@ -142,14 +134,6 @@ google_search:
 # Tags 设置标签
 recommend-tags: true # whether or not display recommend-tags on the sidebar
 recommend-condition-size: 12 # a tag will be recommended if the size of it is more than this value
-
-# paginate
-# pagination:
-#   enabled: true
-#   per_page: 2
-#   permalink: "blog/page:num"
-#   sort_field: "keep_on"
-#   sort_reverse: true
 
 # Build settings
 paginate: 10
