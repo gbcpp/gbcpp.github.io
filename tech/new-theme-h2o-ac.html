@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
 
 <html lang="zh-cn">
 
@@ -579,6 +582,15 @@
       
     </div>
 
+    <div>
+     
+     <section class="post-footer-item comment">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>    
+
     <section class="author-detail">
       <section class="post-footer-item author-card">
         <div class="avatar">
@@ -819,8 +831,27 @@
           });         
       });
   </script>
+
+
   <!-- <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script> -->
   <script src="/assets/js/font_3046306_j3cma4iq93.js"></script>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2021-12-22 11:50:00 +0000',
+      clientID: '',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392', 
+      repo: 'gbcpp.github.io', 
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
   
   
   
