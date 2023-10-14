@@ -152,7 +152,8 @@
 
     <div>
      {% if site.comments.gitalk %}
-     <section class="post-footer-item comment">
+     <!-- <section class="post-footer-item comment"> -->
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
      <div id="gitalk_container"></div>
      <div id="disqus_thread"></div>
      </section>
@@ -232,12 +233,6 @@
       </section>      
       {% endif %}
    
-      {% if site.comments.disqus %}
-      <section class="post-footer-item comment">
-          <div id="disqus_thread"></div>
-      </section>
-      {% endif %}
-
       {% if site.comments.waline %}
       <section class="post-footer-item comment">
           <div id="waline"></div>
@@ -245,6 +240,21 @@
       {% endif %}
     </section>
 
+  {% if site.comments.gitalk %}
+  <script>
+    var gitalk = new Gitalk({
+      id: '{{page.date}}',
+      clientID: '{{ site.comments.clientId }}',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '{{ site.comments.clientSecret }}', 
+      repo: '{{ site.comments.repo }}', 
+      owner: '{{ site.comments.owner }}',
+      admin: '{{ site.comments.admin }}',
+      distractionFreeMode: '{{ site.comments.distractionFreeMode }}'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  {% endif %}
     {% include footer.html %}
   </div>
 
@@ -396,22 +406,6 @@
 
   <!-- <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script> -->
   <script src="{{ "/assets/js/font_3046306_j3cma4iq93.js" | prepend: site.baseurl }}"></script>
-
-  {% if site.comments.gitalk %}
-  <script>
-    var gitalk = new Gitalk({
-      id: '{{page.date}}',
-      clientID: '{{ site.comments.clientId }}',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
-      clientSecret: '{{ site.comments.clientSecret }}', 
-      repo: '{{ site.comments.repo }}', 
-      owner: '{{ site.comments.owner }}',
-      admin: '{{ site.comments.admin }}',
-      distractionFreeMode: '{{ site.comments.distractionFreeMode }}'
-    })
-
-    gitalk.render('disqus_thread')
-  </script>
-  {% endif %}
 
   {% include analytics.html %}
   {% include umami.html %}
