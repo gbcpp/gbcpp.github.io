@@ -82,7 +82,7 @@ comments:
   repo: gbcpp.github.io
   owner: gbcpp
   admin: gbcpp
-  distractionFreeMode: true # 若设置为true，则当在评论框输入时，周围区域会变暗
+  distractionFreeMode: false # 若设置为true，则当在评论框输入时，周围区域会变暗
 
 
 # MathJax 公式支持 by Ray-Eldath
