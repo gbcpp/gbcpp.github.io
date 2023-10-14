@@ -202,4 +202,4 @@ premonition:
       default_title: 'Error'
 
 # Plugins
-plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap, premonition]
+plugins: [jekyll-paginate, jekyll-feed, jekyll-sitemap, premonition, jekyll-unique-urls]
