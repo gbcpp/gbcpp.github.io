@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>给 Nginx 站点套上一层 Cloudflare  - 仲儿的自留地</title>
+    <meta name="author"  content="zhonger">
+    <meta name="description" content="给 Nginx 站点套上一层 Cloudflare ">
+    <meta name="keywords"  content="Nginx, Cloudflare, 加速">
+    <!-- Open Graph -->
+    <meta property="og:title" content="给 Nginx 站点套上一层 Cloudflare  - 仲儿的自留地">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lisz.me/tech/webmaster/nginx-cloudflare.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="仲儿的自留地">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/tech/docker/github-action.html">
+    
+    
+    <meta property="og:next_url" content="/ac/ml/utility-vs-understanding.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2022-04-05 15:44:00 +0900" />
+    
+    
+    <meta name="alivestart" content="08/08/2015">
+    
+    
+    <meta name="google-site-verification" content="v729JR7Zs4nX-YvgaPeo3p1ise9vTA-6cMhamSu6N5c" />
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/assets/icons/favicon.ico">
+    <link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/logs.html" aria-label="logs">
+                                logs
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tos.html" aria-label="tos">
+                                tos
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/cv.html" aria-label="CV">
+                                CV
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/links.html" aria-label="links">
+                                links
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> collections </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/tags.html#CONQUEST" aria-label="CONQUEST">
+                                CONQUEST
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#LDAP" aria-label="LDAP">
+                                LDAP
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#blog" aria-label="博客">
+                                博客
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-food bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Nginx" class="post-tag">Nginx</a>
+            
+              <a href="/tags.html#Cloudflare" class="post-tag">Cloudflare</a>
+            
+              <a href="/tags.html#%E5%8A%A0%E9%80%9F" class="post-tag">加速</a>
+            
+          
+        </div>
+        <h1>给 Nginx 站点套上一层 Cloudflare </h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            zhonger
+          </span>
+          <time class="post-meta-item" datetime="22-04-05">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="22-04-05">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  3.3k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 10 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+            <span class="post-meta-item">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-image"></use>
+              </svg>
+              
+                封面图片提供者 <a href="https://unsplash.com/@santesson89" target="_blank">Andrea De Santis</a>
+              
+            </span>
+          
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('https://i.lisz.top/cover/ZKXzeo.webp') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">如何通过 Cloudflare 来提升 Nginx 站点访问速度</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h2 id="前言">前言</h2>
+
+<p>  站点访问速度及安全一直以来都是站长们建站所关注的重要内容。为了满足站点能够被全球用户的访问需求，通常我们会采用云服务商提供的 CDN 来加速访问速度。比如国外比较知名的 AWS 提供的 <a href="https://aws.amazon.com/cn/cloudfront/" rel="nofollow" target="_blank" class="extlinks">Cloudfront</a>、GCP 提供的 <a href="https://cloud.google.com/cdn" rel="nofollow" target="_blank" class="extlinks">Cloud CDN</a> 以及 Cloudflare 公司提供的 <a href="https://www.cloudflare.com/" rel="nofollow" target="_blank" class="extlinks">Cloudflare</a> 等，国内比较知名的腾讯云提供的 <a href="https://cloud.tencent.com/product/cdn" rel="nofollow" target="_blank" class="extlinks">CDN</a>、阿里云提供的 <a href="https://cn.aliyun.com/product/cdn" rel="nofollow" target="_blank" class="extlinks">CDN</a>、又拍云提供的 <a href="https://www.upyun.com/products/cdn" rel="nofollow" target="_blank" class="extlinks">CDN</a> 以及七牛云提供的 <a href="https://www.qiniu.com/products/qcdn" rel="nofollow" target="_blank" class="extlinks">CDN</a> 等。(PS：其实国内的其他云服务商比如华为云、百度云、滴滴云、京东云等等都提供了 CDN 解决方案。)</p>
+
+<p>  CDN 除了常规的多地、多节点缓存加速之外，还可以清洗流量，从而预防和对抗 DDoS 攻击。如果我们购买的服务器不是固定带宽、流量无限，而是大带宽、流量按量付费的话，遇到 DDoS 就会受到很大损失。DDoS 攻击不仅会让服务器上的服务无法正常响应请求，从而造成 Nginx 或 Apache 服务过饱和，甚至服务器宕机，还会产生很大的无效入站流量消耗。一般来说，流量按量计费是对入站流量进行计费。这样一来，光流量这一项的经济损失就可能会是非常庞大的数字。</p>
+
+<p>  当我们给 Nginx 站点套上一层 Cloudflare 或者其他 CDN 服务之后，用户访问服务时会先经过 Cloudflare。Cloudflare 免费版就具有清洗流量的功能：当 Cloudflare 发现流量来自僵尸网络或者异常流量请求时，就会拒绝响应或者只响应某些请求，而这些请求也会转给真实的服务器进行响应。从这里也可以看出来，用上 Cloudflare 之后，用户根本不知道真实服务器的 IP 地址或其他信息，能进一步保障服务器的安全。</p>
+
+<p>  这里，为了在实际的应用场景中来实践，特地选取了适合个人搭建的个人短地址服务 <a href="https://yourls.org" rel="nofollow" target="_blank" class="extlinks">Yourls</a>。</p>
+
+<h2 id="实践">实践</h2>
+
+<h3 id="yourls">Yourls</h3>
+
+<h4 id="简介">简介</h4>
+
+<p>  Yourls （<strong>Y</strong>our <strong>O</strong>wn <strong>URL</strong> <strong>S</strong>hortener） 是一款基于 PHP 的允许你运行自己的短地址服务的免费和开源的软件。你可以完全控制你的数据、详细的统计和分析、插件以及更多。以下是源代码和官方推荐插件的仓库：</p>
+
+<ul>
+  <li><a href="https://github.com/YOURLS/YOURLS" rel="nofollow" target="_blank" class="extlinks">YOURLS/YOURLS</a></li>
+  <li><a href="https://github.com/YOURLS/awesome-yourls" rel="nofollow" target="_blank" class="extlinks">YOURLS/awesome-yourls</a></li>
+</ul>
+
+<h4 id="部署">部署</h4>
+
+<p>  为了更加快速地部署 Yourls 服务，这里选用 docker-compose 的方式进行部署。以下是配置文件内容：</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># docker-compose.yml</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.1'</span>
+
+<span class="na">services</span><span class="pi">:</span>
+
+  <span class="na">yourls</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">yourls</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">8080:80</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">YOURLS_DB_PASS</span><span class="pi">:</span> <span class="s">abcdefgh</span>
+      <span class="na">YOURLS_SITE</span><span class="pi">:</span> <span class="s">https://url.com</span>
+      <span class="na">YOURLS_USER</span><span class="pi">:</span> <span class="s">admin</span>
+      <span class="na">YOURLS_PASS</span><span class="pi">:</span> <span class="s">admin@2022</span>
+
+  <span class="na">mysql</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:5.7</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./db:/var/lib/mysql</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD</span><span class="pi">:</span> <span class="s">abcdefgh</span>
+      <span class="na">MYSQL_DATABASE</span><span class="pi">:</span> <span class="s">yourls</span>
+</code></pre></div></div>
+
+<p>  Yourls 的官方 Docker 镜像提供了多种服务方式和体系架构，如下图所示。如果使用的服务器体系架构不同，对应的 mysql 镜像也应做出更改。比如，如果服务器是 IBM 的 s390x 架构，就可以选 <a href="https://hub.docker.com/ibmcom/mysql-s390x" rel="nofollow" target="_blank" class="extlinks">ibmcom/mysql-s390x:5.7.34</a>。</p>
+
+<p><img src="https://i.lisz.top/blog/q0AAZg.webp" alt="Yourls Dockerhub"></p>
+
+<p>  编辑完配置文件后执行以下命令启动 Yourls 服务：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker-compose up <span class="nt">-d</span>
+</code></pre></div></div>
+
+<h3 id="cloudflare-配置">Cloudflare 配置</h3>
+
+<ul>
+  <li>访问 <a href="https://dashcloudflare.com" rel="nofollow" target="_blank" class="extlinks">Cloudflare 控制台</a>，选择进入已添加的域名操作面板。</li>
+</ul>
+
+<h4 id="添加域名记录">添加域名记录</h4>
+
+<ul>
+  <li>进入 <strong>DNS</strong> 面板，点击<strong>添加记录</strong>按钮。</li>
+  <li>采用 A 记录或 CNAME 记录类型，这里的代理状态一定要像现在这样打开，否则 Cloudflare 将不会被启用。</li>
+</ul>
+
+<p><img src="https://i.lisz.top/blog/tQK16A.webp" alt="添加域名 Add DNS record"></p>
+
+<h4 id="生成证书">生成证书</h4>
+
+<ul>
+  <li>进入 <strong>SSL/TLS</strong> 的 <strong>源服务器</strong> 面板，点击<strong>创建证书</strong>按钮。</li>
+</ul>
+
+<p><img src="https://i.lisz.top/blog/gIMUvW.webp" alt="创建证书 Create certs"></p>
+
+<ul>
+  <li>使用默认配置点击<strong>创建</strong>按钮即可。</li>
+</ul>
+
+<p><img src="https://i.lisz.top/blog/pituGT.webp" alt="添加主机名 Add hosts"></p>
+
+<ul>
+  <li>然后新的证书和私钥就生成了。需要注意的是，以下的私钥只能在生成时看到，证书可以之后也能看到，所以这里一定要复制好如下框内的源证书和私钥的内容。可以分别保存为 url.com.pem 和 url.com.key 文件。</li>
+</ul>
+
+<p><img src="https://i.lisz.top/blog/2CAEBX.webp" alt="保存证书 Save certs"></p>
+
+<ul>
+  <li>保存完成后，点击<strong>确定</strong>按钮结束操作。</li>
+</ul>
+
+<h4 id="部署证书">部署证书</h4>
+
+<p>  可以使用以下命令远程拷贝源证书和私钥到目标服务器，或者刚才直接保存在目标服务器上。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>scp url.com.<span class="k">*</span> nginx:/home/ubuntu/ssl/
+</code></pre></div></div>
+
+<h3 id="nginx-配置">Nginx 配置</h3>
+
+<h4 id="添加配置">添加配置</h4>
+
+<p>  在 Nginx 配置目录 /etc/nginx/sites-available 下新增 yourls 配置文件（需使用 sudo 权限方可新增），配置文件内容如下所示：</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># /etc/nginx/sites-available/yourls</span>
+
+<span class="k">server</span> <span class="p">{</span>
+
+  <span class="kn">listen</span>   <span class="mi">443</span> <span class="s">ssl</span> <span class="s">http2</span><span class="p">;</span>
+
+  <span class="kn">ssl_certificate</span>    <span class="n">/home/linux1/ssl/url.com.pem</span><span class="p">;</span>
+  <span class="kn">ssl_certificate_key</span>    <span class="n">/home/linux1/ssl/url.com.key</span><span class="p">;</span>
+
+  <span class="kn">server_name</span> <span class="s">url.com</span><span class="p">;</span>
+  <span class="kn">index</span> <span class="s">index.php</span> <span class="s">index.html</span> <span class="s">index.htm</span><span class="p">;</span>
+
+  <span class="kn">access_log</span> <span class="n">/var/log/nginx/yourls.access.log</span><span class="p">;</span>
+  <span class="kn">error_log</span> <span class="n">/var/log/nginx/yourls.error.log</span><span class="p">;</span>
+
+  <span class="kn">location</span> <span class="n">/</span> <span class="p">{</span>
+    <span class="kn">proxy_pass</span> <span class="s">http://127.0.0.1:8080</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">Host</span> <span class="nv">$proxy_host</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Real-IP</span> <span class="nv">$remote_addr</span><span class="p">;</span>
+    <span class="kn">proxy_set_header</span> <span class="s">X-Forwarded-For</span> <span class="nv">$proxy_add_x_forwarded_for</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="可选只允许-cloudflare-访问">（可选）只允许 Cloudflare 访问</h4>
+
+<p>  为了进一步确保真实服务器只响应来自 Cloudflare 转发的请求，我们可以在 Nginx 的配置文件中增加对于允许访问 IP 地址的限制。如下配置文件中的 IPv4/IPv6 的 IP 地址段均来自 Cloudflare 官方声明。此 cf.conf 文件放置在 /etc/nginx 目录下。</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># cf.conf</span>
+<span class="c1"># https://www.cloudflare.com/ips</span>
+<span class="c1"># IPv4</span>
+<span class="k">allow</span> <span class="mi">103</span><span class="s">.21.244.0/22</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">103</span><span class="s">.22.200.0/22</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">103</span><span class="s">.31.4.0/22</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">104</span><span class="s">.16.0.0/12</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">108</span><span class="s">.162.192.0/18</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">131</span><span class="s">.0.72.0/22</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">141</span><span class="s">.101.64.0/18</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">162</span><span class="s">.158.0.0/15</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">172</span><span class="s">.64.0.0/13</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">173</span><span class="s">.245.48.0/20</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">188</span><span class="s">.114.96.0/20</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">190</span><span class="s">.93.240.0/20</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">197</span><span class="s">.234.240.0/22</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">198</span><span class="s">.41.128.0/17</span><span class="p">;</span>
+
+<span class="c1"># IPv6</span>
+<span class="k">allow</span> <span class="mi">2400</span><span class="p">:</span><span class="s">cb00::/32</span><span class="p">;</span>
+<span class="k">allow</span> <span class="nf">2606</span><span class="p">:</span><span class="mi">4700</span><span class="p">::</span><span class="n">/32</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">2803</span><span class="p">:</span><span class="s">f800::/32</span><span class="p">;</span>
+<span class="k">allow</span> <span class="mi">2405</span><span class="p">:</span><span class="s">b500::/32</span><span class="p">;</span>
+<span class="k">allow</span> <span class="nf">2405</span><span class="p">:</span><span class="mi">8100</span><span class="p">::</span><span class="n">/32</span><span class="p">;</span>
+<span class="k">allow</span> <span class="nf">2a06</span><span class="p">:</span><span class="mi">98</span><span class="s">c0::/29</span><span class="p">;</span>
+<span class="k">allow</span> <span class="s">2c0f:f248::/32</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>  另外，如要启用该配置文件，需在刚才写好的站点配置文件 yourls 中再增加两行来使其生效，内容如下所示:</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">server</span> <span class="p">{</span>
+    <span class="kn">...</span>
+    
+    <span class="s">include</span> <span class="s">cf.conf</span><span class="p">;</span>
+  <span class="kn">deny</span> <span class="s">all</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="生效配置">生效配置</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> /etc/nginx/sites-available/yourls /etc/nginx/sites-enabled/yourls
+<span class="nb">sudo </span>nginx <span class="nt">-s</span> reload
+</code></pre></div></div>
+
+<h2 id="验证">验证</h2>
+
+<p>  访问 <a href="https://url.com/install.php" rel="nofollow" target="_blank" class="extlinks">https://url.com/install.php</a> 确认是否正常访问 Yourls 的安装初始化界面，如下所示。点击 <strong>Install YOURLS</strong> 按钮即可完成安装。</p>
+
+<p><img src="https://i.lisz.top/blog/bQwdsu.webp" alt="Yourls"></p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+  <li><a href="https://www.gingerdoc.com/tutorials/how-to-host-a-website-using-cloudflare-and-nginx-on-ubuntu-20-04" rel="nofollow" target="_blank" class="extlinks">如何在 Ubuntu 20.04 上使用 Cloudflare 和 Nginx 托管网站</a></li>
+  <li><a href="https://nova.moe/nginx-block-non-cloudflare-ips/" rel="nofollow" target="_blank" class="extlinks">让 Nginx 只允许 Cloudflare 反向代理流量以隐藏源站</a></li>
+</ul>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://lisz.me" class="cplink">仲儿的自留地</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 给 Nginx 站点套上一层 Cloudflare  》</p>
+              <p><span>本文链接：</span><a href="https://lisz.me/tech/webmaster/nginx-cloudflare.html" class="cplink">https://lisz.me/tech/webmaster/nginx-cloudflare.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('前言')">前言</a></li><li><a onclick="scrollToAdjust('实践')">实践</a><ul><li><a onclick="scrollToAdjust('yourls')">Yourls</a><ul><li><a onclick="scrollToAdjust('简介')">简介</a></li><li><a onclick="scrollToAdjust('部署')">部署</a></li></ul></li><li><a onclick="scrollToAdjust('cloudflare-配置')">Cloudflare 配置</a><ul><li><a onclick="scrollToAdjust('添加域名记录')">添加域名记录</a></li><li><a onclick="scrollToAdjust('生成证书')">生成证书</a></li><li><a onclick="scrollToAdjust('部署证书')">部署证书</a></li></ul></li><li><a onclick="scrollToAdjust('nginx-配置')">Nginx 配置</a><ul><li><a onclick="scrollToAdjust('添加配置')">添加配置</a></li><li><a onclick="scrollToAdjust('（可选）只允许-cloudflare-访问')">（可选）只允许 Cloudflare 访问</a></li><li><a onclick="scrollToAdjust('生效配置')">生效配置</a></li></ul></li></ul></li><li><a onclick="scrollToAdjust('验证')">验证</a></li><li><a onclick="scrollToAdjust('参考资料')">参考资料</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/profile.webp" alt="">
+        </div>
+        <div class="author-name" rel="author">zhonger</div>
+        <div class="bio">
+          <p>Developer & Maintainer</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://scholar.google.com/citations?user=AUupIooAAAAJ" target="_blank" aria-label="google-scholar">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-google-scholar"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.researchgate.net/profile/Shengzhou-Li" target="_blank" aria-label="researchgate">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-researchgate"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://orcid.org/0000-0001-6973-3825" target="_blank" aria-label="ORCID">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-ORCID"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://github.com/zhonger" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.linkedin.com/in/shengzhouli/" target="_blank" aria-label="linkedin">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-linkedin"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://segmentfault.com/u/wuwozhonger" target="_blank" aria-label="segmentfault">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-segmentfault"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/tech/docker/github-action.html" class="read-next-link" aria-label="利用 Github Action 一键编译多平台 Docker 镜像"></a>
+          <section>
+            <span>利用 Github Action 一键编译多平台 Docker 镜像</span>
+            <p>前言</p>
+          </section>
+          
+          <div class="filter"></div>
+          <img src="https://i.lisz.top/cover/Isx0hj.webp" alt="">
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/ac/ml/utility-vs-understanding.html" class="read-next-link" aria-label="[译文]实用性 vs 理解力：进入 2022 年的机器学习领域"></a>
+            <section>
+              <span>[译文]实用性 vs 理解力：进入 2022 年的机器学习领域</span>
+              <p>原文标题：Utility vs Understanding: the State of Machine Learn...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="https://i.lisz.top/cover/ZsNwKN.webp" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">仲儿的自留地 ©
+        
+        
+          2015
+          -
+        
+        2023
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks"></a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+          本站已运行 
+          <span class="alivetime_days"></span> 天
+          <span class="alivetime_hours"></span> 小时
+          <span class="alivetime_minutes"></span> 分
+          <span class="alivetime_seconds"></span> 秒
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+      <section class="badges">
+        
+          <a href="https://www.foreverblog.cn/" target="_blank" class="foreverblog"> 
+            <img src="https://img.foreverblog.cn/logo_en_default.png" alt=""> 
+          </a>
+        
+        
+          <a href="https://www.foreverblog.cn/go.html" target="_blank" class="wormhole"> 
+            <img src="https://img.foreverblog.cn/wormhole_3.gif" alt="" title="穿梭虫洞-随机访问十年之约友链博客">
+          </a>
+        
+        
+          <a href="https://notbyai.fyi/" target="_blank" class="notbyAI"> 
+            <img src="/assets/icons/notbyAI-white.png" alt="Written by Human, Not by AI">
+          </a>
+        
+      </section>
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/zhonger/zhonger.github.io/commits?path=_posts/services/2022-04-05-nginx-cloudflare.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+  
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8SEJ5JNY"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9E8SEJ5JNY');
+</script>
+
+  
+<script async defer data-website-id="90ea4822-8012-444e-837a-757ea473e087" src="https://umami.lisz.top/pwiki.js"></script>
+
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+  
+<!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BF0y1f49JPDkjSmUYtUb-gRzcVY72squyl0hE2xo7YTA4q7Ch2DAZ0WOZCNktfyakgPlDov92CafKw9ZPAwIDrc' });</script><!-- end webpushr code -->
+ 
+</body>
+
+</html>

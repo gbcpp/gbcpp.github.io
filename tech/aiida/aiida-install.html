@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AiiDA 开源数据管理软件 - 仲儿的自留地</title>
+    <meta name="author"  content="zhonger">
+    <meta name="description" content="AiiDA 开源数据管理软件">
+    <meta name="keywords"  content="AiiDA, data management, calculation, postgresql, rabbitmq">
+    <!-- Open Graph -->
+    <meta property="og:title" content="AiiDA 开源数据管理软件 - 仲儿的自留地">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lisz.me/tech/aiida/aiida-install.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="仲儿的自留地">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/tech/aiida/aiida-qe.html">
+    
+    
+    <meta property="og:next_url" content="/tech/webmaster/start-blog-online-editor.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2021-05-12 16:30:00 +0900" />
+    
+    
+    <meta name="alivestart" content="08/08/2015">
+    
+    
+    <meta name="google-site-verification" content="v729JR7Zs4nX-YvgaPeo3p1ise9vTA-6cMhamSu6N5c" />
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/assets/icons/favicon.ico">
+    <link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/logs.html" aria-label="logs">
+                                logs
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tos.html" aria-label="tos">
+                                tos
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/cv.html" aria-label="CV">
+                                CV
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/links.html" aria-label="links">
+                                links
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> collections </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/tags.html#CONQUEST" aria-label="CONQUEST">
+                                CONQUEST
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#LDAP" aria-label="LDAP">
+                                LDAP
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#blog" aria-label="博客">
+                                博客
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-food bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#AiiDA" class="post-tag">AiiDA</a>
+            
+              <a href="/tags.html#data%20management" class="post-tag">data management</a>
+            
+              <a href="/tags.html#calculation" class="post-tag">calculation</a>
+            
+              <a href="/tags.html#postgresql" class="post-tag">postgresql</a>
+            
+              <a href="/tags.html#rabbitmq" class="post-tag">rabbitmq</a>
+            
+          
+        </div>
+        <h1>AiiDA 开源数据管理软件</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            zhonger
+          </span>
+          <time class="post-meta-item" datetime="21-05-12">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="21-05-12">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  6.7k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 20 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+            <span class="post-meta-item">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-image"></use>
+              </svg>
+              
+                封面图片提供者 <a href="https://unsplash.com/@larskienle" target="_blank">Lars Kienle</a>
+              
+            </span>
+          
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('https://i.lisz.top/cover/STCoCn.webp') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">用一个开源软件把你计算的数据管起来</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h2 id="前言">前言</h2>
+
+<p>  对于机器学习来说，模型和数据是非常重要的。而模型与数据相比，模型即便是优化得再好，数据不够、不好的话，最终也不能得到一个好的预测结果。因此，我们在使用机器学习方法去建立某个领域模型的同时，也要注意相关原始数据的收集和整理。当我们需要通过庞大的计算量来获取数据的时候，通常可能需要使用大型服务器集群，甚至高性能集群、超算等等。这个时候，即使我们提交的计算在一段时间后得到了结果，恐怕也会是很多个结果文件，我们也很难从这些文件中抽取出我们关心的、想要的某些数据，更难将其整理成可直接用于机器学习的数据格式。</p>
+
+<p>  面对着这些问题，通常我们会想到可以建立一个数据库，再写一些脚本去自动解析文件内容、抽取关键字段和数值，甚至说为了编程可达需要给数据库设计一套 RESTful API 或者 GraphQL API。这样听起来工程量略大，但是一旦做好那么就可以建立类似于 Materias Project 等等那样的专业领域数据库。其实，我们并没有必要从零开始去做这些，因为现在已经有了开源数据管理软件 <a href="https://aiida.readthedocs.io" rel="nofollow" target="_blank" class="extlinks">AiiDA</a>。</p>
+
+<p>  AiiDA 是一个使用 Python 编写的开源复杂工作流设计和管理框架，旨在帮助从事计算科学（计算材料学，计算生物学等）的相关研究者可以更好地管理、编写、使用和分享复杂的工作流以及计算产生的有用数据。它使得在研究中复杂的计算流程的可重复性得以保证。AiiDA 实现并支持了 ADES 模式的四大基石： (A)utomation（自动）, (D)ata（数据）, (E)nvironment（社区环境）, 和 (S)haring （分享）. AiiDA 支持的一些典型特性包括：</p>
+
+<ul>
+  <li>
+<strong>工作流</strong>： AiiDA 可以用来创建并执行复杂的、自动文档化的工作流来连接本地和远端计算资源上的多个计算代码。</li>
+  <li>
+<strong>高通量</strong>： AiiDA 的基于事件的工作流引擎支持成百上千（每小时）的带有检查点的计算例程。</li>
+  <li>
+<strong>数据可验证性</strong>： AiiDA 自动追踪所有可验证性图中 (provenance graph) 的输入、输出和元数据，以保证计算的完全可重复性。</li>
+  <li>
+<strong>高级的查询检索特性</strong>： AiiDA 的查询语言支持千万个节点的快速图查询。</li>
+  <li>
+<strong>插件接口</strong>：: AiiDA 可以通过插件来支持各种计算代码，和各种数据分析工具，各种数据类型，任务调度工具以及远程连接方式等 (参见<a href="https://aiidateam.github.io/aiida-registry/" rel="nofollow" target="_blank" class="extlinks">公共插件库</a>)。</li>
+  <li>
+<strong>高性能集群接口</strong>： AiiDA 支持无缝地把你的计算从一个集群转换到另一个集群运行。AiiDA 兼容各种任务调度软件 <a href="https://slurm.schedmd.com/" rel="nofollow" target="_blank" class="extlinks">SLURM</a>, <a href="https://www.pbspro.org/" rel="nofollow" target="_blank" class="extlinks">PBS Pro</a>, <a href="http://www.adaptivecomputing.com/products/torque/" rel="nofollow" target="_blank" class="extlinks">torque</a>, <a href="http://gridscheduler.sourceforge.net/" rel="nofollow" target="_blank" class="extlinks">SGE</a> 或者 <a href="https://www.ibm.com/support/knowledgecenter/SSETD4/product_welcome_platform_lsf.html" rel="nofollow" target="_blank" class="extlinks">LSF</a> ，对这些任务调度工具 AiiDA 都是源生支持的。</li>
+  <li>
+<strong>开放科学</strong>： AiiDA 可以将全部或部分的数据库导出，以便于和同行分享，或上传至 <a href="https://www.materialscloud.org/" rel="nofollow" target="_blank" class="extlinks">Materials Cloud</a> 以便 归档 和 检索 。</li>
+  <li>
+<strong>开源</strong>： AiiDA 通过 <a href="https://aiida.readthedocs.io/projects/aiida-core/zh_CN/latest/intro/LICENSE.txt" rel="nofollow" target="_blank" class="extlinks">MIT 开源协议</a> 发布。</li>
+</ul>
+
+<h2 id="安装">安装</h2>
+
+<p>  AiiDA 官网向用户提供了很多种安装方式，其中最简单的就是使用 Docker 一键式安装。这里不仅介绍由 AiiDA 团队构建的 <a href="https://hub.docker.com/r/aiida-team/aiida-core" rel="nofollow" target="_blank" class="extlinks">aiida-team/aiida-core</a> 镜像，也介绍具有多种集成环境的 <a href="https://hub.docker.com/r/marvelnccr/quantum-mobile" rel="nofollow" target="_blank" class="extlinks">Quantum Mobile</a> 镜像。除了 Docker 方式外，AiiDA 也可以直接在 Linux/Mac 系统上安装。考虑到 AiiDA 部署在 Linux 服务器操作系统上更为合适，这里就分别介绍使用 root 用户和非 root 用户如何安装 AiiDA 整体环境。</p>
+
+<h3 id="docker-安装">Docker 安装</h3>
+
+<h4 id="单独环境">单独环境</h4>
+
+<p>  使用以下 <code class="language-plaintext highlighter-rouge">docker-compose.yml</code> 文件和命令 <code class="language-plaintext highlighter-rouge">docker-compose up -d</code> 即可启动一个 aiida-team/aiida-core 容器实例。</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># docker-compose.yml</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.9'</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">aiida</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">aiidateam/aiida-core:1.3.0</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">aiida</span>
+    <span class="na">stdin_open</span><span class="pi">:</span> <span class="kc">true</span>
+    <span class="na">tty</span><span class="pi">:</span> <span class="kc">true</span>
+    <span class="na">volumes</span><span class="pi">:</span> 
+      <span class="pi">-</span> <span class="s">./data:/home/aiida/data</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">networks</span><span class="pi">:</span>
+       <span class="na">extnetwork</span><span class="pi">:</span>
+          <span class="na">ipv4_address</span><span class="pi">:</span> <span class="s">192.168.18.2</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+   <span class="na">extnetwork</span><span class="pi">:</span>
+      <span class="na">ipam</span><span class="pi">:</span>
+         <span class="na">config</span><span class="pi">:</span>
+         <span class="pi">-</span> <span class="na">subnet</span><span class="pi">:</span> <span class="s">192.168.18.0/24</span>
+           <span class="na">gateway</span><span class="pi">:</span> <span class="s">192.168.18.1</span>
+
+</code></pre></div></div>
+
+<h4 id="多软件环境">多软件环境</h4>
+
+<p>  使用以下 <code class="language-plaintext highlighter-rouge">docker-compose.yml</code> 文件和命令 <code class="language-plaintext highlighter-rouge">docker-compose up -d</code> 即可启动一个 quantum-mobile 容器实例。</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># docker-compose.yml</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.4'</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">quantum-mobile</span><span class="pi">:</span>
+    <span class="c1"># using the required tag</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">marvelnccr/quantum-mobile:20.11.2a"</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">quantum-mobile</span>
+    <span class="na">expose</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8888"</span> <span class="c1"># AiiDa Lab</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8890"</span> <span class="c1"># Jupyter Lab</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">5000"</span> <span class="c1"># REST API</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">22"</span>   <span class="c1"># SSH</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="c1"># local:container</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8888:8888"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8890:8890"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">22:22"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">5000:5000"</span>
+    <span class="c1"># privileged mode and mounting the cgroup are required for correctly running sytsemd inside the container (set as the default command)</span>
+    <span class="na">privileged</span><span class="pi">:</span> <span class="kc">true</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">/sys/fs/cgroup:/sys/fs/cgroup:ro"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">LC_ALL</span><span class="pi">:</span> <span class="s2">"</span><span class="s">en_US.UTF-8"</span>
+      <span class="na">LANG</span><span class="pi">:</span> <span class="s2">"</span><span class="s">en_US.UTF-8"</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="c1"># check that the daemon has been started for the 'generic' profile</span>
+      <span class="c1"># can take a few minutes to start</span>
+      <span class="na">test</span><span class="pi">:</span> <span class="s">systemctl is-active --quiet aiida-daemon@generic.service</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">30s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">6</span>
+      <span class="na">start_period</span><span class="pi">:</span> <span class="s">30s</span>
+</code></pre></div></div>
+
+<h3 id="root-用户安装">root 用户安装</h3>
+
+<p>  由于 root 用户对系统具有绝对的管理权限，所以使用 root 用户安装 AiiDA 环境时比较简单，可以直接通过 APT 源安装 PostgreSQL、RabbitMQ 和 AiiDA。如下所示，完成这三种软件的安装。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># AiiDA 是一个 python 编写的软件，所有需要 python 环境和 pip 包管理工具</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>git python3-dev python3-pip
+
+<span class="c"># 安装 PostgreSQL 服务器与客户端命令</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>postgresql postgresql-server-dev-all postgresql-client
+
+<span class="c"># 安装 RabbitMQ 服务器并查询当前状态</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>rabbitmq-server
+<span class="nb">sudo </span>rabbitmqctl status
+
+<span class="c"># 安装 AiiDA</span>
+pip <span class="nb">install </span>aiida-core
+</code></pre></div></div>
+
+<p>  具体配置 PostgreSQL 数据库和 AiiDA 与下一节中非 root 用户安装中相同，请参照下面内容。</p>
+
+<h3 id="非-root-用户安装">非 root 用户安装</h3>
+
+<p>  当我们在使用内网服务器时，很大可能我们只是一个普通用户，并没有管理员权限。所以如果想要以一个非 root 用户的身份来安装部署 AiiDA 服务是否也有可能呢？事实上是可以实现的，因为组成 AiiDA 运行环境的三个软件都可以以非 root 用户安装、启动。为了简化安装软件过程，这里我们采用了 <a href="https://www.anaconda.com" rel="nofollow" target="_blank" class="extlinks">Anaconda</a> 来帮助我们更快、更简单地安装部署环境。（后续，笔者将会为服务器上的 Anaconda 使用特别写一篇文章进行详细介绍，这里默认已安装有 Anaconda。）</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 启动 Anaconda 环境</span>
+~/anaconda3/etc/profile.d/conda.sh
+</code></pre></div></div>
+
+<h4 id="安装-postgresql">安装 PostgreSQL</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 从 conda-forge 频道安装 PostgreSQL</span>
+conda <span class="nb">install</span> <span class="nt">-c</span> conda-forge postgresql
+</code></pre></div></div>
+
+<h4 id="配置和启动-postgresql">配置和启动 PostgreSQL</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 创建 PostgreSQL 数据存储目录</span>
+<span class="c"># 为了更好地区别是从 conda 安装的 PostgreSQL，特别将存储目录放置在 conda 配置目录下</span>
+<span class="nb">mkdir</span> <span class="nt">-p</span> /home/lisz/.conda/envs/pgsql/data
+
+<span class="c"># 指定数据存储目录并后台启动 PostgreSQL，同时也开启日志记录功能</span>
+pg_ctl <span class="nt">-D</span> /home/lisz/.conda/envs/pgsql/data <span class="nt">-l</span> logfile start
+
+<span class="c"># 查看是否正常启动并监听端口 5432</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  data lsof <span class="nt">-i</span>:5432 
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+postgres 33906 lisz    3u  IPv6 66936721      0t0  TCP localhost:postgres <span class="o">(</span>LISTEN<span class="o">)</span>
+postgres 33906 lisz    4u  IPv4 66936722      0t0  TCP localhost:postgres <span class="o">(</span>LISTEN<span class="o">)</span>
+
+<span class="c"># 使用当前 Linux 用户身份认证直接进入 PostgreSQL 默认数据库</span>
+<span class="c"># 进入后是 PostgreSQL 的 shell 交互界面</span>
+psql <span class="nt">-d</span>  postgres
+</code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">#</span> <span class="err">输入以下命令完成创建用户</span> <span class="n">aiida</span><span class="err">、数据库</span> <span class="n">aiidadb</span><span class="err">，并给用户赋给该数据库的完全权限</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">aiida</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">'&lt;password&gt;'</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">aiidadb</span> <span class="k">OWNER</span> <span class="n">aiida</span> <span class="k">ENCODING</span> <span class="s1">'UTF8'</span> <span class="n">LC_COLLATE</span><span class="o">=</span><span class="s1">'en_US.UTF-8'</span> <span class="n">LC_CTYPE</span><span class="o">=</span><span class="s1">'en_US.UTF-8'</span> <span class="k">TEMPLATE</span><span class="o">=</span><span class="n">template0</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">ALL</span> <span class="k">PRIVILEGES</span> <span class="k">ON</span> <span class="k">DATABASE</span> <span class="n">aiidadb</span> <span class="k">to</span> <span class="n">aiida</span><span class="p">;</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 使用 \q 即可退出刚才的 PostgreSQL 提供的 shell</span>
+<span class="c"># 测试 aiida 用户是否可以使用密码从本地成功登录 aiidadb 数据库</span>
+psql <span class="nt">-h</span> localhost <span class="nt">-d</span> aiidadb <span class="nt">-U</span> aiida <span class="nt">-W</span>
+<span class="c"># 输入密码后，出现 PostgreSQL 的 shell 即登录成功</span>
+</code></pre></div></div>
+
+<h4 id="安装-rabbitmq">安装 RabbitMQ</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 从 conda-forge 频道安装 RabbitMQ 服务器</span>
+conda <span class="nb">install</span> <span class="nt">-c</span> conda-forge rabbitmq-server
+</code></pre></div></div>
+
+<h4 id="配置和启动-rabbitmq">配置和启动 RabbitMQ</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 让 RabbitMQ 使用默认配置在后台启动</span>
+rabbitmq-server <span class="nt">-detached</span>
+
+<span class="c"># 开启 Web 管理插件</span>
+rabbitmq-plugins <span class="nb">enable </span>rabbitmq_management
+
+<span class="c"># 查看状态，验证是否正常启动</span>
+rabbitmq-server status
+
+<span class="c"># 查看是否正常监听 5672 端口</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  ~ lsof <span class="nt">-i</span>:5672             
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+beam.smp 33967 lisz   95u  IPv6 66919827      0t0  TCP <span class="k">*</span>:amqp <span class="o">(</span>LISTEN<span class="o">)</span>
+</code></pre></div></div>
+
+<p>  由于 RabbitMQ 是消息队列，这里没有持久化和验证的需求，所有可以直接使用默认配置启动即可。验证正常启动后，可浏览 <a href="http://localhost:15627" rel="nofollow" target="_blank" class="extlinks">http://localhost:15627</a> 来访问 RabbitMQ 的 Web 界面，默认管理员账号和密码均为 guest。这里需要注意的是，如果是服务器安装，本地机器是需要使用 ssh 代理端口的功能把服务器端的 15627 端口代理到本地的 15627 端口之后才能正常访问。当然，笔者建议使用 VS Code 来远程连接服务器，然后就可以使用 VS Code 提供的界面简单操作代理远程端口到本地。</p>
+
+<h4 id="安装-aiida">安装 AiiDA</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 从 pypi 安装 AiiDA 核心程序</span>
+pip <span class="nb">install </span>aiida-core
+
+<span class="c"># 如果上述安装过程提示 conda 需要 pathlib 的 error，可以直接安装并重载 AiiDA 配置</span>
+conda <span class="nb">install </span>pathlib
+reentry scan
+</code></pre></div></div>
+
+<h4 id="配置和启动-aiida">配置和启动 AiiDA</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 为 AiiDA 配置用户信息、数据库连接信息以及消息队列连接信息</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  ~ verdi setup
+Info: enter <span class="s2">"?"</span> <span class="k">for </span><span class="nb">help
+</span>Info: enter <span class="s2">"!"</span> to ignore the default and <span class="nb">set </span>no value
+Profile name: conquest
+Email Address <span class="o">(</span><span class="k">for </span>sharing data<span class="o">)</span>: xxxx@xxx.xxx
+First name: Ben
+Last name: Li
+Institution: NIMS
+Database engine <span class="o">(</span>postgresql_psycopg2<span class="o">)</span> <span class="o">[</span>postgresql_psycopg2]: 
+Database backend <span class="o">(</span>django, sqlalchemy<span class="o">)</span> <span class="o">[</span>django]: 
+Database host: localhost
+Database port <span class="o">[</span>5432]: 
+Database name: aiidadb
+Database username: aiida
+Database password: 
+Broker protocol <span class="o">(</span>amqp, amqps<span class="o">)</span> <span class="o">[</span>amqp]: 
+Broker username <span class="o">[</span>guest]: 
+Broker password <span class="o">[</span>guest]: 
+Broker host <span class="o">[</span>127.0.0.1]: 
+Broker port <span class="o">[</span>5672]: 
+Broker virtual host name <span class="o">[]</span>:        
+Repository directory <span class="o">[</span>/home/lisz/.aiida/repository/conquest]:
+</code></pre></div></div>
+
+<p>  至此，AiiDA 的所有软件环境就已经完全配置好了，试试觉得也不是那么难哈。</p>
+
+<h2 id="验证安装">验证安装</h2>
+
+<p>  AiiDA 的验证安装主要是检查：</p>
+
+<ul>
+  <li>AiiDA 主程序是否在后台正常运行？</li>
+  <li>verdi shell 是否能正常使用？</li>
+  <li>AiiDA 与数据库、消息队列是否连接正常？</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># verdi daemon status 检查后台情况</span>
+<span class="c"># 如果没有启动使用 verdi daemon start 启动</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  ~ verdi daemon status
+Profile: conquest
+Daemon is running as PID 25383 since 2021-05-12 16:06:03
+Active workers <span class="o">[</span>1]:
+  PID    MEM %    CPU %  started
+<span class="nt">-----</span>  <span class="nt">-------</span>  <span class="nt">-------</span>  <span class="nt">-------------------</span>
+25387     0.02        0  2021-05-12 16:06:03
+Use verdi daemon <span class="o">[</span>incr | decr] <span class="o">[</span>num] to increase / decrease the amount of workers
+
+<span class="c"># verdi shell 进入 shell，如果无法进入则证明配置仍然存在错误</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  ~ verdi shell
+Python 3.8.10 | packaged by conda-forge | <span class="o">(</span>default, May 11 2021, 07:01:05<span class="o">)</span> 
+Type <span class="s1">'copyright'</span>, <span class="s1">'credits'</span> or <span class="s1">'license'</span> <span class="k">for </span>more information
+IPython 7.23.1 <span class="nt">--</span> An enhanced Interactive Python. Type <span class="s1">'?'</span> <span class="k">for </span>help.
+
+In <span class="o">[</span>1]: <span class="nb">exit</span><span class="o">()</span>
+
+<span class="c"># verdi status 查看 AiiDA 的各项配置，包括自身及与其他软件之间的连接</span>
+<span class="o">(</span>base<span class="o">)</span> ➜  ~ verdi status
+ ✔ config <span class="nb">dir</span>:  /home/lisz/.aiida
+ ✔ profile:     On profile conquest
+ ✔ repository:  /home/lisz/.aiida/repository/conquest
+ ✔ postgres:    Connected as aiida@localhost:5432
+ ✔ rabbitmq:    Connected as amqp://guest:guest@127.0.0.1:5672?heartbeat<span class="o">=</span>600
+ ✔ daemon:      Daemon is running as PID 25383 since 2021-05-12 16:06:03
+</code></pre></div></div>
+
+<h2 id="后续使用">后续使用</h2>
+
+<p>  当我们已经有了 AiiDA 的完整环境之后，我们就会想要知道该如何使用 AiiDA 为计算服务呢。由于笔者是做第一性原理计算和机器学习的研究，所以后续将以 AiiDA 和 CONQUEST 的搭配使用为实例来介绍 AiiDA 的数据管理用法。</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+  <li><a href="https://aiida.readthedocs.io/projects/aiida-core/zh_CN/latest/intro/installation.html#installing-the-aiida-core-package" rel="nofollow" target="_blank" class="extlinks">AiiDA 官网中文文档</a></li>
+  <li><a href="https://blog.csdn.net/r_nznf/article/details/108056919" rel="nofollow" target="_blank" class="extlinks">Conda 安装 PostgreSQL 数据库</a></li>
+  <li><a href="https://segmentfault.com/a/1190000010480589" rel="nofollow" target="_blank" class="extlinks">离线安装 RabbitMQ</a></li>
+  <li><a href="https://blog.csdn.net/yufanghu/article/details/80829108" rel="nofollow" target="_blank" class="extlinks">RabbitMQ 后台启动以及关闭</a></li>
+</ul>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://lisz.me" class="cplink">仲儿的自留地</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 AiiDA 开源数据管理软件 》</p>
+              <p><span>本文链接：</span><a href="https://lisz.me/tech/aiida/aiida-install.html" class="cplink">https://lisz.me/tech/aiida/aiida-install.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('前言')">前言</a></li><li><a onclick="scrollToAdjust('安装')">安装</a><ul><li><a onclick="scrollToAdjust('docker-安装')">Docker 安装</a><ul><li><a onclick="scrollToAdjust('单独环境')">单独环境</a></li><li><a onclick="scrollToAdjust('多软件环境')">多软件环境</a></li></ul></li><li><a onclick="scrollToAdjust('root-用户安装')">root 用户安装</a></li><li><a onclick="scrollToAdjust('非-root-用户安装')">非 root 用户安装</a><ul><li><a onclick="scrollToAdjust('安装-postgresql')">安装 PostgreSQL</a></li><li><a onclick="scrollToAdjust('配置和启动-postgresql')">配置和启动 PostgreSQL</a></li><li><a onclick="scrollToAdjust('安装-rabbitmq')">安装 RabbitMQ</a></li><li><a onclick="scrollToAdjust('配置和启动-rabbitmq')">配置和启动 RabbitMQ</a></li><li><a onclick="scrollToAdjust('安装-aiida')">安装 AiiDA</a></li><li><a onclick="scrollToAdjust('配置和启动-aiida')">配置和启动 AiiDA</a></li></ul></li></ul></li><li><a onclick="scrollToAdjust('验证安装')">验证安装</a></li><li><a onclick="scrollToAdjust('后续使用')">后续使用</a></li><li><a onclick="scrollToAdjust('参考资料')">参考资料</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/profile.webp" alt="">
+        </div>
+        <div class="author-name" rel="author">zhonger</div>
+        <div class="bio">
+          <p>Developer & Maintainer</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://scholar.google.com/citations?user=AUupIooAAAAJ" target="_blank" aria-label="google-scholar">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-google-scholar"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.researchgate.net/profile/Shengzhou-Li" target="_blank" aria-label="researchgate">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-researchgate"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://orcid.org/0000-0001-6973-3825" target="_blank" aria-label="ORCID">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-ORCID"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://github.com/zhonger" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.linkedin.com/in/shengzhouli/" target="_blank" aria-label="linkedin">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-linkedin"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://segmentfault.com/u/wuwozhonger" target="_blank" aria-label="segmentfault">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-segmentfault"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/tech/aiida/aiida-qe.html" class="read-next-link" aria-label="AiiDA 与 Quantum Espresso"></a>
+          <section>
+            <span>AiiDA 与 Quantum Espresso</span>
+            <p>前言</p>
+          </section>
+          
+          <div class="filter"></div>
+          <img src="https://i.lisz.top/cover/tK1740.webp" alt="">
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/tech/webmaster/start-blog-online-editor.html" class="read-next-link" aria-label="个人免费博客花式搭建指南 Online Editor 篇"></a>
+            <section>
+              <span>个人免费博客花式搭建指南 Online Editor 篇</span>
+              <p>前言</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="https://i.lisz.top/cover/iuGS5d.webp" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">仲儿的自留地 ©
+        
+        
+          2015
+          -
+        
+        2023
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks"></a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+          本站已运行 
+          <span class="alivetime_days"></span> 天
+          <span class="alivetime_hours"></span> 小时
+          <span class="alivetime_minutes"></span> 分
+          <span class="alivetime_seconds"></span> 秒
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+      <section class="badges">
+        
+          <a href="https://www.foreverblog.cn/" target="_blank" class="foreverblog"> 
+            <img src="https://img.foreverblog.cn/logo_en_default.png" alt=""> 
+          </a>
+        
+        
+          <a href="https://www.foreverblog.cn/go.html" target="_blank" class="wormhole"> 
+            <img src="https://img.foreverblog.cn/wormhole_3.gif" alt="" title="穿梭虫洞-随机访问十年之约友链博客">
+          </a>
+        
+        
+          <a href="https://notbyai.fyi/" target="_blank" class="notbyAI"> 
+            <img src="/assets/icons/notbyAI-white.png" alt="Written by Human, Not by AI">
+          </a>
+        
+      </section>
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/zhonger/zhonger.github.io/commits?path=_posts/aiida/2021-05-12-aiida-install.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+  
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8SEJ5JNY"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9E8SEJ5JNY');
+</script>
+
+  
+<script async defer data-website-id="90ea4822-8012-444e-837a-757ea473e087" src="https://umami.lisz.top/pwiki.js"></script>
+
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+  
+<!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BF0y1f49JPDkjSmUYtUb-gRzcVY72squyl0hE2xo7YTA4q7Ch2DAZ0WOZCNktfyakgPlDov92CafKw9ZPAwIDrc' });</script><!-- end webpushr code -->
+ 
+</body>
+
+</html>

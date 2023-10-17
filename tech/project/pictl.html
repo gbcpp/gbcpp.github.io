@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理及上传命令行工具 —— PICTL - 仲儿的自留地</title>
+    <meta name="author"  content="zhonger">
+    <meta name="description" content="图片处理及上传命令行工具 —— PICTL">
+    <meta name="keywords"  content="pictl, 命令行, 工具, cli, tool">
+    <!-- Open Graph -->
+    <meta property="og:title" content="图片处理及上传命令行工具 —— PICTL - 仲儿的自留地">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lisz.me/tech/project/pictl.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="仲儿的自留地">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/tech/webmaster/asdf.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2023-06-13 13:41:01 +0900" />
+    
+    
+    <meta name="alivestart" content="08/08/2015">
+    
+    
+    <meta name="google-site-verification" content="v729JR7Zs4nX-YvgaPeo3p1ise9vTA-6cMhamSu6N5c" />
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/assets/icons/favicon.ico">
+    <link rel="icon" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/assets/icons/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/logs.html" aria-label="logs">
+                                logs
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tos.html" aria-label="tos">
+                                tos
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/cv.html" aria-label="CV">
+                                CV
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/links.html" aria-label="links">
+                                links
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> collections </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/tags.html#CONQUEST" aria-label="CONQUEST">
+                                CONQUEST
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#LDAP" aria-label="LDAP">
+                                LDAP
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="/tags.html#blog" aria-label="博客">
+                                博客
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-food bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#pictl" class="post-tag">pictl</a>
+            
+              <a href="/tags.html#%E5%91%BD%E4%BB%A4%E8%A1%8C" class="post-tag">命令行</a>
+            
+              <a href="/tags.html#%E5%B7%A5%E5%85%B7" class="post-tag">工具</a>
+            
+              <a href="/tags.html#cli" class="post-tag">cli</a>
+            
+              <a href="/tags.html#tool" class="post-tag">tool</a>
+            
+          
+        </div>
+        <h1>图片处理及上传命令行工具 —— PICTL</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            zhonger
+          </span>
+          <time class="post-meta-item" datetime="23-06-13">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="23-06-13">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  6.2k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 18 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+            <span class="post-meta-item">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-image"></use>
+              </svg>
+              
+                封面图片提供者 <a href="https://unsplash.com/@anniespratt" target="_blank">Annie Spratt</a>
+              
+            </span>
+          
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('https://i.lisz.top/cover/A2OQ14.webp') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">适合开发者提升静态博客撰文效率</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h2 id="前言">前言</h2>
+
+<p>  自从博客从 WordPress 转到静态博客（先 Hexo 后 Jekyll）之后，文章的图片处理、图片上传就成了一个不大顺畅的事情。最先是使用了 <a href="https://vgy.me" rel="nofollow" target="_blank" class="extlinks">vgy.me</a> 提供的免费图床，支持直接从剪切板上传，操作上相对比较简单，也不需要任何本地存储。不过后来 vgy.me 进行了升级改版，原先的剪切板上传功能也不再支持了，偶尔还出现图片像素被降低、丢失的问题。同时，考虑到 WebP 格式可能会适合博客使用，而 vgy.me 还不支持该格式。于是开始切换到 “对象存储 + CDN” 的方案。本地准备好的 PNG 格式图片，先通过 <a href="https://developers.google.com/speed/webp/" rel="nofollow" target="_blank" class="extlinks">cwebp</a> 命令行转成 WebP 格式图片，再通过 <a href="https://github.com/gee1k/uPic" rel="nofollow" target="_blank" class="extlinks">uPic</a> 工具修改文件名后上传到对象存储。由于此前采用的是腾讯云的 COS 对象存储和 CDN，经常面临着 SSL 证书更新等琐碎的事情。这样一来，整体的效率实际上并不高，只能说勉强接受。</p>
+
+<h3 id="现有工具及存储考察">现有工具及存储考察</h3>
+
+<p>  为此，也对其他工具和对象存储进行了考察。</p>
+
+<p>  <a href="https://github.com/Molunerfinn/PicGo" rel="nofollow" target="_blank" class="extlinks">PicGo</a> 是一款集客户端 UI 和命令行于一体的图片上传工具，虽然可以利用命令串联的方式简单将图片格式转换和上传两步变成一步，但还是有那么点不舒服的地方，比如 PicGo 不提供文件名修改（为固定长度随机字符串）的特性。而 uPic 本身关注于客户端桌面交互，不提供命令行接口。</p>
+
+<p>  至于对象存储，国内各家云服务厂商提供的都需要自行手动更新 SSL 证书，且收费。尽管腾讯云 CDN 目前老用户可以每月领券免费使用，但一旦忘记就开始被收费了。实际上也有逐步转向收费的趋势。国外各家云服务厂商基本上都需要收费使用对象存储或者 CDN，大差不差。</p>
+
+<p>  当然，网上一直有一种 “Backblaze B2 + Cloudflare” 的解决方案。由于 B2 本身存储和读写操作都有免费额度，流量需要收费，且无法自定义域名，而 B2 和 Cloudflare 同属于宽带联盟（内部流量免费），Cloudflare 还提供 URL 重写功能，这种解决方案一时成为了潮流。不过，B2 的访问链接是中间带着一串参数，重写之后仍然还是有部分参数，最终的 URL 并不是那么朴素。总的来说，还是有那么点别扭。</p>
+
+<h3 id="r2-的出现">R2 的出现</h3>
+
+<p>  因此观望了许久，直到 Cloudflare 推出了 R2。R2 是一款对标 AWS S3 的产品，基于 Cloudflare 对宽带联盟的承诺而构建，为存储对象提供零成本出口，实际上就是免费 CDN。由于 Cloudflare 本身就是一家 CDN 服务商，自定义对象存储访问域名、自动生成部署 SSL 证书这些事情就变得轻而易举了。R2 提供 10GB 的免费存储，读操作每月免费 1000 万次，写、更新和删除操作每月免费 100 万次。这对于一般的静态博客来说，应该完全足够了，即使超出了免费额度，超出部分收费也相较其他云服务厂商便宜一些。</p>
+
+<p>  对笔者而言，R2 产品将对象存储和 CDN 两款产品有机地结合起来，解决了静态博客图片对外访问前的“最后一公里”。于是想从 COS 迁移到 R2，无奈 uPic 这个时候卖了个“破绽”。uPic 似乎在开始转向商业收费，Github 上不再发布新版本，而仅在 Appstore 上继续更新对 R2 的支持。当然，Appstore 上的 uPic 是收费的（4.99 美元，其实也不贵）。</p>
+
+<div class="premonition info"> <div class="header"> <svg class="icon info" aria-hidden="true"> <use xlink:href="#icon-info"></use> </svg> <div class="title"> 小提示 </div> </div> <div class="content"> <p>  R2 虽然说是对标 AWS S3，但是并没有完整实现所有 API 接口，所以目前 Github 上发布的 uPic 版本无法兼容。尽管可以自行通过修改 uPic 的开源代码来实现兼容，但毕竟修改别人的代码的成本还是有一点高的。</p>
+
+
+
+ </div> </div>
+<h2 id="开个新项目">开个新项目</h2>
+
+<p>  在充分梳理个人使用需求之后，还是决定开个新项目——开发一款简单易用的命令行工具 PICTL（全称 <strong>Pi</strong>cture <strong>C</strong>on<strong>t</strong>ro<strong>l</strong>）。该工具须具备以下特性：</p>
+
+<ul>
+  <li>考虑图片的存储空间大小和网页加载时长，所有图片应被压缩并转成 WebP 格式；</li>
+  <li>所有图片的名称应被修改成一个固定长度随机字符串，并支持上传到类 S3 的对象存储；</li>
+  <li>简单易用，命令行优先，无网页或桌面交互界面；</li>
+  <li>（可选）自动添加水印；</li>
+  <li>（可选）根据设定自动调整图片尺寸；</li>
+  <li>（可选）可以直接从剪切板读取图片。</li>
+</ul>
+
+<h2 id="架构设计">架构设计</h2>
+
+<p>  根据所列出的特性，这款命令行工具主要的模块就是：<strong>图片处理模块</strong>和<strong>上传模块</strong>，架构如下图所示。</p>
+
+<p><img src="https://i.lisz.top/blog/Gl8qhI.webp" alt="PICTL 架构图 The architecture of PICTL"></p>
+
+<p>  图片处理模块包括图片压缩、图片格式转换、图片水印、尺寸调整等功能，可以进行无缝横向扩展。上传模块主要包括对于三种存储方式的支持：<strong>第一类</strong>是最为广泛的类 S3 对象存储，如 R2、AWS S3 及国内外云服务厂商各种对象存储等，<strong>第二类</strong>是目前仍然在博客中广泛流行的第三方图床，如 <a href="https://sm.ms" rel="nofollow" target="_blank" class="extlinks">SM.MS</a>、<a href="https://vgy.me" rel="nofollow" target="_blank" class="extlinks">vgy.me</a>、<a href="https://github.com/chevereto/chevereto" rel="nofollow" target="_blank" class="extlinks">chevereto</a> 类型图床等，<strong>第三类</strong>是自托管 Git 平台和 FTP 平台。</p>
+
+<div class="premonition warning"> <div class="header"> <svg class="icon warning" aria-hidden="true"> <use xlink:href="#icon-warning"></use> </svg> <div class="title"> 特此声明 </div> </div> <div class="content"> <p>  鉴于 Github、Gitlab、Gitee 等公共代码托管平台均禁止把 Git 仓库作为图床的做法，本工具仅支持自建 Git 平台，如自建 Gitlab 和 Gitlab Pages。如试图上传到公共代码托管平台，本工具会自行中断上传。</p>
+
+
+
+ </div> </div>
+<p>  本工具由于仅支持命令行，所以计划用 Python 和 <a href="https://click.palletsprojects.com/" rel="nofollow" target="_blank" class="extlinks">Click</a> 进行开发。虽然借助 <a href="https://google.github.io/python-fire/" rel="nofollow" target="_blank" class="extlinks">Google Fire</a> 也可以快速开发命令行工具，但其使用方式上与原生 *nix 的命令行工具有所不同。相比之下，用 Click 开发可能会麻烦一点，但能够开发出更类原生的 Python 命令行工具。当然，目前开发上还是比较喜欢使用 Rust 或者 Go 语言来开发高性能的命令行工具。不过，本工具只是做一些非常简单的工作，没有性能上的瓶颈，用 Python 开发也足够了。</p>
+
+<h2 id="开发计划">开发计划</h2>
+
+<p>  请移步 <a href="https://github.com/users/zhonger/projects/5" rel="nofollow" target="_blank" class="extlinks">Github Project</a> 了解更多。</p>
+
+<h2 id="使用方法">使用方法</h2>
+
+<p>  目前，PICTL 已经在 <a href="https://github.com/zhonger/pictl/releases" rel="nofollow" target="_blank" class="extlinks">Github</a> 和 <a href="https://pypi.org/project/pictl/" rel="nofollow" target="_blank" class="extlinks">PyPI</a> 同步发布了 v0.1.0 版本。该版本实现了以上架构图中的基本功能，即特性中的前三点必要项。接下来介绍一下如何安装和使用本工具。</p>
+
+<h3 id="安装">安装</h3>
+
+<p>  目前支持两种安装方式：<strong>源码安装</strong>和 <strong>PIP 安装</strong>，后续将增加对于 brew 的支持。</p>
+
+<div class="premonition info"> <div class="header"> <svg class="icon info" aria-hidden="true"> <use xlink:href="#icon-info"></use> </svg> <div class="title"> 小提示 </div> </div> <div class="content"> <p>  安装前，请务必确保已满足 Python 版本高于 3.10 的条件。</p>
+
+
+
+ </div> </div>
+<h4 id="源码安装">源码安装</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/zhonger/pictl
+<span class="nb">cd </span>pictl
+pip3 <span class="nb">install</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<h4 id="pip-安装">PIP 安装</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>pictl
+</code></pre></div></div>
+
+<h3 id="使用">使用</h3>
+
+<h4 id="显示版本">显示版本</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl <span class="nt">-V</span>
+PICTL 0.1.0
+</code></pre></div></div>
+
+<h4 id="列举所有支持命令">列举所有支持命令</h4>
+
+<p>  目前 v0.1.0 版本包含四个子命令：config（配置管理），compress（图片处理），upload（上传文件）和 cup（一键式压缩、转换、上传）。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl
+Usage: pictl <span class="o">[</span>OPTIONS] COMMAND <span class="o">[</span>ARGS]...
+
+  A <span class="nb">command </span>line tool <span class="k">for </span>image processing and uploading <span class="o">(</span>ex. S3-type<span class="o">)</span><span class="nb">.</span>
+
+  Now it supports:
+    - transformation from other image types to <span class="sb">`</span>webp<span class="sb">`</span> image as well as
+      image compression.
+    - image file uploading to AWS S3 or Cloudflare R2.
+
+Options:
+  <span class="nt">-V</span>, <span class="nt">--version</span>  Show the pictl version.
+  <span class="nt">-h</span>, <span class="nt">--help</span>     Show this message and exit.
+
+Commands:
+  compress  Compress any image into <span class="sb">`</span>webp<span class="sb">`</span> image.
+  config    Operations <span class="k">for </span>the config file <span class="sb">`</span>~/.pictlrc<span class="sb">`</span><span class="nb">.</span>
+  cup       Compress image and upload to remote storage <span class="o">(</span>compress and...
+  upload    Upload the file to remote storage
+</code></pre></div></div>
+
+<h4 id="config-子命令">config 子命令</h4>
+
+<p>  config 子命令包含 add（添加配置）、delete（删除配置）、info（查看所有配置）和 init（初始化配置）四种操作。使用本工具需要先执行初始行配置操作，再执行其他配置操作。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl config
+Usage: pictl config <span class="o">[</span>OPTIONS] COMMAND <span class="o">[</span>ARGS]...
+
+  Operations <span class="k">for </span>the config file <span class="sb">`</span>~/.pictlrc<span class="sb">`</span><span class="nb">.</span>
+
+Options:
+  <span class="nt">-h</span>, <span class="nt">--help</span>  Show this message and exit.
+
+Commands:
+  add     Add configs to the config file.
+  delete  Delete config group from the config file.
+  info    Check the configs.
+  init    Initialize config file with default configs.
+</code></pre></div></div>
+
+<p>  如下所示，使用 <code class="language-plaintext highlighter-rouge">pictl config init</code> 命令初始化配置。第二次执行时，由于已存在配置文件，会提示已经初始化过了。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl config init
+The settings has been initilized <span class="k">in</span> /home/ubuntu/.pictlrc.
+
+╰─<span class="nv">$ </span>pictl config init
+/home/ubuntu/.pictlrc already exists.
+Please add settings or change it manaully.
+</code></pre></div></div>
+
+<p>  使用 <code class="language-plaintext highlighter-rouge">pictl config info</code> 以 JSON 格式打印所有配置信息。配置文件默认采用 TOML 格式。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl config info
+<span class="o">{</span>
+    <span class="s1">'basic'</span>: <span class="o">{</span><span class="s1">'length'</span>: 6, <span class="s1">'ntype'</span>: <span class="s1">'random'</span>, <span class="s1">'algorithm'</span>: <span class="s1">'sha1'</span><span class="o">}</span>,
+<span class="o">}</span>
+
+╰─<span class="nv">$ </span><span class="nb">cat</span> ~/.pictlrc
+<span class="o">[</span>basic]
+length <span class="o">=</span> 6
+ntype <span class="o">=</span> <span class="s2">"random"</span>
+algorithm <span class="o">=</span> <span class="s2">"sha1"</span>
+</code></pre></div></div>
+
+<p>  使用 <code class="language-plaintext highlighter-rouge">pictl config add</code> 以命令行交互方式添加配置（以下是 R2 的例子）。添加完成后可以再次查看新增后的所有配置。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl config add
+<span class="k">******</span> Please input these information <span class="k">******</span>
+Group Name <span class="o">(</span>default <span class="s1">'blog'</span><span class="o">)</span>: <span class="nb">test</span>
+<span class="o">[</span>?] Type: : R2
+   S3
+ <span class="o">&gt;</span> R2
+
+Account ID: testid
+Bucket Name: <span class="nb">test
+</span>Key: testkey
+Secret: testsecret
+Prefix <span class="o">(</span>Default is None<span class="o">)</span>:
+Access Url <span class="o">(</span>like <span class="sb">`</span>https://i.example.com<span class="sb">`</span><span class="o">)</span>: https://i.example.com
+New group <span class="s1">'test'</span> has been saved <span class="k">in</span> /Users/zhonger/.pictlrc.
+
+╰─<span class="nv">$ </span>pictl config info
+<span class="o">{</span>
+    <span class="s1">'basic'</span>: <span class="o">{</span><span class="s1">'length'</span>: 6, <span class="s1">'ntype'</span>: <span class="s1">'random'</span>, <span class="s1">'algorithm'</span>: <span class="s1">'sha1'</span><span class="o">}</span>,
+    <span class="s1">'test'</span>: <span class="o">{</span>
+        <span class="s1">'endpoint'</span>: <span class="s1">'https://testid.r2.cloudflarestorage.com/test'</span>,
+        <span class="s1">'bucket'</span>: <span class="s1">'test'</span>,
+        <span class="s1">'prefix'</span>: <span class="s1">''</span>,
+        <span class="s1">'key'</span>: <span class="s1">'testkey'</span>,
+        <span class="s1">'secret'</span>: <span class="s1">'testsecret'</span>,
+        <span class="s1">'url'</span>: <span class="s1">'https://i.example.com'</span>,
+        <span class="s1">'type'</span>: <span class="s1">'R2'</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>  使用 <code class="language-plaintext highlighter-rouge">pictl config delete</code> 命令可以选择删除远程配置组（此处为了展示，除 test 外还添加了其他配置组）。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl config delete
+<span class="o">[</span>?] Please <span class="k">select </span>one group: : <span class="nb">test
+   </span>blog
+   cover
+ <span class="o">&gt;</span> <span class="nb">test
+
+test </span>has been deleted.
+</code></pre></div></div>
+
+<h4 id="compress-子命令">compress 子命令</h4>
+
+<p>  本子命令输入参数为<strong>图片文件名</strong>，可以带路径。输出图片会被保存在命令执行位置，<strong>而非原图片所在目录</strong>。执行该操作后，图片还不会被上传，需要继续使用 upload 命令完成上传。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl compress <span class="nt">-h</span>
+Usage: pictl compress <span class="o">[</span>OPTIONS] FILENAME
+
+  Compress any image into <span class="sb">`</span>webp<span class="sb">`</span> image.
+
+  FILENAME is the name of the file to compress.
+
+Options:
+  <span class="nt">-h</span>, <span class="nt">--help</span>  Show this message and exit.
+
+╰─<span class="nv">$ </span>pictl compress ../../pictl/fig01.png
+The output file is EVyP2J.webp
+</code></pre></div></div>
+
+<h4 id="upload-子命令">upload 子命令</h4>
+
+<p>  如下所示，使用 <code class="language-plaintext highlighter-rouge">pictl upload</code> 命令加上指定上传文件名和远程配置组即可完成上传。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl upload <span class="nt">-h</span>
+Usage: pictl upload <span class="o">[</span>OPTIONS] FILENAME GROUP
+
+  Upload the file to remote storage.
+
+  FILENAME is the name of the file to upload.
+  GROUP is the group <span class="k">in </span>the config file you want to use.
+
+Options:
+  <span class="nt">-h</span>, <span class="nt">--help</span>  Show this message and exit.
+
+╰─<span class="nv">$ </span>pictl upload EVyP2J.webp <span class="nb">test
+</span>Direct URL: https://i.example.com/EVyP2J.webp
+Markdown: <span class="o">![</span>EVyP2J.webp]<span class="o">(</span>https://i.example.com/EVyP2J.webp<span class="o">)</span>
+HTML Code: &lt;img <span class="nv">src</span><span class="o">=</span><span class="s2">"https://i.example.com/EVyP2J.webp"</span> <span class="nv">alt</span><span class="o">=</span><span class="s2">"EVyP2J.webp"</span> /&gt;
+</code></pre></div></div>
+
+<h4 id="cup-子命令">cup 子命令</h4>
+
+<p>  cup 子命令 = compress 子命令 + upload 子命令，仅需要指定初始图片文件和远程配置组，即可一步完成图片压缩、格式转换、修改名称、上传。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>╰─<span class="nv">$ </span>pictl cup <span class="nt">-h</span>
+Usage: pictl cup <span class="o">[</span>OPTIONS] FILENAME GROUP
+
+  Compress image and upload to remote storage <span class="o">(</span>compress and upload<span class="o">)</span><span class="nb">.</span>
+
+  FILENAME is the name of the file to compress.
+  GROUP is the group <span class="k">in </span>the config file you want to use.
+
+Options:
+  <span class="nt">-h</span>, <span class="nt">--help</span>  Show this message and exit.
+
+╰─<span class="nv">$ </span>pictl cup ../../pictl/fig01.png <span class="nb">test
+</span>The output file is Gl8qhI.webp
+Direct URL: https://i.example.com/Gl8qhI.webp
+Markdown: <span class="o">![</span>Gl8qhI.webp]<span class="o">(</span>https://i.example.com/Gl8qhI.webp<span class="o">)</span>
+HTML Code: &lt;img <span class="nv">src</span><span class="o">=</span><span class="s2">"https://i.example.com/Gl8qhI.webp"</span> <span class="nv">alt</span><span class="o">=</span><span class="s2">"Gl8qhI.webp"</span> /&gt;
+</code></pre></div></div>
+
+<h2 id="todo">TODO</h2>
+
+<p>  目前的 v0.1.0 版本还比较简陋，不过已经能满足笔者的必要需求，有效提升效率。后续将继续完善、新增功能：</p>
+
+<ul>
+  <li>自动补全（shell completion），增强命令行使用体验。</li>
+  <li>增加对各云服务厂商提供对象存储的支持。</li>
+  <li>增加对各流行图床的支持。</li>
+  <li>增加对自托管 Git 的支持。</li>
+  <li>增加对 FTP 的支持。</li>
+  <li>增加包括水印、调整大小等在内的图片处理的支持。</li>
+  <li>增加与 Unplash 等公共图库的连接，更加便于博客封面的操作。</li>
+</ul>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+  <li><a href="https://blog.cloudflare.com/introducing-r2-object-storage-zh-cn/" rel="nofollow" target="_blank" class="extlinks">隆重推出 Cloudflare R2 Storage —— 快速、可靠的对象存储，减免出口费用</a></li>
+  <li><a href="https://developers.cloudflare.com/r2/" rel="nofollow" target="_blank" class="extlinks">R2 文档</a></li>
+</ul>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://lisz.me" class="cplink">仲儿的自留地</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 图片处理及上传命令行工具 —— PICTL 》</p>
+              <p><span>本文链接：</span><a href="https://lisz.me/tech/project/pictl.html" class="cplink">https://lisz.me/tech/project/pictl.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('前言')">前言</a><ul><li><a onclick="scrollToAdjust('现有工具及存储考察')">现有工具及存储考察</a></li><li><a onclick="scrollToAdjust('r2-的出现')">R2 的出现</a></li></ul></li><li><a onclick="scrollToAdjust('开个新项目')">开个新项目</a></li><li><a onclick="scrollToAdjust('架构设计')">架构设计</a></li><li><a onclick="scrollToAdjust('开发计划')">开发计划</a></li><li><a onclick="scrollToAdjust('使用方法')">使用方法</a><ul><li><a onclick="scrollToAdjust('安装')">安装</a><ul><li><a onclick="scrollToAdjust('源码安装')">源码安装</a></li><li><a onclick="scrollToAdjust('pip-安装')">PIP 安装</a></li></ul></li><li><a onclick="scrollToAdjust('使用')">使用</a><ul><li><a onclick="scrollToAdjust('显示版本')">显示版本</a></li><li><a onclick="scrollToAdjust('列举所有支持命令')">列举所有支持命令</a></li><li><a onclick="scrollToAdjust('config-子命令')">config 子命令</a></li><li><a onclick="scrollToAdjust('compress-子命令')">compress 子命令</a></li><li><a onclick="scrollToAdjust('upload-子命令')">upload 子命令</a></li><li><a onclick="scrollToAdjust('cup-子命令')">cup 子命令</a></li></ul></li></ul></li><li><a onclick="scrollToAdjust('todo')">TODO</a></li><li><a onclick="scrollToAdjust('参考资料')">参考资料</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/profile.webp" alt="">
+        </div>
+        <div class="author-name" rel="author">zhonger</div>
+        <div class="bio">
+          <p>Developer & Maintainer</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://scholar.google.com/citations?user=AUupIooAAAAJ" target="_blank" aria-label="google-scholar">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-google-scholar"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.researchgate.net/profile/Shengzhou-Li" target="_blank" aria-label="researchgate">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-researchgate"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://orcid.org/0000-0001-6973-3825" target="_blank" aria-label="ORCID">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-ORCID"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://github.com/zhonger" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://www.linkedin.com/in/shengzhouli/" target="_blank" aria-label="linkedin">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-linkedin"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://segmentfault.com/u/wuwozhonger" target="_blank" aria-label="segmentfault">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-segmentfault"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/tech/webmaster/asdf.html" class="read-next-link" aria-label="通用运行环境版本管理神器 ASDF"></a>
+            <section>
+              <span>通用运行环境版本管理神器 ASDF</span>
+              <p>前言</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="https://i.lisz.top/cover/DetiCJ.webp" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">仲儿的自留地 ©
+        
+        
+          2015
+          -
+        
+        2023
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks"></a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+          本站已运行 
+          <span class="alivetime_days"></span> 天
+          <span class="alivetime_hours"></span> 小时
+          <span class="alivetime_minutes"></span> 分
+          <span class="alivetime_seconds"></span> 秒
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+      <section class="badges">
+        
+          <a href="https://www.foreverblog.cn/" target="_blank" class="foreverblog"> 
+            <img src="https://img.foreverblog.cn/logo_en_default.png" alt=""> 
+          </a>
+        
+        
+          <a href="https://www.foreverblog.cn/go.html" target="_blank" class="wormhole"> 
+            <img src="https://img.foreverblog.cn/wormhole_3.gif" alt="" title="穿梭虫洞-随机访问十年之约友链博客">
+          </a>
+        
+        
+          <a href="https://notbyai.fyi/" target="_blank" class="notbyAI"> 
+            <img src="/assets/icons/notbyAI-white.png" alt="Written by Human, Not by AI">
+          </a>
+        
+      </section>
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/zhonger/zhonger.github.io/commits?path=_posts/project/2023-06-14-pictl.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+  
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8SEJ5JNY"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9E8SEJ5JNY');
+</script>
+
+  
+<script async defer data-website-id="90ea4822-8012-444e-837a-757ea473e087" src="https://umami.lisz.top/pwiki.js"></script>
+
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+  
+<!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BF0y1f49JPDkjSmUYtUb-gRzcVY72squyl0hE2xo7YTA4q7Ch2DAZ0WOZCNktfyakgPlDov92CafKw9ZPAwIDrc' });</script><!-- end webpushr code -->
+ 
+</body>
+
+</html>
