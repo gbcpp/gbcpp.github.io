@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
 {% if post.lang %}
 <html lang="{{post.lang}}">
 {% else %}
@@ -228,6 +231,15 @@
       {% endif %}
     </div>
 
+    <div>
+     {% if site.comments.gitalk %}
+     <section class="post-footer-item comment style="padding-bottom: 4em"">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     {% endif %}
+    </div>
+
     <section class="author-detail">
       <section class="post-footer-item author-card">
         <div class="avatar">
@@ -313,6 +325,22 @@
       </section>
       {% endif %}
     </section>
+
+  {% if site.comments.gitalk %}
+  <script>
+    var gitalk = new Gitalk({
+      id: '{{page.date}}',
+      clientID: '{{ site.comments.clientId }}',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '{{ site.comments.clientSecret }}',
+      repo: '{{ site.comments.repo }}',
+      owner: '{{ site.comments.owner }}',
+      admin: '{{ site.comments.admin }}',
+      distractionFreeMode: '{{ site.comments.distractionFreeMode }}'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  {% endif %}
 
     {% include footer.html %}
     {% if page.mermaid or site.mermaid %}
@@ -513,6 +541,7 @@
       });
   </script>
   <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
   {% include analytics.html %}
   {% include umami.html %}
   {% include busuanzi.html %}
