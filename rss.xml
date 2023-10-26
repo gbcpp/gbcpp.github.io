@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Mr Li</title>
+    <title>Mr Chen</title>
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
-    <link>https://h2o-ac.pages.dev//</link>
-    <atom:link href="https://h2o-ac.pages.dev/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 26 Oct 2023 08:27:56 +0000</pubDate>
-    <lastBuildDate>Thu, 26 Oct 2023 08:27:56 +0000</lastBuildDate>
+    <link>https://gbcpp.github.io//</link>
+    <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Thu, 26 Oct 2023 08:37:55 +0000</pubDate>
+    <lastBuildDate>Thu, 26 Oct 2023 08:37:55 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
     
       <item>
@@ -14,8 +14,8 @@
         <description>
 </description>
         <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/measure-clock-resolution.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/measure-clock-resolution.html</guid>
+        <link>https://gbcpp.github.io/measure-clock-resolution.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/measure-clock-resolution.html</guid>
         
         <category>Linux</category>
         
@@ -32,8 +32,8 @@
 
 </description>
         <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/PlantUML-Language-book.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/PlantUML-Language-book.html</guid>
+        <link>https://gbcpp.github.io/PlantUML-Language-book.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/PlantUML-Language-book.html</guid>
         
         <category>GitPages</category>
         
@@ -157,8 +157,8 @@ git push &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; origin gh-pages
 
 </description>
         <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/blog-building-notes.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/blog-building-notes.html</guid>
+        <link>https://gbcpp.github.io/blog-building-notes.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/blog-building-notes.html</guid>
         
         <category>GitPages</category>
         
@@ -476,8 +476,8 @@ Unlock
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 </description>
         <pubDate>Sat, 30 Sep 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/service-bind-cpu.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/service-bind-cpu.html</guid>
+        <link>https://gbcpp.github.io/service-bind-cpu.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/service-bind-cpu.html</guid>
         
         <category>后台</category>
         
@@ -850,8 +850,8 @@ https://datatracker.ietf.org/doc/html/rfc4960#section-3.3.4&lt;/p&gt;
 &lt;/ul&gt;
 </description>
         <pubDate>Sat, 30 Sep 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/sctp-optimize.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/sctp-optimize.html</guid>
+        <link>https://gbcpp.github.io/sctp-optimize.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/sctp-optimize.html</guid>
         
         <category>协议</category>
         
@@ -1016,8 +1016,8 @@ key: 2, value: 2
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 </description>
         <pubDate>Tue, 18 Apr 2023 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/packet_number.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/packet_number.html</guid>
+        <link>https://gbcpp.github.io/packet_number.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/packet_number.html</guid>
         
         <category>协议</category>
         
@@ -1367,8 +1367,8 @@ key: 2, value: 2
 （2022年1月10日更新）&lt;/p&gt;
 </description>
         <pubDate>Wed, 22 Dec 2021 11:50:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/tech/new-theme-h2o-ac.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/tech/new-theme-h2o-ac.html</guid>
+        <link>https://gbcpp.github.io/tech/new-theme-h2o-ac.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/tech/new-theme-h2o-ac.html</guid>
         
         <category>jekyll</category>
         
@@ -1998,8 +1998,8 @@ Output: 7 -&amp;gt; 0 -&amp;gt; 8&lt;/p&gt;
 
 </description>
         <pubDate>Tue, 11 Jun 2019 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/algorithm.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/algorithm.html</guid>
+        <link>https://gbcpp.github.io/algorithm.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/algorithm.html</guid>
         
         <category>算法</category>
         
@@ -2561,8 +2561,8 @@ Output: 7 -&amp;gt; 0 -&amp;gt; 8&lt;/p&gt;
 
 </description>
         <pubDate>Tue, 28 May 2019 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/c-algorithm-notes.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/c-algorithm-notes.html</guid>
+        <link>https://gbcpp.github.io/c-algorithm-notes.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/c-algorithm-notes.html</guid>
         
         <category>algorithm</category>
         
@@ -2812,8 +2812,8 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
 &lt;p&gt;在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://www.gobert.top/?roomId=123456&lt;/code&gt; 即可体验，RoomId 可自定义。&lt;/p&gt;
 </description>
         <pubDate>Mon, 01 Apr 2019 00:00:00 +0000</pubDate>
-        <link>https://h2o-ac.pages.dev/meidasoup-demo-build.html</link>
-        <guid isPermaLink="true">https://h2o-ac.pages.dev/meidasoup-demo-build.html</guid>
+        <link>https://gbcpp.github.io/meidasoup-demo-build.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/meidasoup-demo-build.html</guid>
         
         <category>开源</category>
         
