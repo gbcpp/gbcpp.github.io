@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
 
 <html lang="zh-Hans">
 
@@ -407,6 +410,15 @@ key: 2, value: 2
       
     </div>
 
+    <div>
+     
+     <section class="post-footer-item comment style="padding-bottom: 4em"">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
     <section class="author-detail">
       <section class="post-footer-item author-card">
         <div class="avatar">
@@ -465,25 +477,27 @@ key: 2, value: 2
         
       </section>
       
-      <section class="post-footer-item comment">
-        <div class="comments-headline">
-          <svg class="icon" aria-hidden="true">
-            <use xlink:href="#icon-comment"></use>
-          </svg>
-          <span>评论</span>
-        </div>
-        
-      </section>      
-      
    
-      
-      <section class="post-footer-item comment">
-          <div id="disqus_thread"></div>
-      </section>
       
 
       
     </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2023-04-18 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
 
     
 
@@ -595,25 +609,6 @@ key: 2, value: 2
     });
   </script>
 
-  
-  <script>
-    /**
-     *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
-     *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
-    /*
-    var disqus_config = function () {
-    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
-    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
-    };
-    */
-    (function() { // DON'T EDIT BELOW THIS LINE
-      var d = document, s = d.createElement('script');
-      s.src = 'https://h2o-ac.disqus.com/embed.js';
-      s.setAttribute('data-timestamp', +new Date());
-      (d.head || d.body).appendChild(s);
-    })();
-
-  </script>
   
 
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
@@ -755,6 +750,7 @@ key: 2, value: 2
       });
   </script>
   <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
   
   
   
