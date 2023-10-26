@@ -1,61 +1,57 @@
-
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mr Li</title>
-    <meta name="author"  content="zhonger">
+    <title>Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
     <meta name="description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
-    <meta name="keywords"  content="zhonger，zhonger的博客，nodejs，kvm, 机器学习">
+    <meta name="keywords"  content="Mr Chen 的博客，流媒体、网络协议、后端">
     <!-- Open Graph -->
-    <meta property="og:title" content="Mr Li">
+    <meta property="og:title" content="Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://h2o-ac.pages.dev/tags.html">
+    <meta property="og:url" content="https://gbcpp.github.io/tags">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
-    <meta property="og:site_name" content="Mr Li">
+    <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
-    
-    <meta name="alivestart" content="12/23/2021">
-    
     
     <meta name="theme-color" content="#81BBFF" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png" />
-    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png">
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" async>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" async> -->
+    <link rel="stylesheet" href="/assets/css/normalize.min.css" async>
+    <link rel="stylesheet" href="/assets/css/plugins.min.css">
+    <link rel="preload" href="/assets/fonts/Merriweather-Regular.ttf" as="font" crossorigin="anonymous">
+    
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-one-light.min.css"> -->
+    <link rel="stylesheet" href="/assets/css/prism-one-light.css" />
     
     
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css"> -->
+    <link rel="stylesheet" href="/assets/css/prism-line-numbers.min.css" />
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
-    
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
     <link rel="stylesheet" href="/assets/css/app.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script> -->
+    <script src="/assets/js/jquery.min.js"></script>
 </head>
 
 
 
 <body class="line-numbers" ontouchstart="">
 
+
     <!--[if lt IE 10]>
     <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
     <![endif]-->
     
-    <div id="all" data-theme="default">
+    <div id="all">
     
       <input id="nm-switch" type="hidden" value="false">
       <div class="visible">
-        <header class="g-header" data-theme="default">
+        <header class="g-header">
     <div class="g-logo">
       <a href="/" aria-label="logo"></a>
     </div>
@@ -74,76 +70,41 @@
     <nav class="g-nav">
         <ul>
             
-                
-                <li>
-                    <a href="/" aria-label="home">
-                        home
-                    </a>
-                </li>
-                
+            <li>
+                <a href="/" aria-label="home">
+                    home
+                </a>
+            </li>
             
-                
-                <li>
-                    <a href="/blog/index.html" aria-label="blog">
-                        blog
-                    </a>
-                </li>
-                
+            <li>
+                <a href="/blog/index.html" aria-label="blog">
+                    blog
+                </a>
+            </li>
             
-                
-                <li>
-                    <a href="/archives.html" aria-label="archives">
-                        archives
-                    </a>
-                </li>
-                
+            <li>
+                <a href="/archives.html" aria-label="archives">
+                    archives
+                </a>
+            </li>
             
-                
-                <li>
-                    <a href="/tags.html" aria-label="tags">
-                        tags
-                    </a>
-                </li>
-                
+            <li>
+                <a href="/tags.html" aria-label="tags">
+                    tags
+                </a>
+            </li>
             
-                
-                <li class="dropdown">
-                    <a class="dropdown-toggle"> about </a>
-                    <ul class="dropdown-menu">
-                    
-                        <li>
-                            <a href="/logs.html" aria-label="logs">
-                                logs
-                            </a>
-                        </li>
-                    
-                        <li>
-                            <a href="/tos.html" aria-label="tos">
-                                tos
-                            </a>
-                        </li>
-                    
-                        <li>
-                            <a href="/feed.xml" aria-label="RSS">
-                                RSS
-                            </a>
-                        </li>
-                    
-                        <li>
-                            <a href="/cv.html" aria-label="CV">
-                                CV
-                            </a>
-                        </li>
-                    
-                        <li>
-                            <a href="/links.html" aria-label="links">
-                                links
-                            </a>
-                        </li>
-                    
-                    </ul> 
-                </li>
-                
+            <li>
+                <a href="/feed.xml" aria-label="RSS">
+                    RSS
+                </a>
+            </li>
+            
+            <li>
+                <a href="/logs.html" aria-label="logs">
+                    logs
+                </a>
+            </li>
             
             <li class="mode">
                 <svg class="icon day" aria-hidden="true">
@@ -158,374 +119,280 @@
 </header>
 
 
-<div class="g-banner tags-banner post-pattern-circuitBoard" data-theme="default">
+<div class="g-banner tags-banner post-pattern-circuitBoard bgcolor-default" data-theme="default">
     <h2>TAGS</h2>
 </div>
 
 <main class="tags-content">
 
     <ul class="tags-list">
-        
-        
-        
-
         <li>
         
             
-                
-                    <a href="/tags.html#jekyll" class="tag">
-                    jekyll<sup>3</sup>
-                    </a>
-                
+            <a href="#jekyll" class="tag">jekyll</a>
             
-                
+            <a href="#前端开发" class="tag">前端开发</a>
             
-                
+            <a href="#设计" class="tag">设计</a>
             
-                
+            <a href="#mathjax" class="tag">mathjax</a>
             
-                
+            <a href="#spdlog" class="tag">spdlog</a>
             
-                
+            <a href="#BOOST" class="tag">BOOST</a>
             
-                
+            <a href="#WebRTC" class="tag">WebRTC</a>
             
-                
+            <a href="#Audio" class="tag">Audio</a>
             
-                
+            <a href="#Android" class="tag">Android</a>
             
-                
+            <a href="#开源" class="tag">开源</a>
             
-                
+            <a href="#mediasoup" class="tag">mediasoup</a>
             
-        
+            <a href="#algorithm" class="tag">algorithm</a>
             
-                
+            <a href="#算法" class="tag">算法</a>
             
-                
-                    <a href="/tags.html#前端开发" class="tag">
-                    前端开发<sup>2</sup>
-                    </a>
-                
+            <a href="#c++" class="tag">c++</a>
             
-                
+            <a href="#theme" class="tag">theme</a>
             
-                
-                    <a href="/tags.html#mathjax" class="tag">
-                    mathjax<sup>2</sup>
-                    </a>
-                
+            <a href="#blog" class="tag">blog</a>
             
-                
+            <a href="#ac" class="tag">ac</a>
             
-                
+            <a href="#develop" class="tag">develop</a>
             
-                
+            <a href="#主题" class="tag">主题</a>
             
-                
+            <a href="#学术" class="tag">学术</a>
             
-                
+            <a href="#运维" class="tag">运维</a>
             
-                
+            <a href="#协议" class="tag">协议</a>
             
-                
+            <a href="#后台" class="tag">后台</a>
             
-        
-            
-                
-            
-                
-            
-                
-                    <a href="/tags.html#设计" class="tag">
-                    设计<sup>1</sup>
-                    </a>
-                
-            
-                
-            
-                
-                    <a href="/tags.html#theme" class="tag">
-                    theme<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#blog" class="tag">
-                    blog<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#ac" class="tag">
-                    ac<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#develop" class="tag">
-                    develop<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#主题" class="tag">
-                    主题<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#学术" class="tag">
-                    学术<sup>1</sup>
-                    </a>
-                
-            
-                
-                    <a href="/tags.html#运维" class="tag">
-                    运维<sup>1</sup>
-                    </a>
-                
+            <a href="#GitPages" class="tag">GitPages</a>
             
         
         </li>
         
-            
-                
-                    <li>
-                        <span class="tag-name" id="jekyll">「jekyll」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
-                        
-                        <a class="tag-post" href="/hello-jekyll.html" title="Hello Jekyll">Hello Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
         
+        <li>
+            <span class="tag-name" id="jekyll">「jekyll」</span>
             
-                
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
             
-                
-                    <li>
-                        <span class="tag-name" id="前端开发">「前端开发」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
-                        
-                    </li>
-                
+            <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
             
-                
+            <a class="tag-post" href="/hello-jekyll.html" title="Hello Jekyll">Hello Jekyll</a>
             
-                
-                    <li>
-                        <span class="tag-name" id="mathjax">「mathjax」</span>
-                        
-                        <a class="tag-post" href="/test/test-en.html" title="Test en">Test en</a>
-                        
-                        <a class="tag-post" href="/test/mathjax-test.html" title="MathJax Test">MathJax Test</a>
-                        
-                    </li>
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
-                
-            
+        </li>
         
+        <li>
+            <span class="tag-name" id="前端开发">「前端开发」</span>
             
-                
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
             
-                
+            <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
             
-                
-                    <li>
-                        <span class="tag-name" id="设计">「设计」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="theme">「theme」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="blog">「blog」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="ac">「ac」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="develop">「develop」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="主题">「主题」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="学术">「学术」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
-                
-                    <li>
-                        <span class="tag-name" id="运维">「运维」</span>
-                        
-                        <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
-                        
-                    </li>
-                
-            
+        </li>
         
+        <li>
+            <span class="tag-name" id="设计">「设计」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o.html" title="H2O theme for Jekyll">H2O theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="mathjax">「mathjax」</span>
+            
+            <a class="tag-post" href="/test/mathjax-test.html" title="MathJax Test">MathJax Test</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="spdlog">「spdlog」</span>
+            
+            <a class="tag-post" href="/cpp-log-library-spdlog.html" title="c++ 开源日志库 spdlog">c++ 开源日志库 spdlog</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="BOOST">「BOOST」</span>
+            
+            <a class="tag-post" href="/build-boost-on-window-with-virtualstudio.html" title="BOOST 在 Windows 下通过 VS 进行编译">BOOST 在 Windows 下通过 VS 进行编译</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="WebRTC">「WebRTC」</span>
+            
+            <a class="tag-post" href="/meidasoup-demo-build.html" title="mediasoup 公网环境部署">mediasoup 公网环境部署</a>
+            
+            <a class="tag-post" href="/fix-aec-bug-on-android.html" title="Android AEC 无效的解决方案">Android AEC 无效的解决方案</a>
+            
+            <a class="tag-post" href="/resolve_webrtc_video_blurry_frame_issue.html" title="解决 WebRTC 花屏问题记录">解决 WebRTC 花屏问题记录</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="Audio">「Audio」</span>
+            
+            <a class="tag-post" href="/fix-aec-bug-on-android.html" title="Android AEC 无效的解决方案">Android AEC 无效的解决方案</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="Android">「Android」</span>
+            
+            <a class="tag-post" href="/fix-aec-bug-on-android.html" title="Android AEC 无效的解决方案">Android AEC 无效的解决方案</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="开源">「开源」</span>
+            
+            <a class="tag-post" href="/meidasoup-demo-build.html" title="mediasoup 公网环境部署">mediasoup 公网环境部署</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="mediasoup">「mediasoup」</span>
+            
+            <a class="tag-post" href="/meidasoup-demo-build.html" title="mediasoup 公网环境部署">mediasoup 公网环境部署</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="algorithm">「algorithm」</span>
+            
+            <a class="tag-post" href="/c-algorithm-notes.html" title="C++算法大全">C++算法大全</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="算法">「算法」</span>
+            
+            <a class="tag-post" href="/algorithm.html" title="经典算法题">经典算法题</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="c++">「c++」</span>
+            
+            <a class="tag-post" href="/algorithm.html" title="经典算法题">经典算法题</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="theme">「theme」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="blog">「blog」</span>
+            
+            <a class="tag-post" href="/PlantUML-Language-book.html" title="PlantUML-Language Pdf">PlantUML-Language Pdf</a>
+            
+            <a class="tag-post" href="/blog-building-notes.html" title="GitHub Pages 博客搭建记录">GitHub Pages 博客搭建记录</a>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="ac">「ac」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="develop">「develop」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="主题">「主题」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="学术">「学术」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="运维">「运维」</span>
+            
+            <a class="tag-post" href="/tech/new-theme-h2o-ac.html" title="H2O-ac theme for Jekyll">H2O-ac theme for Jekyll</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="协议">「协议」</span>
+            
+            <a class="tag-post" href="/sctp-optimize.html" title="RtcDataChannel(sctp) protocol optimize">RtcDataChannel(sctp) protocol optimize</a>
+            
+            <a class="tag-post" href="/packet_number.html" title="网络包序号回绕">网络包序号回绕</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="后台">「后台」</span>
+            
+            <a class="tag-post" href="/service-bind-cpu.html" title="后台服务绑定 CPU 核">后台服务绑定 CPU 核</a>
+            
+        </li>
+        
+        <li>
+            <span class="tag-name" id="GitPages">「GitPages」</span>
+            
+            <a class="tag-post" href="/PlantUML-Language-book.html" title="PlantUML-Language Pdf">PlantUML-Language Pdf</a>
+            
+            <a class="tag-post" href="/blog-building-notes.html" title="GitHub Pages 博客搭建记录">GitHub Pages 博客搭建记录</a>
+            
+        </li>
         
     </ul>
 </main>
     
-
-
-
 <footer class="g-footer">
-  <div class="g-container">
-    <div class="g-left">
-      <section class="links">
-        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
-         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
-        
-      </section>
-      <section class="links">Mr Li ©
-        
-        
-          2015
-          -
-        
-        2023
-        
-          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
-        
-      </section>
-      
-      <section>
-        <span id="busuanzi_container_site_pv">
-          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
-        </span>
-        <span id="busuanzi_container_site_uv">
-          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
-        </span>
-      </section>
-      
-      <section>
-        
-          本站已运行 
-          <span class="alivetime_days"></span> 天
-          <span class="alivetime_hours"></span> 小时
-          <span class="alivetime_minutes"></span> 分
-          <span class="alivetime_seconds"></span> 秒
-        
-      </section>
-    </div>
-    <div class="g-right">
-      
-      <section>
-        <a href="https://www.upyun.com/?utm_source=lianmeng&utm_medium=referral" target="_blank" class="extlinks">CDN 加速/云存储服务提供商 <img src="/assets/icons/upyun.png" class="upyun" /></a>
-      </section>
-      
-      
-      <section class="badges">
-        
-          <a href="https://www.foreverblog.cn/" target="_blank" class="foreverblog"> 
-            <img src="https://img.foreverblog.cn/logo_en_default.png" alt=""> 
-          </a>
-        
-        
-          <a href="https://www.foreverblog.cn/go.html" target="_blank" class="wormhole"> 
-            <img src="https://img.foreverblog.cn/wormhole_3.gif" alt="" title="穿梭虫洞-随机访问十年之约友链博客">
-          </a>
-        
-        
-          <a href="https://notbyai.fyi/" target="_blank" class="notbyAI"> 
-            <img src="/assets/icons/notbyAI-white.png" alt="Written by Human, Not by AI">
-          </a>
-        
-      </section>
-      
-    </div>
-    
-  </div>
+  <section>Mr Chen ©
+  
+  
+  2023
+  
+    <a href="https://beian.miit.gov.cn/" target="_blank">沪ICP备xxxxxxxx号</a>
+  
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> & <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">H2O-ac</a> v1.1.6  (based on <a href="https://github.com/kaeyleo/jekyll-theme-H2O">H2O</a>) 
+  
+  </section>
+  
+  <section>
+    <span id="busuanzi_container_site_pv">
+      👁️ Total Views <span id="busuanzi_value_site_pv"></span> <b>·</b>
+    </span>
+    <span id="busuanzi_container_site_uv">
+      👤 Total Visitors <span id="busuanzi_value_site_uv"></span>
+    </span>
+  </section>
+  
 </footer>
-<div class="cookie-tip">
-   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
-
-  <button id="accept-tos">同意</button>
-</div>
 <button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
   <svg class="icon list day" aria-hidden="true">
     <use xlink:href="#icon-list-day"></use>
@@ -553,28 +420,20 @@
 
       </div>
     </div>
-    
-    <div class="modal">
-        <div class="modal-content">
-          <header>
-            <span class="close">&times;</span>
-          </header>
-          <div class="container"></div>
-        </div>
-    </div>
-    
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    <script src="/assets/js/app.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
-    <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
-    
-<script src="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/autoloader/prism-autoloader.min.js"></script> -->
 
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/clipboard.min.js"></script>
+    <script src="/assets/js/prism-core.min.js"></script>
+    <script src="/assets/js/prism-autoloader.min.js"></script>
+
+    <script src="/assets/js/index.min.js"></script>
+    <!-- <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script> -->
+    <script src="/assets/js/font_3046306_j3cma4iq93.js"></script>
     
     
     
@@ -606,6 +465,7 @@
 //     console.log('不支持sw')
 // }
 </script>
+    
     <!--
 Author: Ray-Eldath
 refer to:
@@ -613,7 +473,8 @@ refer to:
 -->
 
 	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
+    <script id="MathJax-script" async src="/assets/js/tex-mml-chtml.js"></script>
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
 		jax: ["input/TeX", "output/HTML-CSS"],
@@ -626,46 +487,6 @@ refer to:
       });
     </script>
 
-     
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
-    <script>
-        $(document).ready(function (){
-            mermaid.initialize({
-                startOnLoad:true,
-                theme: "default",
-            });
-            mermaid.init(undefined, $('.mermaid2'));
-        });
-    </script>
-
     
-<!-- start webpushr code --> <script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.async=1;js.src = "https://cdn.webpushr.com/app.min.js";fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk'));webpushr('setup',{'key':'BKfCOgmaRwWSMgx0RID3WIvqMSIHnVoL8fK7YfB8jeh2SgSEzWcvhhsxW2EmVl99Q-5f3KlxHUN4MxDIhgajiTo' });</script><!-- end webpushr code -->
- 
-    
-
-<script>
-    $(document).ready(function(){
-    
-
-    if($("#comments-switch").length > 0){
-        var comment_status = $("#cmn-toggle-4")[0].checked;
-        if(comment_status){
-        $("#waline").addClass("active");
-        }else {
-        $("#disqus_thread").addClass("active");
-        }
-        $("#cmn-toggle-4").click(function(){
-        $("#disqus_thread").toggleClass("active");
-        $("#waline").toggleClass("active");
-        })
-    }else {
-        if($("#disqus_thread").length > 0) {
-        $("#disqus_thread").addClass("active");
-        }else if($("#waline").length > 0) {
-        $("#waline").addClass("active");
-        }
-    }
-    })
-</script>     
 </body>
 </html>

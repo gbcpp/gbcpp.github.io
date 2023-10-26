@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android AEC 无效的解决方案 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="Android AEC 无效的解决方案">
+    <meta name="keywords"  content="Audio, WebRTC, Android">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Android AEC 无效的解决方案 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/fix-aec-bug-on-android.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2019-01-23 00:00:00 +0000" />
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/normalize.min.css" /> -->
+    <link rel="stylesheet" href="/assets/css/normalize.min.css" />
+
+    <link rel="stylesheet" href="/assets/css/plugins.min.css" />
+    <link rel="preload" href="/assets/fonts/Merriweather-Regular.ttf" as="font" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/assets/fonts/Merriweather-Regular.ttf" media="print" onload="this.media='all'" />
+    
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/themes/prism-one-light.min.css" /> -->
+    <link rel="stylesheet" href="/assets/css/prism-one-light.css" />
+    
+    
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css"> -->
+    <link rel="stylesheet" href="/assets/css/prism-line-numbers.min.css" />
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" /> -->
+    <link rel="stylesheet" href=""" />
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" /> -->
+    <link rel="stylesheet" href="/assets/css/waline.css" />
+    <!-- <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script> -->
+    <script src="/assets/js/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post">
+  
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+            <li>
+                <a href="/" aria-label="home">
+                    home
+                </a>
+            </li>
+            
+            <li>
+                <a href="/blog/index.html" aria-label="blog">
+                    blog
+                </a>
+            </li>
+            
+            <li>
+                <a href="/archives.html" aria-label="archives">
+                    archives
+                </a>
+            </li>
+            
+            <li>
+                <a href="/tags.html" aria-label="tags">
+                    tags
+                </a>
+            </li>
+            
+            <li>
+                <a href="/feed.xml" aria-label="RSS">
+                    RSS
+                </a>
+            </li>
+            
+            <li>
+                <a href="/logs.html" aria-label="logs">
+                    logs
+                </a>
+            </li>
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Audio" class="post-tag">Audio</a>
+            
+              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
+            
+              <a href="/tags.html#Android" class="post-tag">Android</a>
+            
+          
+        </div>
+        <h1>Android AEC 无效的解决方案</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="19-01-23">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="19-01-23">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+          
+          <span class="post-meta-item">
+            <svg class="icon words" aria-hidden="true">
+              <use xlink:href="#icon-words"></use>
+            </svg>
+            
+          本文总共  1.4k  字
+          </span>
+          <span class="post-meta-item">
+            <svg class="icon time" aria-hidden="true">
+              <use xlink:href="#icon-time"></use>
+            </svg>
+             阅读全文大约需要 5 分钟
+          </span>
+          
+          <span class="post-meta-item">
+            <svg class="icon pv" aria-hidden="true">
+              <use xlink:href="#icon-pv"></use>
+            </svg>
+            本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+          </span>
+          
+          
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body">
+            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。</p>
+
+<p>因为只有部分机型才会出现此类问题，并且会不断产生新的机型出现，如果在代码中写 HardCode，那么产品的发布将会很被动，因为随时可能会有新的问题机型产生，为此开发一套特殊机型下发的服务，在 APP 启动时向此服务发起请求，校验此机型是否需要配置为 16KHz，然后再启动 RTC 进行音视频通话。此服务通过 Go 进行开发。</p>
+
+<p>GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android</p>
+
+<!--more-->
+
+<h2 id="启动服务">启动服务</h2>
+
+<p>启动命令：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go run main.go <span class="nt">-addr</span><span class="o">=</span><span class="s2">"127.0.0.1:6688"</span> <span class="nt">-prefix</span><span class="o">=</span><span class="s2">"/v1/aecm/"</span> <span class="nt">-user</span><span class="o">=</span><span class="s2">"root"</span> <span class="nt">-password</span><span class="o">=</span><span class="s2">"123456"</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>实际部署后根据实际目标名称进行启动，但启动参数不变，可通过 -h 查看帮助。</p>
+</blockquote>
+
+<h2 id="android-端查询接口">Android 端查询接口</h2>
+
+<p>API 查询接口提供两种，一是查询指定 <code class="language-plaintext highlighter-rouge">Model</code> 是否存在于此白名单列表中，二是查询所有的白名单列表；</p>
+
+<h3 id="1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></h3>
+
+<blockquote>
+  <p>这里及以后均假设 SEV_ADDR 即为 服务器地址。</p>
+</blockquote>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: OPTIONS
+
+Request Headers:
+model=xxx
+
+Result:
+200 ok
+</code></pre></div></div>
+
+<blockquote>
+  <p>通过返回 http status 判断 xxx 是否在白名单中，200 为是，否则为 否。</p>
+</blockquote>
+
+<h3 id="2查询所有白名单">2、查询所有白名单</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: QUERY
+
+Result:
+200 ok
+Content type: text/json
+body: json string
+</code></pre></div></div>
+
+<blockquote>
+  <p>如果返回 200 ok，则说明查询成功，可通过 content body 的 json string 进行解析，格式如下：</p>
+</blockquote>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"7"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:37"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"8"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:39"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="添加新机型">添加新机型</h2>
+
+<p>通过以下 API 即可添加</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method: ADD
+
+Request Headers:
+osVersion=Android 6.2
+brand=postman_brand
+model=xxx
+sdkVersion=1.0.0
+packageName=com.org.xxx
+author=gobert
+
+Result:
+200 ok
+</code></pre></div></div>
+
+<h2 id="删除已有机型">删除已有机型</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
+SEV_ADDR/v1/aecm
+Method:DELETE
+
+Request Headers:
+model=xxx
+
+Result:
+200 ok
+</code></pre></div></div>
+
+
+            <div class="post-copyright">
+              <p><span>版权声明：</span>如无特别声明，本文版权归&nbsp;<a href="https://gbcpp.github.io">Mr Chen</a>&nbsp;所有，转载请注明本文链接。</p>
+              <p>（采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议进行授权）</p>
+              <p><span>本文标题：</span>《 Android AEC 无效的解决方案 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/fix-aec-bug-on-android.html">https://gbcpp.github.io/fix-aec-bug-on-android.html</a></p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a href="#启动服务">启动服务</a></li><li><a href="#android-端查询接口">Android 端查询接口</a><ul><li><a href="#1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></a></li><li><a href="#2查询所有白名单">2、查询所有白名单</a></li></ul></li><li><a href="#添加新机型">添加新机型</a></li><li><a href="#删除已有机型">删除已有机型</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <!-- <section class="post-footer-item comment"> -->
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>    
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
+          <section>
+            <span>mediasoup 公网环境部署</span>
+            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
+          </section>
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
+            <section>
+              <span>解决 WebRTC 花屏问题记录</span>
+              <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
+            </section>
+            
+        </div>
+        
+      </section>
+      
+   
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2019-01-23 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392', 
+      repo: 'gbcpp.github.io', 
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'false'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+    <footer class="g-footer">
+  <section>Mr Chen ©
+  
+  
+  2023
+  
+    <a href="https://beian.miit.gov.cn/" target="_blank">沪ICP备xxxxxxxx号</a>
+  
+  </section>
+  <section>Powered by <a href="//jekyllrb.com">Jekyll</a> & <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">H2O-ac</a> v1.1.6  (based on <a href="https://github.com/kaeyleo/jekyll-theme-H2O">H2O</a>) 
+  
+  </section>
+  
+  <section>
+    <span id="busuanzi_container_site_pv">
+      👁️ Total Views <span id="busuanzi_value_site_pv"></span> <b>·</b>
+    </span>
+    <span id="busuanzi_container_site_uv">
+      👤 Total Visitors <span id="busuanzi_value_site_uv"></span>
+    </span>
+  </section>
+  
+</footer>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+  </div>
+
+  <script src="/assets/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/components/prism-core.min.js"></script> -->
+  <script src="/assets/js/prism-core.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/autoloader/prism-autoloader.min.js"></script> -->
+  <script src="/assets/js/prism-autoloader.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.js"></script> -->
+  <script src=""/assets/js/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/index.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script> -->
+  <script src="/assets/js/fancybox.umd.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script> -->
+  <script src="/assets/js/clipboard.min.js"></script>
+  
+  <!-- <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script> -->
+  <script src="/assets/js/lazysizes.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script> -->
+  <script src="/assets/js/dayjs.min.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script> -->
+  <script src="/assets/js/customParseFormat.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script> -->
+  <script src="/assets/js/relativeTime.js"></script>
+  <script>
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-fix-aec-bug-on-android.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            if(relative_time > 365){
+              $(".post-copyright").append("<p class='tips'>本文最后一次更新为 <span>" + relative_time + "</span> 天前，文章中的某些内容可能已过时！</p>");
+            }
+          });         
+      });
+  </script>
+
+
+  <!-- <script src="https://at.alicdn.com/t/font_3046306_j3cma4iq93.js"></script> -->
+  <script src="/assets/js/font_3046306_j3cma4iq93.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+  
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <!-- <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
+    <script id="MathJax-script" async src="/assets/js/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+	
+</body>
+
+</html>
