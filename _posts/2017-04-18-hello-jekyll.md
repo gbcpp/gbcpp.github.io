@@ -3,11 +3,8 @@ layout: post
 title: 'Hello Jekyll'
 date: 2017-04-18
 author: Jekyll
-cover: 'https://images.unsplash.com/photo-1653629154302-8687b83825e2'
-cover_author: 'rogov'
-cover_author_link: 'https://unsplash.com/@rogovca'
-tags: 
-- jekyll
+cover: '/assets/img/hu.png'
+tags: jekyll
 ---
 
 > Transform your plain text into static websites and blogs.

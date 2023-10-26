@@ -5,27 +5,15 @@ subtitle: '基于或许是最漂亮的 Jekyll 主题 H2O 的学术版'
 date: 2021-12-22 19:50:00 +0800
 categories: tech
 author: zhonger
-cover: 'https://images.unsplash.com/photo-1529322365446-6efd62aed02e?w=1600&q=900'
-cover_author: 'inma santiago'
-cover_author_link: 'https://unsplash.com/@inmasantiago'
-tags: 
-- jekyll 
-- theme 
-- blog 
-- ac 
-- develop 
-- 主题 
-- 前端开发 
-- 学术 
-- 运维
-pin: true
+cover: 'https://images.unsplash.com/photo-1614659754166-a2fd14dbc4d3?w=1600&q=900'
+tags: jekyll theme blog ac develop 主题 前端开发 学术 运维
 ---
 
 ## 前言
 
 &emsp;&emsp;正如大家所知，Jekyll 是一款高可定制的、非常流行的静态博客生成工具。围绕着 Jekyll 也衍生出了很多优秀的 Jekyll 主题， 由 [廖柯宇](https://github.com/kaeyleo) 开发的 [H2O](https://github.com/kaeyleo/jekyll-theme-H2O) 主题就是其中之一。极简主义、风格扁平化、卡片式布局、Medium 及知乎专栏的视觉风格等等特点，为我们带来了或许是迄今为止最漂亮的 Jekyll 主题。
 
-&emsp;&emsp;诞生之初，H2O 主题就在 Github 平台上以 MIT 许可证协议开放了源代码。这吸引了很多小伙伴纷纷转投 Jekyll 和 H2O 主题的阵营，本人也是其中之一。随着使用者越来越多，不少的小伙伴在使用过程中发现了一些小问题并主动修复，最后贡献到了 H2O 的主项目，这让 H2O 主题变得更好。本人在使用过程中也的确是发现了一些与自己实际需求不大一致的地方，并且在原 H2O 主题的基础上做了一些改动。考虑到这些改动可能并不是大多数人的需求，直接向原 H2O 主题提交 pull 请求合并的必要性不大，因此决定将原项目 fork 并改名。现正式将源代码以与 H2O 主题相同的 MIT 许可证协议在 Github 平台上公开，新项目地址为 [zhonger/jekyll-theme-H2O-ac](https://github.com/zhonger/jekyll-theme-H2O-ac)。
+&emsp;&emsp;诞生之初，H2O 主题就在 Github 平台上以 MIT 许可证协议开放了源代码。这吸引了很多小伙伴纷纷转投 Jekyll 和 H2O 主题的阵营，本人也是其中之一。随着使用者越来越多，不少的小伙伴在使用过程中发现了一些小问题并主动修复，最后贡献到了 H2O 的主项目，这让 H2O 主题变得更好。本人在使用过程中也的确是发现了一些与自己实际需求不大一致的地方，并且在原 H2O 主题的基础上做了一些改动。考虑到这些改动可能并不是大多数人的需求，直接向原 H2O 主题提交 pull 请求合并的必要性不大，因此决定将原项目 fork 并改名为 [zhonger/jekyll-theme-H2O-ac](https://github.com/zhonger/jekyll-theme-H2O-ac)。现正式将源代码以与 H2O 主题相同的 MIT 许可证协议在 Github 平台上公开。
 
 &emsp;&emsp;在此，非常感谢廖柯宇及其他小伙伴对于 H2O-ac 主题的基础主题 H2O 的代码开发和开放共享。
 
@@ -41,19 +29,19 @@ pin: true
 
 &emsp;&emsp;学术首页如下图所示，并将原来 H2O 中的卡片首页移动到 blog 子目录下了。如果读者想要看到文章卡片展示页，还是可以点击顶部的导航栏中的 BLOG 直接访问。
 
-![首页 Home](https://i.luish.cc/blog/XyT038.webp)
+![首页 Home](https://i.lisz.top/blog/XyT038.webp)
 
 #### 归档页
 
 &emsp;&emsp;归档页设置为由 Jekyll 按照模板自动生成，以年份、日期、文章标题分级列表展示，简洁清晰。
 
-![归档页 Archives](https://i.luish.cc/blog/lj4vUP.webp)
+![归档页 Archives](https://i.lisz.top/blog/lj4vUP.webp)
 
 #### 系统日志页
 
 &emsp;&emsp;系统日志页其实也不是经常更新的，只有在博客整体作出设置或改进的才加以说明。另外，也可以将一些固定的站点信息放置在系统日志页，比如站点的多点部署信息，读者可以根据此信息访问最快、最合适的节点。
 
-![系统日志 Log](https://i.luish.cc/blog/7QLEc6.webp)
+![系统日志 Log](https://i.lisz.top/blog/7QLEc6.webp)
 
 ### 使用体验提升
 
@@ -63,17 +51,17 @@ pin: true
 
 &emsp;&emsp;H2O 原有的社交图标其实已经比较广泛，只是还有些领域局限性，比如学术研究人员可能更希望展示谷歌学术、ResearchGate、ORCID 等社交图标及链接，而运维开发人员可能更希望展示 SegmentFault、CSDN、博客园等社交图标及链接。这里在 H2O 提供的社交图标类型基础上做了这些平台图标的扩充，同时尝试了 Symbol 引用的方式来实现社交图标鼠标悬停的效果，从而简化代码（H2O 采用的是字体图标的方式，需要为每一个社交图标定义不同的主题色）。
 
-![社交图标 SNS](https://i.luish.cc/blog/UpnQdk.webp)
+![社交图标 SNS](https://i.lisz.top/blog/UpnQdk.webp)
 
 #### 查看大图
 
 &emsp;&emsp;查看大图功能的确对于读者的阅读体验来说有很大的提升。就像我们阅读文献一样，可能首先会只看文章附图来大致掌握文章的核心点。博文的查看大图功能也可能有这样的异曲同工之妙。这里是采用的 [Fancybox](https://fancyapps.com/docs/ui/fancybox) 插件实现的。H2O-ac 主题中只使用了最简单的配置，用户可以根据需求查看文档做出更多的修改。
 
-![查看大图 Fancybox](https://i.luish.cc/blog/BzfBoz.webp)
+![查看大图 Fancybox](https://i.lisz.top/blog/BzfBoz.webp)
 
 (2022年4月30日更新)
 
-&emsp;&emsp;由于 fancybox 库作者对原使用的 v3.5.7 版本不再进行维护和更新，现将版本更新至新的 v4.0 版本，即 [fancyapps/ui](https://github.com/fancyapps/ui)。另，新增将 alt 内容作为图片的描述显示在 fancybox 中。
+&emsp;&emsp;，由于 fancybox 库作者对原使用的 v3.5.7 版本不再进行维护和更新，现将版本更新至新的 v4.0 版本，即 [fancyapps/ui](https://github.com/fancyapps/ui)。另，新增将 alt 内容作为图片的描述显示在 fancybox 中。
 
 #### 深色模式切换按钮
 
@@ -81,9 +69,9 @@ pin: true
 
 &emsp;&emsp;原来 H2O 主题的深色模式切换需要在 _config.yml 文件中配置开启，并且只能在固定时间段使用。此次更新在页面右上角提供了深色/浅色模式一键切换按钮，如下图所示。由于更新了深色模式采用 cookie 的方式来确定，此深色模式切换按钮可以与原来的深色模式配置共存。
 
-![浅色模式 Day mode](https://i.luish.cc/blog/EPhFN9.webp)
+![浅色模式 Day mode](https://i.lisz.top/blog/EPhFN9.webp)
 
-![深色模式 Night mode](https://i.luish.cc/blog/BD7BqC.webp)
+![深色模式 Night mode](https://i.lisz.top/blog/BD7BqC.webp)
 
 #### 提示框
 
@@ -121,10 +109,6 @@ pin: true
 
 &emsp;&emsp;更换 Prism 库加载方式，采用按需自动加载代码类型，尽可能减少因 Prism 造成的阻塞。修复了某些样式问题。增加显示行数支持、官方主题选择支持。如下所示可以进行设置，具体主题风格样式可以访问 [Prism 官网](https://prismjs.com/) 了解更多。
 
-(2022年5月23日更新)
-
-&emsp;&emsp;除官方代码库中默认代码主题外，新增扩展代码主题支持，比如常用的 One Light 等等。具体主题风格样式可以查看 [PrismJS/prism-themes](https://github.com/PrismJS/prism-themes/tree/master/themes) 了解更多。
-
 ```yaml
 # Prism
 prism:
@@ -152,58 +136,6 @@ prism:
 </button>
 ```
 
-#### 文章置顶功能
-
-(2022年5月26日更新)
-
-&emsp;&emsp;鉴于现有的 Jekyll 文章置顶库有点年久失修，决定徒手实现了一下文章置顶功能。具体文章列表页和归档页置顶效果如下所示：
-
-![文章置顶 Top acticles](https://i.luish.cc/blog/mcF2Z3.webp)
-![归档页文章置顶 Top acticles in archives](https://i.luish.cc/blog/yajcoi.webp)
-
-#### 分页依赖升级
-
-(2022年5月26日更新)
-
-&emsp;&emsp;由于原有的 jekyll-paginate 库已停止更新，所以升级到目前更新、维护活跃的 [jekyll-paginate-v2](https://github.com/sverrirs/jekyll-paginate-v2) 库。原有的分页配置自 v1.1.7 版本后无法使用，请更换为如下类似设置：
-
-```yaml
-# _config.yml 旧配置
-paginate: 10
-paginate_path: 'blog/page:num'
-
-# _config.yml 新配置
-pagination:
-  enabled: true
-  per_page: 10
-  permalink: 'page:num/'
-```
-
-&emsp;&emsp;另外，blog/index.html 的头部信息中应该加上如下**启用分页**的配置。否则，jekyll-paginate-v2 不会主动工作。
-
-```yaml
-pagination: 
-  enabled: true
-```
-
-#### 封面图片作者及链接
-
-(2022年5月26日更新)
-
-&emsp;&emsp;一直以来封面图片都是来自 [Unsplash](https://unsplash.com) 的免费高清图片，为了表明封面图片的来源和作者，现在文章的元信息中添加了对封面图片作者及链接的支持。如果想要声明，可以直接在文章的头部信息中添加如下配置：
-
-```yaml
-......
-cover: ''
-cover_author: ''
-cover_author_link: ''
-......
-```
-
-&emsp;&emsp;非文章的页面中也可以像上面那样声明相关的封面作者及链接，效果如下所示：
-
-![页面封面图片信息 Cover author for pages](https://i.luish.cc/blog/fzWjPs.webp)
-
 #### 字数统计及阅读时间估计
 
 &emsp;&emsp;字数统计及阅读时间估计这个小功能其实以前在用 WordPress 的时候比较常见。虽然说统计和估计的结果不一定完全准确，但是还是起到了一定的辅助阅读的作用。效果可以查看本页标题下的基本信息区域。
@@ -214,8 +146,8 @@ cover_author_link: ''
 
 &emsp;&emsp;为了支持来自不同时区的读者直接可以看到文章发布对应的本地时间，现已利用 dayjs 新增**时间本地化**功能。并利用 Github API 查询页面的最近一次 commit 更新时间作为文章**最近更新时间**。效果如下图所示。
 
-![构建位置时区 Jekyll deployment timezone](https://i.luish.cc/blog/Anb4xH.webp)
-![读者时区 Reader timezone](https://i.luish.cc/blog/NMPXmQ.webp)
+![构建位置时区 Jekyll deployment timezone](https://i.lisz.top/blog/Anb4xH.webp)
+![读者时区 Reader timezone](https://i.lisz.top/blog/NMPXmQ.webp)
 
 &emsp;&emsp;如需使用**最近更新时间**功能，务必在 _config.yml 文件中添加以下配置项：
 
@@ -235,8 +167,9 @@ github:
 
 &emsp;&emsp;之前的版本只会在页面底部的信息栏中显示一个 CC 4.0 的小图标，不是很醒目。根据调研其他静态网站主题，发现一般都会在文章的末尾自动生成一个比较醒目的版权声明。另外，在版权声明中也将根据最近更新时间来判断内容是否可能过时。如果最近更新时间距离当前时间大于 365 天，则会显示具体日期并提醒有内容过时的可能。效果如下所示。
 
-![版权显式声明 Copyright](https://i.luish.cc/blog/scNRyd.webp)
-![内容可能过时提醒 Long time ago notification](https://i.luish.cc/blog/C8RWtL.webp)
+![版权显式声明 Copyright](https://i.lisz.top/blog/scNRyd.webp)
+![内容可能过时提醒 Long time ago notification](https://i.lisz.top/blog/C8RWtL.webp)
+
 
 #### 文章侧边索引导航
 
@@ -254,7 +187,7 @@ github:
 
 #### 支持 Waline 评论系统
 
-&emsp;&emsp;目前已支持基于 Valine 衍生的简洁、安全的评论系统 Waline。可以根据官方提供的 [快速上手](https://waline.js.org/guide/get-started.html) 进行配置，以下为 _config.yml 中需要配置的内容：
+&emsp;&emsp;目前已支持基于 Valine 衍生的简洁、安全的评论系统。可以根据官方提供的 [快速上手](https://waline.js.org/guide/get-started.html) 进行配置，以下为 _config.yml 中需要配置的内容：
 
 ```yaml
 # _config.yml
@@ -272,8 +205,8 @@ comments:
 
 &emsp;&emsp;同时修复了手动切换深色模式时 Disqus 不会自动切换模式而造成的显示问题。目前在模式切换时 Disqus 会主动进行重新加载以适应当前模式。
 
-![Disqus 评论系统 Disqus comment](https://i.luish.cc/blog/WBgbUB.webp)
-![Waline 评论系统 Waline comments](https://i.luish.cc/blog/45JQ9H.webp)
+![Disqus 评论系统 Disqus comment](https://i.lisz.top/blog/WBgbUB.webp)
+![Waline 评论系统 Waline comments](https://i.lisz.top/blog/45JQ9H.webp)
 
 #### 支持 PWA
 
@@ -286,78 +219,6 @@ comments:
 pwa:
   color: '#81BBFF'
   short_name: 'lisz'
-```
-
-#### 支持 Mermaid
-
-(2022年8月29日更新)
-
-&emsp;&emsp;不少同学可能会有在文章中放置流程图的需求，为了满足这一需求，现添加了 [Mermaid](https://mermaid-js.github.io/mermaid/#/) 来支持像写代码一样画图。
-
-&emsp;&emsp;为了兼容 Markdown 语法，这里采用了自定义的代码类型。当代码类型为 `mermaid` 时，PrismJS 会自动以代码的形式美化展示；当代码类型为 `mermaid2` 时，页面会自动使用 Mermaid 画成图展示出来，如下所示。
-
-&emsp;&emsp;考虑到页面宽度有限，Mermaid 所画出的甘特图等其他比较大一点的图不太好看，也增加了**放大重绘**的功能。如下所示，点击图的右上角的按钮即可全屏查看大图。
-
-```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-```
-
-```mermaid2
-    graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
-```
-
-```mermaid2
-    gantt
-      title A Gantt Diagram
-      dateFormat x
-      axisFormat %L
-      section Section
-      A task           :a1, 0, 30ms
-      Another task     :after a1, 20ms
-      section Another
-      Another another task      :b1, 20, 12ms
-      Another another another task     :after b1, 24ms
-```
-
-```mermaid2
-    gantt
-    dateFormat  YYYY-MM-DD
-    title       Adding GANTT diagram functionality to mermaid
-    excludes    weekends
-    %% (`excludes` accepts specific dates in YYYY-MM-DD format, days of the week ("sunday") or "weekends", but not the word "weekdays".)
-
-    section A section
-    Completed task            :done,    des1, 2014-01-06,2014-01-08
-    Active task               :active,  des2, 2014-01-09, 3d
-    Future task               :         des3, after des2, 5d
-    Future task2              :         des4, after des3, 5d
-
-    section Critical tasks
-    Completed task in the critical line :crit, done, 2014-01-06,24h
-    Implement parser and jison          :crit, done, after des1, 2d
-    Create tests for parser             :crit, active, 3d
-    Future task in critical line        :crit, 5d
-    Create tests for renderer           :2d
-    Add to mermaid                      :1d
-    Functionality added                 :milestone, 2014-01-25, 0d
-
-    section Documentation
-    Describe gantt syntax               :active, a1, after des1, 3d
-    Add gantt diagram to demo page      :after a1  , 20h
-    Add another diagram to demo page    :doc1, after a1  , 48h
-
-    section Last section
-    Describe gantt syntax               :after doc1, 3d
-    Add gantt diagram to demo page      :20h
-    Add another diagram to demo page    :48h
 ```
 
 #### 配置项
@@ -426,7 +287,7 @@ umami:
 
 &emsp;&emsp;为了方便用户使用 H2O-ac 主题，特别提供了 Github 的模板功能。如下图所示，访问 [H2O-ac](https://github.com/zhonger/jekyll-theme-H2O-ac) 可以看到如下的 Use this template 按钮，点击该按钮即可用 H2O-ac 主题创建自己的博客代码仓库。想要了解更多步骤，可以访问 Github 官方文档之 [从模板创建仓库](https://docs.github.com/cn/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)。
 
-![从模板新建 Start the blog from the template](https://i.luish.cc/blog/oHHZZh.webp)
+![从模板新建 Start the blog from the template](https://i.lisz.top/blog/oHHZZh.webp)
 
 #### 方式二：已有博客迁移
 
