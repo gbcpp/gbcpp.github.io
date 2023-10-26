@@ -1,23 +1,24 @@
 ---
 layout: page
-home-title: H2O-ac Theme For Jekyll
-description: 基于可能是最好看的 Jekyll 主题 H2O 的学术版主题
+home-title: Mr Chen's Blog
+description: What can i do, what shoud i do
 permalink: /en/index.html
 langs: ["zh-Hans", "en"]
 lang: "en"
 ---
 
-# Introduction
+# Mr Chen
 
 ## About me
 
-&emsp;&emsp;I am a PhD student from xxx University.....
+&emsp;&emsp;从事 C++ 开发，致力于流媒体和网络协议方向的软件工程师。
 
 ## Publications
 
-1. Publication 1 [[DOI]](https://doi.org)
-2. Publication 2 [[DOI]](https://doi.org)
+1. Github [[DOI]](https://github.com/gbcpp)
+2. CSDN [[DOI]](https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)
 
 ## Contact
 
-Email: zhonger[at]live.cn (Please replace [at] with @.)
+Email：gbaochen1987@163.com
+

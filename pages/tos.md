@@ -1,6 +1,6 @@
 ---
 layout: page
-home-title: Welcome to zhonger's blog!
+home-title: Welcome to Mr Chen's blog!
 description: Writing, writing, writing ...
 permalink: /tos.html
 ---
