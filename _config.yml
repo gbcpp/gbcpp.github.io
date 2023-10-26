@@ -70,7 +70,7 @@ nightMode: false
 
 # Comments 评论功能
 comments:
-  disqus: false
+  disqus: true
   disqus_url: 'https://h2o-ac.disqus.com/embed.js'
   waline: false
   waline_url: 'https://h2o-ac-waline.deta.dev/'
@@ -169,7 +169,7 @@ prism:
   line_numbers: true
 
 # RSS
-RSS: true
+RSS: false
 
 # Permalink
 # See: https://github.com/kaeyleo/jekyll-theme-H2O/issues/35
