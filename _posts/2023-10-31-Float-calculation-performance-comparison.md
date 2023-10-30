@@ -1,8 +1,8 @@
 ---
 layout: post
-title: '获取不同 Clock 在不同 Linux Kernel 下的精度'
+title: 'float 和 int 在 Linux 下的计算性能对比'
 subtitle: 
-date: 2023-10-25
+date: 2023-10-31
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: tech
