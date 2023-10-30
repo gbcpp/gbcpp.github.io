@@ -5,9 +5,99 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 30 Oct 2023 17:52:50 +0000</pubDate>
-    <lastBuildDate>Mon, 30 Oct 2023 17:52:50 +0000</lastBuildDate>
+    <pubDate>Mon, 30 Oct 2023 17:55:46 +0000</pubDate>
+    <lastBuildDate>Mon, 30 Oct 2023 17:55:46 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
+    
+      <item>
+        <title>float 和 int 在 Linux 下的计算性能对比</title>
+        <description>&lt;h1 id=&quot;linux下-float-与-int-类型计算性能对比&quot;&gt;Linux下 Float 与 Int 类型计算性能对比&lt;/h1&gt;
+
+&lt;h2 id=&quot;代码&quot;&gt;代码&lt;/h2&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;time.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;iostream&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;constexpr&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int64_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCalculateNum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int64_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testFloat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// return void* in POSIX&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;timespec&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;clock_gettime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;volatile&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;float&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;999999.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCalculateNum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.7&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;clock_gettime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;diff_ns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_sec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_sec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1e9&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
+                 &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_nsec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_nsec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;diff_ns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int64_t&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// return void* in POSIX&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;timespec&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;clock_gettime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;volatile&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;999999&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCalculateNum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;clock_gettime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CLOCK_MONOTONIC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;diff_ns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_sec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_sec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1e9&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;
+                 &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;end_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_nsec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_ts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tv_nsec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;diff_ns&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;float_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testFloat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;testInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Float calculate times: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCalculateNum&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; took time: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;float_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;us.&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Int calculate times: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kCalculateNum&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; took time: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;us.&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Float / Int radio: &quot;&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;float_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int_duration_us&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;执行结果&quot;&gt;执行结果&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;编译&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;g++ test_float.cpp &lt;span class=&quot;nt&quot;&gt;-g3&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; test_float.exe
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;结果&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;多次执行，结果相当，计算 float 类型耗时大约是 int 整形的 62倍，即性能是 int 的 1/62 左右。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gobert@DESKTOP-EJV14VH:~/develop/debug&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;g++ test_float.cpp &lt;span class=&quot;nt&quot;&gt;-g3&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; test_float.exe
+gobert@DESKTOP-EJV14VH:~/develop/debug&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;./test_float.exe
+Float calculate &lt;span class=&quot;nb&quot;&gt;times&lt;/span&gt;: 100000000 took &lt;span class=&quot;nb&quot;&gt;time&lt;/span&gt;: 2537060us.
+Int calculate &lt;span class=&quot;nb&quot;&gt;times&lt;/span&gt;: 100000000 took &lt;span class=&quot;nb&quot;&gt;time&lt;/span&gt;: 40442us.
+Float / Int radio: 62
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;以上仅供参考！！&lt;/p&gt;
+</description>
+        <pubDate>Mon, 30 Oct 2023 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/float-performance.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/float-performance.html</guid>
+        
+        <category>Linux</category>
+        
+        <category>float</category>
+        
+        
+      </item>
     
       <item>
         <title>获取不同 Clock Id 在不同 Linux Kernel 下的精度</title>
@@ -2565,261 +2655,6 @@ Output: 7 -&amp;gt; 0 -&amp;gt; 8&lt;/p&gt;
         <guid isPermaLink="true">https://gbcpp.github.io/c-algorithm-notes.html</guid>
         
         <category>algorithm</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>mediasoup 公网环境部署</title>
-        <description>&lt;p&gt;最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;以下操作均在 Ubuntu 18.04 Server 系统上操作。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;准备云主机&quot;&gt;准备云主机&lt;/h1&gt;
-
-&lt;p&gt;公网环境的搭建还是需要一台拥有公网 IP 的主机的，当然如果你能薅公司的羊毛就更好了 。。本人的是阿里云主机 Ubuntu 系统 16.04 upgrade to 18.04，双11 时买的最便宜的机型，同时安装 ssh、 git、nodejs、npm，开启远程登录。&lt;/p&gt;
-
-&lt;h1 id=&quot;域名准备&quot;&gt;域名准备&lt;/h1&gt;
-
-&lt;p&gt;通过浏览器打开音视频设备因为有安全方面的限制，不能通过 IP 进行访问，必须通过 https://domain 的 url 打开，所以我们还需要准备一个域名并解析到我们自己的公网 IP 地址，域名也可以通过阿里云进行购买，因为不需要 seo，所以选一个最便宜的后缀即可，我选择了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gobert.top&lt;/code&gt;，第一年只有 9 元，后面还需要域名备案，否则域名将被重定向到指定地址，所以域名需要提前准备。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;首次域名备案相对来说比较麻烦，需要准备居住证（来沪外来人员）等证件，各种审核需要耗时两三天吧。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;安装-mediasoup&quot;&gt;安装 mediasoup&lt;/h1&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;λ ssh gobert@47.100.110.xxx
-gobert@47.100.110.xxx&lt;span class=&quot;s1&quot;&gt;&apos;s password:
-Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-38-generic x86_64)
-
-Last login: Mon Apr  1 17:28:34 2019 from 116.236.177.xxx
-$ mkdir develop
-$ cd develop
-$ git clone git@github.com:versatica/mediasoup-demo.git
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;后续 npm 的安装需参照 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://github.com/versatica/mediasoup-demo/&lt;/code&gt; 文档进行。&lt;/p&gt;
-
-&lt;h1 id=&quot;nginx-配置&quot;&gt;nginx 配置&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;这一步默认域名购买、解析、备案已完成。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;在线安装-nginx&quot;&gt;在线安装 nginx&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt-get &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;nginx
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;部署-mediasoup-到-nginx&quot;&gt;部署 mediasoup 到 nginx&lt;/h2&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;将 mediasoup 中的 server 目录拷贝到 nginx 根目录下。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; /var/www/mediasoup
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo cp&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; medissoup-demo/server/ /var/www/mediasoup/
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;配置 nginx 解析到以上目录，编辑 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/nginx/sites-available/default&lt;/code&gt; 配置文件，将 server 根路径下的 root 属性修改为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/var/www/mediasoup/server/public;&lt;/code&gt;,即：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;c&quot;&gt;# 以上省略&lt;/span&gt;
- &lt;span class=&quot;c&quot;&gt;#root /var/www/html;&lt;/span&gt;
- root /var/www/mediasoup/server/public&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
- &lt;span class=&quot;c&quot;&gt;# Add index.php to the list if you are using PHP&lt;/span&gt;
- index index.html index.htm index.nginx-debian.html&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
- &lt;span class=&quot;c&quot;&gt;# 以下省略&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;配置-https-服务&quot;&gt;配置 https 服务&lt;/h2&gt;
-
-&lt;p&gt;通过浏览器打开设备需要 https 安全 url，nginx 必须开启 https 服务，通过 letsencrypt 进行 https 的自动化配置，省去了自己很多的麻烦，不用再去申请证书、审核、验证部署等繁琐的操作了，通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx&lt;/code&gt; 下的命令按步执行即可。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/letsencrypt.png&quot; alt=&quot;rtc::Thread UML 类图&quot; /&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;letsencrpt 安装的 ssl 证书只有三个月的有效期，所以为了防止证书过期，建议添加系统定时任务，定期执行脚本命令更新证书：&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;su -
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;certbot renew &lt;span class=&quot;nt&quot;&gt;--dry-run&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;正常情况下，你的 nginx 已经开启了 https 服务, ssl 证书及秘钥存放位置记录在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/nginx/sites-available/default&lt;/code&gt; 配置文件中，打开 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/nginx/sites-available/default&lt;/code&gt; 文件，发现 letsencrpty 自动在脚本末尾增加了一项 server 配置，将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root&lt;/code&gt; 路径配置为以上 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/var/www/mediasoup/server/public;&lt;/code&gt; 目录，同时记录下其 ssl_certificate 目录，后面 nginx 配置中需要指定：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;listen &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;::]:443 ssl &lt;span class=&quot;nv&quot;&gt;ipv6only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;on&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-listen 443 ssl&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-ssl_certificate /etc/letsencrypt/live/www.gobert.top/fullchain.pem&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-ssl_certificate_key /etc/letsencrypt/live/www.gobert.top/privkey.pem&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-include /etc/letsencrypt/options-ssl-nginx.conf&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# managed by Certbot&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;配置-nginx-开启-gzip&quot;&gt;配置 nginx 开启 gzip&lt;/h2&gt;
-
-&lt;p&gt;mediasoup 中 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mediasoup-demo-app.js&lt;/code&gt; 有 12MB 大小，如果 server 带宽比较低的话，用户首次拉取会比较慢，由于 nginx 默认配置是不开启 gzip 压缩的，所以需要我们手动开启 gzip 压缩，修改 nginx 的配置文件（全站配置）&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/nginx/nginx.conf&lt;/code&gt;，将以下内容的注释全部取消：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gzip on;
-
-gzip_vary on;
-gzip_proxied any;
-gzip_comp_level 6;
-gzip_buffers 16 8k;
-gzip_http_version 1.1;
-gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;然后重启 nginx 服务即可：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo&lt;/span&gt; /etc/init.d/nginx reload
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;配置-mediasoup-server&quot;&gt;配置 mediasoup server&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;配置自定义脚本：&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;copy config.example.js config.js
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;打开 config.js 文件，在 tls 路径中，将上面记录的 letsencrypt 证书路径拷贝到相应的 item 中，同时修改 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtcAnnouncedIPv4&lt;/code&gt; 为云主机公网 IP 地址，完整的 config.js 的文件为&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;module.exports =
-{
-        // Listening hostname for `gulp live|open`.
-        domain : &apos;localhost&apos;,
-        tls    :
-        {
-                cert : `/etc/letsencrypt/live/www.gobert.top/fullchain.pem`, // letsencrypt 证书
-                key  : `/etc/letsencrypt/live/www.gobert.top/privkey.pem`    // letsencrypt 秘钥
-        },
-        mediasoup :
-        {
-                // mediasoup Server settings.
-                logLevel : &apos;warn&apos;,
-                logTags  :
-                [
-                        &apos;info&apos;,
-                        &apos;ice&apos;,
-                        &apos;dtls&apos;,
-                        &apos;rtp&apos;,
-                        &apos;srtp&apos;,
-                        &apos;rtcp&apos;,
-                        // &apos;rbe&apos;,
-                        // &apos;rtx&apos;
-                ],
-                numWorkers       : null, // Use number of CPUs.
-                rtcIPv4          : true,
-                rtcIPv6          : true,
-                rtcAnnouncedIPv4 : &apos;47.100.110.192&apos;, // 云主机公网地址
-                rtcAnnouncedIPv6 : null,  // 根据需要，自主填写
-                rtcMinPort       : 40000, // udp 最小端口，需要云主机安全组中配置
-                rtcMaxPort       : 49999, // dup 最大端口，需要云主机安全组中配置
-                // mediasoup Room codecs.
-                mediaCodecs      :
-                [
-                        {
-                                kind       : &apos;audio&apos;,
-                                name       : &apos;opus&apos;,
-                                mimeType   : &apos;audio/opus&apos;,
-                                clockRate  : 48000,
-                                channels   : 2,
-                                parameters :
-                                {
-                                        useinbandfec : 1
-                                }
-                        },
-                        {
-                                kind       : &apos;video&apos;,
-                                name       : &apos;VP8&apos;,
-                                mimeType   : &apos;video/VP8&apos;,
-                                clockRate  : 90000,
-                                parameters :
-                                {
-                                        &apos;x-google-start-bitrate&apos;: 1500
-                                }
-                        },
-                        {
-                                kind       : &apos;video&apos;,
-                                name       : &apos;h264&apos;,
-                                mimeType   : &apos;video/h264&apos;,
-                                clockRate  : 90000,
-                                parameters :
-                                {
-                                        &apos;packetization-mode&apos;      : 1,
-                                        &apos;profile-level-id&apos;        : &apos;42e01f&apos;,
-                                        &apos;level-asymmetry-allowed&apos; : 1
-                                }
-                        }
-                ],
-                // mediasoup per Peer max sending bitrate (in bps).
-                maxBitrate : 500000
-        }
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;修改 Server 监听端口&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;此处修改 server 的监听端口其实没什么意义，可以忽略。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;编辑 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;server.js&lt;/code&gt; 配置文件，将默认端口 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;httpsServer.listen(3443, &apos;0.0.0.0&apos;, () =&amp;gt;&lt;/code&gt; 替换为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;httpsServer.listen(5678, &apos;0.0.0.0&apos;, () =&amp;gt;&lt;/code&gt;。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;配置 Client 访问 Server WSS 地址&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;打开 ` public/mediasoup-demo-app.js&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; 将 &lt;/code&gt;getProtooUrl&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; 方法中的 URL 地址端口改为自定义的 &lt;/code&gt;5678` 端口：&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;如果上一步中没有修改 server 的监听端口的话，这一步也可忽略。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-node.js&quot;&gt;function getProtooUrl(peerName, roomId, forceH264) {
-  var hostname = window.location.hostname;
-  var url = &quot;wss://&quot;.concat(hostname, &quot;:5678/?peerName=&quot;).concat(peerName, &quot;&amp;amp;roomId=&quot;).concat(roomId);
-  if (forceH264) url = &quot;&quot;.concat(url, &quot;&amp;amp;forceH264=true&quot;);
-  return url;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&quot;启动-mediasoup-server&quot;&gt;启动 mediasoup server&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /var/www/mediasoup/server
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;DEBUG&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*mediasoup* *ERROR* *WARN*&quot;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;INTERACTIVE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;true&quot;&lt;/span&gt; node server.js
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;重启-nginx&quot;&gt;重启 nginx&lt;/h2&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;nginx &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; reload
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h1 id=&quot;在线体验&quot;&gt;在线体验&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;此主机带宽比较低，初次打开比较慢，需耐心等待加载完成，后面缓冲后速度会变化，音视频延迟不受影响。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://www.gobert.top/?roomId=123456&lt;/code&gt; 即可体验，RoomId 可自定义。&lt;/p&gt;
-</description>
-        <pubDate>Mon, 01 Apr 2019 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/meidasoup-demo-build.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/meidasoup-demo-build.html</guid>
-        
-        <category>开源</category>
-        
-        <category>WebRTC</category>
-        
-        <category>mediasoup</category>
         
         
       </item>

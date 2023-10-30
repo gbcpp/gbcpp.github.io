@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "float 和 int 在 Linux 下的计算性能对比",
+    "tags"     : "Linux float",
+    "url"      : "/float-performance.html"
+  } ,
+
+  {
     "title"    : "获取不同 Clock Id 在不同 Linux Kernel 下的精度",
     "tags"     : "Linux C++",
     "url"      : "/measure-clock-resolution.html"
