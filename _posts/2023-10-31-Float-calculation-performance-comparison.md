@@ -1,7 +1,6 @@
 ---
 layout: post
 title: 'float 和 int 在 Linux 下的计算性能对比'
-subtitle: 
 date: 2023-10-31
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
@@ -11,7 +10,6 @@ tags:
 - float
 - performance
 ---
-
 
 # Linux下 Float 与 Int 类型计算性能对比
 
