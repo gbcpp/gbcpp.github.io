@@ -1,6 +1,6 @@
 [
   {
-    "title"    : "获取不同 Clock 在不同 Linux Kernel 下的精度",
+    "title"    : "获取不同 Clock Id 在不同 Linux Kernel 下的精度",
     "tags"     : "Linux C++",
     "url"      : "/measure-clock-resolution.html"
   } ,
