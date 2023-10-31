@@ -5,13 +5,15 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 30 Oct 2023 17:55:46 +0000</pubDate>
-    <lastBuildDate>Mon, 30 Oct 2023 17:55:46 +0000</lastBuildDate>
+    <pubDate>Tue, 31 Oct 2023 03:32:48 +0000</pubDate>
+    <lastBuildDate>Tue, 31 Oct 2023 03:32:48 +0000</lastBuildDate>
     <generator>Jekyll v4.3.2</generator>
     
       <item>
         <title>float 和 int 在 Linux 下的计算性能对比</title>
         <description>&lt;h1 id=&quot;linux下-float-与-int-类型计算性能对比&quot;&gt;Linux下 Float 与 Int 类型计算性能对比&lt;/h1&gt;
+
+&lt;p&gt;由于 float 在内存中的存储结构与 int 不同，需要存储指数和尾数，并且 cpu 是不支持直接对 float 进行运算的，需要将 float 各部分进行转换后计算，对结果再次进行反向操作进行存储，所以大部分情况下均不支持直接使用 float 进行运行，建议用 int 进行转换运行结果。&lt;/p&gt;
 
 &lt;h2 id=&quot;代码&quot;&gt;代码&lt;/h2&gt;
 
@@ -86,21 +88,23 @@ Int calculate &lt;span class=&quot;nb&quot;&gt;times&lt;/span&gt;: 100000000 too
 Float / Int radio: 62
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;以上仅供参考！！&lt;/p&gt;
+&lt;p&gt;由于不同的 CPU 和体系架构对 FPU 支持情况的不同，以及不同的运算方法对结果也有很大的影响， 比如 加、减、乘、除，以及系数的不同：大于 1 或者小于 1 等均有不同的结果，上述结论为选择了较为复杂的计算场景，仅供参考！！&lt;/p&gt;
 </description>
         <pubDate>Mon, 30 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/float-performance.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/float-performance.html</guid>
+        <link>https://gbcpp.github.io/tech/float-performance-comparation.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/tech/float-performance-comparation.html</guid>
         
         <category>Linux</category>
         
         <category>float</category>
         
         
+        <category>tech</category>
+        
       </item>
     
       <item>
-        <title>获取不同 Clock Id 在不同 Linux Kernel 下的精度</title>
+        <title>获取不同 Clock 在不同 Linux Kernel 下的精度</title>
         <description>
 </description>
         <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
