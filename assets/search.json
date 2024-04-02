@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "面向学习的三种人",
+    "tags"     : "Life",
+    "url"      : "/learning-oriented.html"
+  } ,
+
+  {
     "title"    : "float 和 int 在 Linux 下的计算性能对比",
     "tags"     : "Linux float",
     "url"      : "/tech/float-performance-comparation.html"
