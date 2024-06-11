@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>面向学习的三种人 - Mr Chen</title>
+    <title>温故而知新之-C++ - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="面向学习的三种人">
-    <meta name="keywords"  content="Life">
+    <meta name="description" content="温故而知新之-C++">
+    <meta name="keywords"  content="C++">
     <!-- Open Graph -->
-    <meta property="og:title" content="面向学习的三种人 - Mr Chen">
+    <meta property="og:title" content="温故而知新之-C++ - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/learning-oriented.html">
+    <meta property="og:url" content="https://gbcpp.github.io/learning-cpp-notes.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/learning-cpp-notes.html">
+    <meta property="og:previous_url" content="/print_stacktrace.html">
     
     
-    <meta property="og:next_url" content="/tech/float-performance-comparation.html">
+    <meta property="og:next_url" content="/learning-oriented.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2024-04-02 00:00:00 +0000" />
+    <meta property="post-date" content="2024-04-12 00:00:00 +0000" />
     
     
     
@@ -162,11 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Life" class="post-tag">Life</a>
+              <a href="/tags.html#C++" class="post-tag">C++</a>
             
           
         </div>
-        <h1>面向学习的三种人</h1>
+        <h1>温故而知新之-C++</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="24-04-02">
+          <time class="post-meta-item" datetime="24-04-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="24-04-02">
+          <time class="post-meta-item" datetime="24-04-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  368  字
+              本文总共  1.2k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 2 分钟
+              阅读全文大约需要 4 分钟
             </span>
             
               <span class="post-meta-item">
@@ -212,10 +212,12 @@
       </div>
       
       <div class="filter"></div>
-        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+        <div class="post-cover" style="background: url('/assets/img/benpao2.jpg') center no-repeat; background-size: cover;"></div>
       
     </header>
     <div class="post-content visible">
+      
+      <h2 class="post-subtitle">C++ 查漏补缺</h2>
       
 
       
@@ -224,25 +226,52 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>人们对学习的态度分为三种类型：犯人、过客和探索者</p>
-</blockquote>
+            <h2 id="指针的退化及如何避免">指针的退化及如何避免</h2>
 
-<h2 id="1-犯人">1. 犯人</h2>
+<p>在C++中，”指针退化”是指当数组作为函数参数传递时，它会”退化”为指向第一个元素的指针。这是因为在C++中，数组并不知道它们自己的大小，所以当你把一个数组作为参数传递给一个函数时，函数并不知道这个数组的大小，只知道它的起始地址。</p>
 
-<p>  他们可能视学习为一种负担或义务，而不是一种机会或乐趣。他们可能觉得被迫学习，而不是出于内心的愿望或对知识的渴望。这种态度可能会限制他们的学习潜力，因为他们可能无法全身心投入。</p>
+<p>例如，假设你有一个函数<code class="language-plaintext highlighter-rouge">void foo(int arr[])</code>，当你传递一个数组给这个函数时，例如<code class="language-plaintext highlighter-rouge">int arr[10]; foo(arr);</code>，函数<code class="language-plaintext highlighter-rouge">foo</code>实际上看到的是一个指向<code class="language-plaintext highlighter-rouge">arr</code>的第一个元素的指针，而不是整个数组。</p>
 
-<h2 id="2-过客">2. 过客</h2>
+<p>要防止指针退化，有几种方法：</p>
 
-<p>  他们可能对学习有一种漠不关心的态度，只是偶尔参与，没有持续的投入或深度的参与。他们可能在学习中得到一些知识，但可能无法充分利用学习的潜力，因为他们没有深入研究或投入足够的时间。</p>
+<ol>
+  <li>
+    <p>使用标准库容器，如<code class="language-plaintext highlighter-rouge">std::vector</code>或<code class="language-plaintext highlighter-rouge">std::array</code>。这些容器知道它们自己的大小，因此不会发生指针退化。例如： <code class="language-plaintext highlighter-rouge">void foo(std::vector&lt;int&gt;&amp; arr)</code>。</p>
+  </li>
+  <li>
+    <p>使用模板函数，使函数可以接受数组的引用，并且能够保留数组的大小信息。例如： <code class="language-plaintext highlighter-rouge">template&lt;size_t N&gt; void foo(int (&amp;arr)[N])</code>。</p>
+  </li>
+  <li>
+    <p>传递数组的大小作为另一个参数。例如： <code class="language-plaintext highlighter-rouge">void foo(int* arr, size_t size)</code>。这样，即使数组退化为指针，函数仍然可以知道数组的大小。</p>
+  </li>
+</ol>
 
-<h2 id="3-探索者">3. 探索者</h2>
+<h2 id="引用与指针的区别">引用与指针的区别</h2>
 
-<p>  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。</p>
+<p>在C++中，指针和引用都可以用于间接引用其他对象。然而，它们在语法和行为上有一些关键的不同：</p>
 
-<h2 id="总结">总结</h2>
-<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>
+<ol>
+  <li>
+    <p>初始化：引用在创建时需要初始化，并且一旦初始化后就不能改变引用的目标，也就是说它始终引用最初赋给它的对象。而指针可以在任何时间指向任何对象或者NULL。</p>
+  </li>
+  <li>
+    <p>空值：指针可以为NULL，表示它不指向任何对象。而引用必须始终引用一个有效的对象，不能有NULL引用。</p>
+  </li>
+  <li>
+    <p>间接访问：使用指针时，需要使用解引用运算符(*)来访问它指向的对象，而引用则可以像普通变量那样直接使用。</p>
+  </li>
+  <li>
+    <p>支持的操作：指针支持更多的操作，例如指针算术（即增加或减少指针的值，以指向内存中的不同位置）。引用则不能进行这种操作。</p>
+  </li>
+  <li>
+    <p>内存占用：引用实际上并不占用任何内存，它只是一个别名。而指针是一个实际的变量，它占用内存空间并存储一个地址值。</p>
+    <blockquote>
+      <p>但引用在程序中并不是不占用任何字节，引用本质上就是一个常量指针（constant pointer）。它在内存中占据的空间和指针一样，通常是 4 字节（在 32 位系统）或 8 字节（在 64 位系统）。然而，引用本身并不存储任何值，它只是一个别名，代表它引用的对象。在某些优化的情况下，如果引用没有被用作一个对象的别名（也就是说，它被直接用于访问该对象），编译器可能会优化掉引用，使其不占用任何内存空间。但是，这种优化并不是在所有情况下都会发生。所以，说引用不占用内存空间并不完全准确，实际情况取决于编译器的优化和引用的使用方式。</p>
+    </blockquote>
+  </li>
+</ol>
 
+<p>总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。</p>
 
             <div class="post-copyright">
               <p>
@@ -258,15 +287,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 面向学习的三种人 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/learning-oriented.html" class="cplink">https://gbcpp.github.io/learning-oriented.html</a></p>
+              <p><span>本文标题：</span>《 温故而知新之-C++ 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/learning-cpp-notes.html" class="cplink">https://gbcpp.github.io/learning-cpp-notes.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('1.-犯人')">1. 犯人</a></li><li><a onclick="scrollToAdjust('2.-过客')">2. 过客</a></li><li><a onclick="scrollToAdjust('3.-探索者')">3. 探索者</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('指针的退化及如何避免')">指针的退化及如何避免</a></li><li><a onclick="scrollToAdjust('引用与指针的区别')">引用与指针的区别</a></li></ul>
         </div>
       </div>
       
@@ -321,24 +350,21 @@
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/learning-cpp-notes.html" class="read-next-link" aria-label="温故而知新之-C++"></a>
+          <a href="/print_stacktrace.html" class="read-next-link" aria-label="C++ 程序输出当前堆栈"></a>
           <section>
-            <span>温故而知新之-C++</span>
-            <p>指针的退化及如何避免</p>
+            <span>C++ 程序输出当前堆栈</span>
+            <p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。互联网中找到的，使用均有内存问题，以下是修...</p>
           </section>
-          
-          <div class="filter"></div>
-          <img src="/assets/img/benpao2.jpg" alt="">
           
       </div>
         
 
         
         <div class="read-next-item">
-          <a href="/tech/float-performance-comparation.html" class="read-next-link" aria-label="float 和 int 在 Linux 下的计算性能对比"></a>
+          <a href="/learning-oriented.html" class="read-next-link" aria-label="面向学习的三种人"></a>
             <section>
-              <span>float 和 int 在 Linux 下的计算性能对比</span>
-              <p>Linux下 Float 与 Int 类型计算性能对比</p>
+              <span>面向学习的三种人</span>
+              <p>  人们对学习的态度分为三种类型：犯人、过客和探索者</p>
             </section>
             
             <div class="filter"></div>
@@ -357,7 +383,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2024-04-02 00:00:00 +0000',
+      id: '2024-04-12 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -570,7 +596,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2024-04-02-learning-oriented.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2024-04-12-learning-cpp-notes.md")
           .then((response) => {
             return response.json();
           })

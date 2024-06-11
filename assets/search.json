@@ -1,5 +1,17 @@
 [
   {
+    "title"    : "C++ 程序输出当前堆栈",
+    "tags"     : "C++",
+    "url"      : "/print_stacktrace.html"
+  } ,
+
+  {
+    "title"    : "温故而知新之-C++",
+    "tags"     : "C++",
+    "url"      : "/learning-cpp-notes.html"
+  } ,
+
+  {
     "title"    : "面向学习的三种人",
     "tags"     : "Life",
     "url"      : "/learning-oriented.html"

@@ -1,4 +1,130 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2024-04-02T06:36:49+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">面向学习的三种人</title><link href="https://gbcpp.github.io/learning-oriented.html" rel="alternate" type="text/html" title="面向学习的三种人" /><published>2024-04-02T00:00:00+00:00</published><updated>2024-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/learning-oriented</id><content type="html" xml:base="https://gbcpp.github.io/learning-oriented.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2024-06-11T11:31:56+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
+
+<h2 id="头文件">头文件</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;cxxabi.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;execinfo.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span></code></pre></div></div>
+
+<h2 id="源码">源码</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Utils</span><span class="o">::</span><span class="n">PrintStackTrace</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxFrames</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxPrettyFunctionNameLength</span> <span class="o">=</span> <span class="mi">512</span><span class="p">;</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">oss</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">addrlist</span><span class="p">[</span><span class="n">kMaxFrames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+
+  <span class="c1">// 获取当前堆栈中的地址</span>
+  <span class="kt">int</span> <span class="n">addrlen</span> <span class="o">=</span> <span class="n">backtrace</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addrlist</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">));</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">addrlen</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="s">"StackTraces: "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+
+  <span class="c1">// 解析地址为函数名</span>
+  <span class="kt">char</span> <span class="o">**</span><span class="n">symbollist</span> <span class="o">=</span> <span class="n">backtrace_symbols</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="n">addrlen</span><span class="p">);</span>
+
+  <span class="c1">// 解析函数名的更多信息</span>
+  <span class="kt">size_t</span> <span class="n">funcNameSize</span> <span class="o">=</span> <span class="n">kMaxPrettyFunctionNameLength</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">funcName</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">char</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">malloc</span><span class="p">(</span><span class="n">funcNameSize</span><span class="p">));</span>
+
+  <span class="c1">// 跳过第一个元素（即本身）</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">addrlen</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">beginName</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">beginOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+
+    <span class="c1">// 解析符号名称及偏移量</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'('</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">beginName</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'+'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">beginOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">')'</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">endOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">beginName</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span> <span class="o">&amp;&amp;</span> <span class="n">endOffset</span> <span class="o">&amp;&amp;</span> <span class="n">beginName</span> <span class="o">&lt;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
+      <span class="o">*</span><span class="n">beginName</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+      <span class="o">*</span><span class="n">beginOffset</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+      <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+
+      <span class="c1">// 解码并打印函数名称</span>
+      <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
+      <span class="kt">char</span> <span class="o">*</span><span class="n">ret</span> <span class="o">=</span>
+          <span class="n">abi</span><span class="o">::</span><span class="n">__cxa_demangle</span><span class="p">(</span><span class="n">beginName</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">funcNameSize</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">ret</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="c1">// 如果无法解析，直接输出原始符号信息</span>
+      <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">free</span><span class="p">(</span><span class="n">funcName</span><span class="p">);</span>
+  <span class="n">free</span><span class="p">(</span><span class="n">symbollist</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="编译">编译</h2>
+
+<p><code class="language-plaintext highlighter-rouge">ldflags</code> 参数一定要指定 <code class="language-plaintext highlighter-rouge">-ldynamiclib</code> 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
+主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。</p>
+
+<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>]]></content><author><name>Mr Chen</name></author><category term="C++" /><summary type="html"><![CDATA[将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。]]></summary></entry><entry><title type="html">温故而知新之-C++</title><link href="https://gbcpp.github.io/learning-cpp-notes.html" rel="alternate" type="text/html" title="温故而知新之-C++" /><published>2024-04-12T00:00:00+00:00</published><updated>2024-04-12T00:00:00+00:00</updated><id>https://gbcpp.github.io/learning-cpp-notes</id><content type="html" xml:base="https://gbcpp.github.io/learning-cpp-notes.html"><![CDATA[<h2 id="指针的退化及如何避免">指针的退化及如何避免</h2>
+
+<p>在C++中，”指针退化”是指当数组作为函数参数传递时，它会”退化”为指向第一个元素的指针。这是因为在C++中，数组并不知道它们自己的大小，所以当你把一个数组作为参数传递给一个函数时，函数并不知道这个数组的大小，只知道它的起始地址。</p>
+
+<p>例如，假设你有一个函数<code class="language-plaintext highlighter-rouge">void foo(int arr[])</code>，当你传递一个数组给这个函数时，例如<code class="language-plaintext highlighter-rouge">int arr[10]; foo(arr);</code>，函数<code class="language-plaintext highlighter-rouge">foo</code>实际上看到的是一个指向<code class="language-plaintext highlighter-rouge">arr</code>的第一个元素的指针，而不是整个数组。</p>
+
+<p>要防止指针退化，有几种方法：</p>
+
+<ol>
+  <li>
+    <p>使用标准库容器，如<code class="language-plaintext highlighter-rouge">std::vector</code>或<code class="language-plaintext highlighter-rouge">std::array</code>。这些容器知道它们自己的大小，因此不会发生指针退化。例如： <code class="language-plaintext highlighter-rouge">void foo(std::vector&lt;int&gt;&amp; arr)</code>。</p>
+  </li>
+  <li>
+    <p>使用模板函数，使函数可以接受数组的引用，并且能够保留数组的大小信息。例如： <code class="language-plaintext highlighter-rouge">template&lt;size_t N&gt; void foo(int (&amp;arr)[N])</code>。</p>
+  </li>
+  <li>
+    <p>传递数组的大小作为另一个参数。例如： <code class="language-plaintext highlighter-rouge">void foo(int* arr, size_t size)</code>。这样，即使数组退化为指针，函数仍然可以知道数组的大小。</p>
+  </li>
+</ol>
+
+<h2 id="引用与指针的区别">引用与指针的区别</h2>
+
+<p>在C++中，指针和引用都可以用于间接引用其他对象。然而，它们在语法和行为上有一些关键的不同：</p>
+
+<ol>
+  <li>
+    <p>初始化：引用在创建时需要初始化，并且一旦初始化后就不能改变引用的目标，也就是说它始终引用最初赋给它的对象。而指针可以在任何时间指向任何对象或者NULL。</p>
+  </li>
+  <li>
+    <p>空值：指针可以为NULL，表示它不指向任何对象。而引用必须始终引用一个有效的对象，不能有NULL引用。</p>
+  </li>
+  <li>
+    <p>间接访问：使用指针时，需要使用解引用运算符(*)来访问它指向的对象，而引用则可以像普通变量那样直接使用。</p>
+  </li>
+  <li>
+    <p>支持的操作：指针支持更多的操作，例如指针算术（即增加或减少指针的值，以指向内存中的不同位置）。引用则不能进行这种操作。</p>
+  </li>
+  <li>
+    <p>内存占用：引用实际上并不占用任何内存，它只是一个别名。而指针是一个实际的变量，它占用内存空间并存储一个地址值。</p>
+    <blockquote>
+      <p>但引用在程序中并不是不占用任何字节，引用本质上就是一个常量指针（constant pointer）。它在内存中占据的空间和指针一样，通常是 4 字节（在 32 位系统）或 8 字节（在 64 位系统）。然而，引用本身并不存储任何值，它只是一个别名，代表它引用的对象。在某些优化的情况下，如果引用没有被用作一个对象的别名（也就是说，它被直接用于访问该对象），编译器可能会优化掉引用，使其不占用任何内存空间。但是，这种优化并不是在所有情况下都会发生。所以，说引用不占用内存空间并不完全准确，实际情况取决于编译器的优化和引用的使用方式。</p>
+    </blockquote>
+  </li>
+</ol>
+
+<p>总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。</p>]]></content><author><name>Mr Chen</name></author><category term="C++" /><summary type="html"><![CDATA[指针的退化及如何避免]]></summary></entry><entry><title type="html">面向学习的三种人</title><link href="https://gbcpp.github.io/learning-oriented.html" rel="alternate" type="text/html" title="面向学习的三种人" /><published>2024-04-02T00:00:00+00:00</published><updated>2024-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/learning-oriented</id><content type="html" xml:base="https://gbcpp.github.io/learning-oriented.html"><![CDATA[<blockquote>
   <p>人们对学习的态度分为三种类型：犯人、过客和探索者</p>
 </blockquote>
 
@@ -1021,941 +1147,4 @@ key: 2, value: 2
         <span class="k">return</span> <span class="p">(</span><span class="kt">int32_t</span><span class="p">)(</span><span class="n">seq1</span><span class="o">-</span><span class="n">seq2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="cp">#define after(seq2, seq1)   before(seq1, seq2)
-</span></code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="协议" /><summary type="html"><![CDATA[Transform your plain text into static websites and blogs.]]></summary></entry><entry><title type="html">H2O-ac theme for Jekyll</title><link href="https://gbcpp.github.io/tech/new-theme-h2o-ac.html" rel="alternate" type="text/html" title="H2O-ac theme for Jekyll" /><published>2021-12-22T11:50:00+00:00</published><updated>2021-12-22T11:50:00+00:00</updated><id>https://gbcpp.github.io/tech/new-theme-h2o-ac</id><content type="html" xml:base="https://gbcpp.github.io/tech/new-theme-h2o-ac.html"><![CDATA[<h2 id="前言">前言</h2>
-
-<p>  正如大家所知，Jekyll 是一款高可定制的、非常流行的静态博客生成工具。围绕着 Jekyll 也衍生出了很多优秀的 Jekyll 主题， 由 <a href="https://github.com/kaeyleo">廖柯宇</a> 开发的 <a href="https://github.com/kaeyleo/jekyll-theme-H2O">H2O</a> 主题就是其中之一。极简主义、风格扁平化、卡片式布局、Medium 及知乎专栏的视觉风格等等特点，为我们带来了或许是迄今为止最漂亮的 Jekyll 主题。</p>
-
-<p>  诞生之初，H2O 主题就在 Github 平台上以 MIT 许可证协议开放了源代码。这吸引了很多小伙伴纷纷转投 Jekyll 和 H2O 主题的阵营，本人也是其中之一。随着使用者越来越多，不少的小伙伴在使用过程中发现了一些小问题并主动修复，最后贡献到了 H2O 的主项目，这让 H2O 主题变得更好。本人在使用过程中也的确是发现了一些与自己实际需求不大一致的地方，并且在原 H2O 主题的基础上做了一些改动。考虑到这些改动可能并不是大多数人的需求，直接向原 H2O 主题提交 pull 请求合并的必要性不大，因此决定将原项目 fork 并改名为 <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">zhonger/jekyll-theme-H2O-ac</a>。现正式将源代码以与 H2O 主题相同的 MIT 许可证协议在 Github 平台上公开。</p>
-
-<p>  在此，非常感谢廖柯宇及其他小伙伴对于 H2O-ac 主题的基础主题 H2O 的代码开发和开放共享。</p>
-
-<h2 id="新特性">新特性</h2>
-
-<h3 id="更适合学术人和运维程序员的页面结构">更适合学术人和运维程序员的页面结构</h3>
-
-<p>  H2O 主题其实在很大程度上已经满足了大部分人的需求，只是对于学术研究人员和运维程序员来说，个人觉得页面结构还是有点不够合适。学术研究人员比较重视在首页直接展示个人信息和研究情况，能够让人很快地了解到所需的信息，这其实是将 About me 这样一个平常的辅助页面当成了主页面来用。另外，运维程序员比较重视能一览所有文章的标题以迅速找到感兴趣的文章。虽然搜索功能、标签页、卡片展示页都能够列出所有的文章，但个人觉得还是不够简洁、方便。而像 Hexo 静态生成工具自带的 Archive 归档页面比较能满足这样的需求。除此之外，整个博客的系统日志变迁记录对于运维程序员来说也非常重要，毕竟如果通过发布一篇文章来描述变迁过程并不适合联系起来完整了解。如果有系统日志页，就可以按照年份、月份、事件的先后进行简要的描述，并且一览无遗。</p>
-
-<p>  因此，在 H2O-ac 主题中，从原来 H2O 的主页中抽出框架做成了页面模板。根据实际页面的内容需求，增加了<strong>学术首页</strong>、<strong>归档页</strong>和<strong>系统日志页</strong>。</p>
-
-<h4 id="学术首页">学术首页</h4>
-
-<p>  学术首页如下图所示，并将原来 H2O 中的卡片首页移动到 blog 子目录下了。如果读者想要看到文章卡片展示页，还是可以点击顶部的导航栏中的 BLOG 直接访问。</p>
-
-<p><img src="https://i.lisz.top/blog/XyT038.webp" alt="首页 Home" /></p>
-
-<h4 id="归档页">归档页</h4>
-
-<p>  归档页设置为由 Jekyll 按照模板自动生成，以年份、日期、文章标题分级列表展示，简洁清晰。</p>
-
-<p><img src="https://i.lisz.top/blog/lj4vUP.webp" alt="归档页 Archives" /></p>
-
-<h4 id="系统日志页">系统日志页</h4>
-
-<p>  系统日志页其实也不是经常更新的，只有在博客整体作出设置或改进的才加以说明。另外，也可以将一些固定的站点信息放置在系统日志页，比如站点的多点部署信息，读者可以根据此信息访问最快、最合适的节点。</p>
-
-<p><img src="https://i.lisz.top/blog/7QLEc6.webp" alt="系统日志 Log" /></p>
-
-<h3 id="使用体验提升">使用体验提升</h3>
-
-<p>  廖柯宇也在 H2O 主题的默认页面中写道，目前 H2O 主题还有一些可优化的内容，比如夜间模式、查看大图等。这里，根据个人的一些实际需求和了解，在 H2O-ac 主题中做了调整。</p>
-
-<h4 id="社交图标扩展">社交图标扩展</h4>
-
-<p>  H2O 原有的社交图标其实已经比较广泛，只是还有些领域局限性，比如学术研究人员可能更希望展示谷歌学术、ResearchGate、ORCID 等社交图标及链接，而运维开发人员可能更希望展示 SegmentFault、CSDN、博客园等社交图标及链接。这里在 H2O 提供的社交图标类型基础上做了这些平台图标的扩充，同时尝试了 Symbol 引用的方式来实现社交图标鼠标悬停的效果，从而简化代码（H2O 采用的是字体图标的方式，需要为每一个社交图标定义不同的主题色）。</p>
-
-<p><img src="https://i.lisz.top/blog/UpnQdk.webp" alt="社交图标 SNS" /></p>
-
-<h4 id="查看大图">查看大图</h4>
-
-<p>  查看大图功能的确对于读者的阅读体验来说有很大的提升。就像我们阅读文献一样，可能首先会只看文章附图来大致掌握文章的核心点。博文的查看大图功能也可能有这样的异曲同工之妙。这里是采用的 <a href="https://fancyapps.com/docs/ui/fancybox">Fancybox</a> 插件实现的。H2O-ac 主题中只使用了最简单的配置，用户可以根据需求查看文档做出更多的修改。</p>
-
-<p><img src="https://i.lisz.top/blog/BzfBoz.webp" alt="查看大图 Fancybox" /></p>
-
-<p>(2022年4月30日更新)</p>
-
-<p>  ，由于 fancybox 库作者对原使用的 v3.5.7 版本不再进行维护和更新，现将版本更新至新的 v4.0 版本，即 <a href="https://github.com/fancyapps/ui">fancyapps/ui</a>。另，新增将 alt 内容作为图片的描述显示在 fancybox 中。</p>
-
-<h4 id="深色模式切换按钮">深色模式切换按钮</h4>
-
-<p>(2022年4月30日更新)</p>
-
-<p>  原来 H2O 主题的深色模式切换需要在 _config.yml 文件中配置开启，并且只能在固定时间段使用。此次更新在页面右上角提供了深色/浅色模式一键切换按钮，如下图所示。由于更新了深色模式采用 cookie 的方式来确定，此深色模式切换按钮可以与原来的深色模式配置共存。</p>
-
-<p><img src="https://i.lisz.top/blog/EPhFN9.webp" alt="浅色模式 Day mode" /></p>
-
-<p><img src="https://i.lisz.top/blog/BD7BqC.webp" alt="深色模式 Night mode" /></p>
-
-<h4 id="提示框">提示框</h4>
-
-<p>(2022年4月30日更新)</p>
-
-<p>  通过引入 <a href="https://github.com/lazee/premonition">lazee/premonition</a> 库新增五种提示框：笔记、提示、警告、错误、引用，完全兼容原生 Markdown 语法，并对样式进行了主题适应。以下为五种提示框的实际效果。</p>
-
-<div class="premonition note"> <div class="header"> <svg class="icon note" aria-hidden="true"> <use xlink:href="#icon-note"></use> </svg> <div class="title"> Note </div> </div> <div class="content"> <p>The body of the note goes here. Premonition allows you to write any <code class="language-plaintext highlighter-rouge">Markdown</code> inside the block.</p>
-
-
-
- </div> </div>
-<div class="premonition info"> <div class="header"> <svg class="icon info" aria-hidden="true"> <use xlink:href="#icon-info"></use> </svg> <div class="title"> 小提示 </div> </div> <div class="content"> <p>The body of the info goes here. Premonition allows you to write any <code class="language-plaintext highlighter-rouge">Markdown</code> inside the block.</p>
-
-
-
- </div> </div>
-<div class="premonition warning"> <div class="header"> <svg class="icon warning" aria-hidden="true"> <use xlink:href="#icon-warning"></use> </svg> <div class="title"> Warning </div> </div> <div class="content"> <p>The body of the warning goes here. Premonition allows you to write any <code class="language-plaintext highlighter-rouge">Markdown</code> inside the block.</p>
-
-
-
- </div> </div>
-<div class="premonition error"> <div class="header"> <svg class="icon error" aria-hidden="true"> <use xlink:href="#icon-error"></use> </svg> <div class="title"> Error </div> </div> <div class="content"> <p>The body of the error goes here. Premonition allows you to write any <code class="language-plaintext highlighter-rouge">Markdown</code> inside the block.</p>
-
-
-
- </div> </div>
-<div class="premonition citation"> <div class="header"> <svg class="icon citation" aria-hidden="true"> <use xlink:href="#icon-citation"></use> </svg> </div> <div class="content"> <p>To be or not to be is a question.</p>
-
-
-
- </div> <div class="ref"> ------ 莎士比亚 </div> </div>
-<h4 id="代码高亮优化">代码高亮优化</h4>
-
-<p>  本人使用 H2O 主题的时候代码高亮功能还是沿用的 Jekyll 自带的，后来 H2O 主题也开始采用了 <a href="https://prismjs.com/">Prism.js</a>。不过由于使用的是 <code class="language-plaintext highlighter-rouge">OKAIDIA</code> 高亮主题，所以有些段落中的格式化字段显示上有些问题。这里，仍然采用默认主题，并且扩增到 Prism.js 支持的所有编程语言类型。效果可以从前一句的 OKAIDIA 字段和下面即将出现的代码片段看出。</p>
-
-<div class="language-css highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">@font-face</span> <span class="p">{</span>
-  <span class="nl">font-family</span><span class="p">:</span> <span class="s2">'Merriweather'</span><span class="p">;</span>
-  <span class="nl">src</span><span class="p">:</span> <span class="n">local</span><span class="p">(</span><span class="s2">'Merriweather'</span><span class="p">),</span> <span class="sx">url(https://fonts.gstatic.com/...)</span> <span class="n">format</span><span class="p">(</span><span class="s2">'woff2'</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>(2022年5月14日更新)</p>
-
-<p>  更换 Prism 库加载方式，采用按需自动加载代码类型，尽可能减少因 Prism 造成的阻塞。修复了某些样式问题。增加显示行数支持、官方主题选择支持。如下所示可以进行设置，具体主题风格样式可以访问 <a href="https://prismjs.com/">Prism 官网</a> 了解更多。</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Prism</span>
-<span class="na">prism</span><span class="pi">:</span>
-  <span class="na">theme</span><span class="pi">:</span> <span class="s">tomorrow</span>
-  <span class="na">line_numbers</span><span class="pi">:</span> <span class="kc">true</span>
-</code></pre></div></div>
-
-<h4 id="代码复制">代码复制</h4>
-
-<p>(2022年5月1日更新)</p>
-
-<p>  由于主题设置有复制自动添加版权保护文字，导致复制代码或无法直接使用。但是如果直接去掉版权保护又不大合适，于是新增代码复制功能。当使用如下所示代码片段右上角的复制按钮时，代码会被复制到粘贴板，且不包含版权保护文字，可以放心直接使用。</p>
-
-<p>(2022年5月14日更新)</p>
-
-<p>  调整复制按钮位置，自动识别代码块的代码类型并显示。</p>
-
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Target --&gt;</span>
-<span class="nt">&lt;input</span> <span class="na">id=</span><span class="s">"foo"</span> <span class="na">value=</span><span class="s">"https://github.com/zenorocha/clipboard.js.git"</span><span class="nt">&gt;</span>
-
-<span class="c">&lt;!-- Trigger --&gt;</span>
-<span class="nt">&lt;button</span> <span class="na">class=</span><span class="s">"btn"</span> <span class="na">data-clipboard-target=</span><span class="s">"#foo"</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">"assets/clippy.svg"</span> <span class="na">alt=</span><span class="s">"Copy to clipboard"</span><span class="nt">&gt;</span>
-<span class="nt">&lt;/button&gt;</span>
-</code></pre></div></div>
-
-<h4 id="字数统计及阅读时间估计">字数统计及阅读时间估计</h4>
-
-<p>  字数统计及阅读时间估计这个小功能其实以前在用 WordPress 的时候比较常见。虽然说统计和估计的结果不一定完全准确，但是还是起到了一定的辅助阅读的作用。效果可以查看本页标题下的基本信息区域。</p>
-
-<h4 id="时间本地化与最近更新时间">时间本地化与最近更新时间</h4>
-
-<p>(2022年5月22日更新)</p>
-
-<p>  为了支持来自不同时区的读者直接可以看到文章发布对应的本地时间，现已利用 dayjs 新增<strong>时间本地化</strong>功能。并利用 Github API 查询页面的最近一次 commit 更新时间作为文章<strong>最近更新时间</strong>。效果如下图所示。</p>
-
-<p><img src="https://i.lisz.top/blog/Anb4xH.webp" alt="构建位置时区 Jekyll deployment timezone" />
-<img src="https://i.lisz.top/blog/NMPXmQ.webp" alt="读者时区 Reader timezone" /></p>
-
-<p>  如需使用<strong>最近更新时间</strong>功能，务必在 _config.yml 文件中添加以下配置项：</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Github</span>
-<span class="na">github</span><span class="pi">:</span>
-  <span class="na">enabled</span><span class="pi">:</span> <span class="kc">true</span>
-  <span class="na">owner</span><span class="pi">:</span> <span class="s">github_username</span>
-  <span class="na">repository</span><span class="pi">:</span> <span class="s">github_project_name</span>
-</code></pre></div></div>
-
-<p>  如未正确进行以上配置，默认会将最近更新时间与发布时间保持一致。</p>
-
-<h4 id="版权显式声明">版权显式声明</h4>
-
-<p>(2022年5月18日更新)</p>
-
-<p>  之前的版本只会在页面底部的信息栏中显示一个 CC 4.0 的小图标，不是很醒目。根据调研其他静态网站主题，发现一般都会在文章的末尾自动生成一个比较醒目的版权声明。另外，在版权声明中也将根据最近更新时间来判断内容是否可能过时。如果最近更新时间距离当前时间大于 365 天，则会显示具体日期并提醒有内容过时的可能。效果如下所示。</p>
-
-<p><img src="https://i.lisz.top/blog/scNRyd.webp" alt="版权显式声明 Copyright" />
-<img src="https://i.lisz.top/blog/C8RWtL.webp" alt="内容可能过时提醒 Long time ago notification" /></p>
-
-<h4 id="文章侧边索引导航">文章侧边索引导航</h4>
-
-<p>(2022年1月9日更新)</p>
-
-<p>  在一些基于 Bootstrap 前端框架的 Jekyll 主题中，这个功能比较常见。由于本主题未使用 Bootstrap 前端框架，所以添加起来稍微有些麻烦，现已增加此功能。在浏览器窗口超过 1050 px 的情况下，在文章页面可以正常看到右侧的文章侧边索引导航。当窗口滑动时，侧边索引导航也会跟着滑动。在浏览器窗口不足 1050 px 的情况下，侧边索引导航自动隐藏。在 _config.yml 配置文件中，可以通过设置 <code class="language-plaintext highlighter-rouge">toc: false</code> 来全局禁用此功能。</p>
-
-<p>(2022年4月30日更新)</p>
-
-<p>  在原来的基础上增加了跟随左侧内容滑动高亮。当左侧内容向上或向下滑动时，右侧索引导航将会使对应的对应一级标题高亮。</p>
-
-<p>(2022年5月14日更新)</p>
-
-<p>  为文章的移动端页面添加了索引导航按钮。鉴于单页面的内容有限及侧边位置空间有限，暂未对单页面进行支持。</p>
-
-<h4 id="支持-waline-评论系统">支持 Waline 评论系统</h4>
-
-<p>  目前已支持基于 Valine 衍生的简洁、安全的评论系统。可以根据官方提供的 <a href="https://waline.js.org/guide/get-started.html">快速上手</a> 进行配置，以下为 _config.yml 中需要配置的内容：</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># _config.yml</span>
-
-<span class="na">comments</span><span class="pi">:</span>
-  <span class="na">waline</span><span class="pi">:</span> <span class="kc">true</span>
-  <span class="na">waline_url</span><span class="pi">:</span> <span class="s">https://xxxxxx.vercel.app</span>
-</code></pre></div></div>
-
-<p>  <del>目前未对多评论系统同时支持进行优化，所以如果 Disqus 和 Waline 同时开启时，Disqus 在前 Waline 在后同时出现。如果用户环境无法访问 Disqus 即只能看到 Waline。</del></p>
-
-<p>(2022年5月22日更新)</p>
-
-<p>  新增多评论切换按钮：当同时使用 Disqus 和 Waline 时，会在评论区域的右上角看到一个左右滑动切换按钮。如下所示，从左往右滑动即可从 Disqus 切换到 Waline。</p>
-
-<p>  同时修复了手动切换深色模式时 Disqus 不会自动切换模式而造成的显示问题。目前在模式切换时 Disqus 会主动进行重新加载以适应当前模式。</p>
-
-<p><img src="https://i.lisz.top/blog/WBgbUB.webp" alt="Disqus 评论系统 Disqus comment" />
-<img src="https://i.lisz.top/blog/45JQ9H.webp" alt="Waline 评论系统 Waline comments" /></p>
-
-<h4 id="支持-pwa">支持 PWA</h4>
-
-<p>(2022年5月11日更新)</p>
-
-<p>  全面支持 PWA，访问速度得到较大提升。移动端访问可以像原生 APP 那样使用。如果访问过全站一遍之后，则可以完全离线使用。如下所示，可以配置 PWA 的主题色和短名称。</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># PWA</span>
-<span class="na">pwa</span><span class="pi">:</span>
-  <span class="na">color</span><span class="pi">:</span> <span class="s1">'</span><span class="s">#81BBFF'</span>
-  <span class="na">short_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">lisz'</span>
-</code></pre></div></div>
-
-<h4 id="配置项">配置项</h4>
-
-<p>  配置项中新增了<strong>友情链接</strong>和<strong>备案号</strong>功能，可以直接在 _config.yml 文件的对应配置项下设置即可，如下所示。友情链接主要是方便跟其他博主交换友链，备案号主要是为了方便部署在国内需备案的 vps 或虚拟主机上。此处，二者都可以置空。</p>
-
-<p>(2022年4月30日更新)</p>
-
-<p>  新增<strong>全站一键灰度化功能</strong>、<strong>时间格式</strong>配置。在国家公祭日等需要灰度化以示哀悼的时候可以将灰度化配置设置为 true，平常使用默认配置 false。时间格式这里一共提供了 3 种：第一种中英文站点使用皆宜，第二种适用于英文站点，第三种适用于中文站点。默认时间格式为第一种。</p>
-
-<p>(2022年5月14日更新)</p>
-
-<p>  新增 <a href="https://busuanzi.ibruce.info/"><strong>不蒜子</strong></a> 统计方式，可以显示全站访问次数、全站访问用户数、文章页面阅读量。如下设置可以开启。</p>
-
-<p>(2022年5月16日更新)</p>
-
-<p>  新增 <a href="https://github.com/mikecao/umami"><strong>umami</strong></a> 统计方式，需要自行先搭建 umami 然后接入。接入配置只需要如下所示配置跟踪 id 和 JS 脚本地址。</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Links 友情链接</span>
-<span class="na">links</span><span class="pi">:</span>
-  <span class="s1">'</span><span class="s">Mr</span><span class="nv"> </span><span class="s">Li'</span><span class="err">:</span> <span class="s1">'</span><span class="s">https://lisz.me'</span>
-
-<span class="c1"># Beian 备案号</span>
-<span class="na">beian</span><span class="pi">:</span> <span class="s1">'</span><span class="s">沪ICP备xxxxxxxx号'</span>
-
-<span class="c1"># Gray 灰度化</span>
-<span class="na">gray</span><span class="pi">:</span> <span class="kc">true</span>
-
-<span class="c1"># Time format 时间格式 </span>
-<span class="c1"># 0 -- 2022-04-29    1 -- 29 Apr 2022   2 -- 2022年4月29日</span>
-<span class="na">formats</span><span class="pi">:</span>
-  <span class="na">time</span><span class="pi">:</span> <span class="s">0</span> 
-
-<span class="c1"># Busuanzi Analytics</span>
-<span class="na">busuanzi</span><span class="pi">:</span> <span class="kc">true</span>
-
-<span class="c1"># Umami Analytics</span>
-<span class="na">umami</span><span class="pi">:</span>
-  <span class="na">status</span><span class="pi">:</span> <span class="kc">true</span>
-  <span class="na">id</span><span class="pi">:</span> <span class="s">xxxxxxxxxxxxx</span>
-  <span class="na">js</span><span class="pi">:</span> <span class="s">https://umami.example.com/umami.js</span>
-</code></pre></div></div>
-
-<h4 id="前端自动构建工作流优化">前端自动构建工作流优化</h4>
-
-<p>  H2O 主题中使用了 Gulp + <del>Node-Sass</del> Sass 的方案来自动化前端构建工作流。不得不说，这个方案还是很不错的，只是随着 Gulp 和 <del>Node-Sass</del> Sass 版本的更新，对 NodeJS 环境及其他依赖库都有一些要求。这里，H2O-ac 主题在 package.json 文件中将所有库都更新到目前最新，对应版本列表如下所示。另外，为了减少一些第三方 CSS 样式的请求数，利用自动构建工作流将固定的第三方 CSS 样式文件合并并压缩为 plugins.min.css 文件。app.min.css 仍为多个自编写 CSS 样式文件的合并压缩。</p>
-
-<table>
-  <thead>
-    <tr>
-      <th style="text-align: center">运行环境或依赖库</th>
-      <th style="text-align: center">版本号</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="text-align: center">NodeJS</td>
-      <td style="text-align: center">v17.0.0</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp</td>
-      <td style="text-align: center">v4.0.2</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp-clean-css</td>
-      <td style="text-align: center">v4.3.0</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp-rename</td>
-      <td style="text-align: center">v20.0</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp-sass</td>
-      <td style="text-align: center">v5.0.0</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp-uglify</td>
-      <td style="text-align: center">v3.0.2</td>
-    </tr>
-    <tr>
-      <td style="text-align: center">gulp-concat</td>
-      <td style="text-align: center">v2.6.1</td>
-    </tr>
-    <tr>
-      <td style="text-align: center"><del>node-sass</del></td>
-      <td style="text-align: center"><del>v7.0.0</del></td>
-    </tr>
-    <tr>
-      <td style="text-align: center">sass</td>
-      <td style="text-align: center">v1.51.0</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="使用方法">使用方法</h2>
-
-<h3 id="初始化">初始化</h3>
-
-<h4 id="方式一从模板新建博客">方式一：从模板新建博客</h4>
-
-<p>  为了方便用户使用 H2O-ac 主题，特别提供了 Github 的模板功能。如下图所示，访问 <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">H2O-ac</a> 可以看到如下的 Use this template 按钮，点击该按钮即可用 H2O-ac 主题创建自己的博客代码仓库。想要了解更多步骤，可以访问 Github 官方文档之 <a href="https://docs.github.com/cn/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template">从模板创建仓库</a>。</p>
-
-<p><img src="https://i.lisz.top/blog/oHHZZh.webp" alt="从模板新建 Start the blog from the template" /></p>
-
-<h4 id="方式二已有博客迁移">方式二：已有博客迁移</h4>
-
-<p>  <del>暂时无法支持 gem 直接切换主题，后续将更新此方式。目前只能使用方式一创建仓库后，将文章的 markdown 文件复制到 _posts 目录下应用 H2O-ac 主题。</del></p>
-
-<p>(2021年12月26日更新)</p>
-
-<p>  现已支持使用 gem 直接切换主题 <code class="language-plaintext highlighter-rouge">jekyll-theme-h2o-ac</code>。同时，也推出了一键式构建工具 <a href="https://github.com/zhonger/easy-to-h2o-ac">easy-to-h2o-ac</a>，详细可以见项目主页。</p>
-
-<h3 id="本地测试">本地测试</h3>
-
-<p>  在进行本地测试时，如果需要修改一些样式，则需要先执行 <code class="language-plaintext highlighter-rouge">npm install</code> 来完成前端自动构建工作流依赖库的安装。注意，这里设定的可用 NodeJS 版本为 v17.0.0，使用老版本会报错。其次，务必使用 <code class="language-plaintext highlighter-rouge">bundle install</code> 安装主题所需的所有 Ruby 依赖库。最后执行 <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --livereload</code> 命令即可在本地实时同步预览。只要不修改 _config.yml 文件，不必中断后再启动。然后就是在 <code class="language-plaintext highlighter-rouge">_posts</code> 目录下写 markdown 文章即可。</p>
-
-<h3 id="发布部署">发布部署</h3>
-
-<p>  由于 Github 提供 Jekyll 静态生成器的静态页面托管，只要打开仓库的 Pages 功能，当推送更新到 Github 时即会自动部署。此处值得注意的是，如果代码仓库的名字不是 <code class="language-plaintext highlighter-rouge">username.github.io</code>，而也没有为该仓库的 Pages 提供自定义域名，那么这个仓库将会被部署到子目录，因此此时必须在 _config.yml 文件中设置 base_url，从而生成正常的静态页面。</p>
-
-<h2 id="结束语">结束语</h2>
-
-<p>  再次感谢廖柯宇及其他小伙伴们对 H2O 主题的付出，没有 H2O 主题就没有 H2O-ac 主题！H2O-ac 主题后续也将继续更新，欢迎小伙伴们使用和 <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">Star</a>，也欢迎大家一起来贡献代码。</p>
-
-<p>（Ps: <del>由于沿用了 H2O 的 Logo，可能会侵犯廖柯宇的版权。如果的确如此，后续将会设计一个新的 Logo。</del> 已采用新 Logo。）
-（2022年1月10日更新）</p>]]></content><author><name>zhonger</name></author><category term="tech" /><category term="jekyll" /><category term="theme" /><category term="blog" /><category term="ac" /><category term="develop" /><category term="主题" /><category term="前端开发" /><category term="学术" /><category term="运维" /><summary type="html"><![CDATA[前言]]></summary></entry><entry><title type="html">经典算法题</title><link href="https://gbcpp.github.io/algorithm.html" rel="alternate" type="text/html" title="经典算法题" /><published>2019-06-11T00:00:00+00:00</published><updated>2019-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/algorithm</id><content type="html" xml:base="https://gbcpp.github.io/algorithm.html"><![CDATA[<h2 id="二叉树遍历">二叉树遍历</h2>
-
-<ul>
-  <li>
-    <p>前序遍历
-  根结点 —&gt; 左子树 —&gt; 右子树</p>
-  </li>
-  <li>
-    <p>中序遍历
-  左子树—&gt; 根结点 —&gt; 右子树</p>
-  </li>
-  <li>
-    <p>后序遍历
-  左子树 —&gt; 右子树 —&gt; 根结点</p>
-  </li>
-  <li>
-    <p>层次遍历
-  只需按层次遍历即可</p>
-  </li>
-</ul>
-
-<!--more-->
-
-<p>二叉树数据结构：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">TreeNode</span><span class="p">{</span>
-    <span class="kt">int</span> <span class="n">value</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="o">*</span> <span class="n">left</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="o">*</span> <span class="n">right</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="o">:</span> <span class="n">val</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">left</span><span class="p">(</span><span class="nb">NULL</span><span class="p">),</span> <span class="n">right</span><span class="p">(</span><span class="nb">NULL</span><span class="p">)</span> <span class="p">{}</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h3 id="前序遍历">前序遍历</h3>
-
-<ul>
-  <li>递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">PreTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
-    <span class="n">PreOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
-    <span class="n">PreOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<ul>
-  <li>非递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">PreTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">stack</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">stack_list</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="o">*</span> <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span> <span class="o">||</span> <span class="o">!</span><span class="n">stack_list</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span><span class="p">;</span>
-            <span class="n">stack_list</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">);</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
-        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-            <span class="n">TreeNode</span> <span class="n">node</span> <span class="o">=</span> <span class="n">stack_list</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">right</span><span class="p">;</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h3 id="中序遍历">中序遍历</h3>
-
-<ul>
-  <li>递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">MiddleTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">MiddleOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
-    <span class="n">MiddleOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<ul>
-  <li>非递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">MiddleTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span> 
-<span class="p">{</span>
-    <span class="n">stack</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">stack_list</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="o">*</span> <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-    <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span> <span class="o">||</span> <span class="o">!</span><span class="n">stack_list</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">stack</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">);</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
-        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-            <span class="n">TreeNode</span> <span class="o">*</span><span class="n">node</span> <span class="o">=</span> <span class="n">stack_list</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-            <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">node</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span><span class="p">;</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">;</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h3 id="后序遍历">后序遍历</h3>
-
-<ul>
-  <li>递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">MiddleTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">MiddleOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
-    <span class="n">MiddleOrder</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">root</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<ul>
-  <li>非递归遍历</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">MiddleTraverse</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span> 
-<span class="p">{</span>
-    <span class="n">stack</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">stack_list</span><span class="p">;</span>
-    <span class="n">TreeNode</span><span class="o">*</span> <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-    <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span> <span class="o">||</span> <span class="o">!</span><span class="n">stack_list</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tmp_root</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">stack</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">);</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
-        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-            <span class="n">TreeNode</span> <span class="o">*</span><span class="n">node</span> <span class="o">=</span> <span class="n">stack_list</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-            <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">tmp_root</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">;</span>
-            <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">node</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span><span class="p">;</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="广度优先层次遍历">广度优先/层次遍历</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
- * Definition for a binary tree node.
- * struct TreeNode {
- *     int val;
- *     TreeNode *left;
- *     TreeNode *right;
- *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
- * };
- */</span>
-<span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
-<span class="nl">public:</span>
-    <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">levelOrder</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span> <span class="n">ret_vec</span><span class="p">;</span>
-        
-        <span class="n">queue</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">stack_node</span><span class="p">;</span>
-        <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
-        <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">stack_node</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-            <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="n">stack_node</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
-            <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">tmp_vec</span><span class="p">;</span>
-            <span class="k">while</span><span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">TreeNode</span><span class="o">*</span> <span class="n">node</span> <span class="o">=</span> <span class="n">stack_node</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
-                <span class="n">stack_node</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-                <span class="n">tmp_vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">);</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span> <span class="p">{</span>
-                    <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
-                <span class="p">}</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">)</span> <span class="p">{</span>
-                    <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
-                <span class="p">}</span>                  
-            <span class="p">}</span>   
-            <span class="n">ret_vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmp_vec</span><span class="p">);</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="n">ret_vec</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">};</span>
-</code></pre></div></div>
-
-<h2 id="深度优先遍历">深度优先遍历</h2>
-
-<p>递归遍历</p>
-
-<h2 id="求二叉树最大宽度">求二叉树最大宽度</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Solution</span> <span class="p">{</span>
-<span class="nl">public:</span>
-    <span class="kt">int</span> <span class="n">widthOfBinaryTree</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="n">queue</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">stack_node</span><span class="p">;</span>
-        <span class="n">TreeNode</span><span class="o">*</span> <span class="n">pNode</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-        <span class="kt">int</span> <span class="nf">max_width</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-        <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">pNode</span><span class="p">);</span>
-        <span class="k">while</span><span class="p">(</span><span class="n">pNode</span><span class="p">)</span> <span class="p">{</span>
-            <span class="kt">size_t</span> <span class="n">count</span> <span class="o">=</span> <span class="n">stack_node</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">&gt;</span> <span class="n">max_width</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">max_width</span> <span class="o">=</span> <span class="n">count</span><span class="p">;</span>
-            <span class="p">}</span>
-            <span class="k">while</span><span class="p">(</span><span class="n">count</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">TreeNode</span><span class="o">*</span> <span class="n">node</span> <span class="o">=</span> <span class="n">stack_node</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
-                <span class="n">stack_node</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">)</span>
-                    <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">)</span>
-                    <span class="n">stack_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">);</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="n">max_width</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">};</span>
-</code></pre></div></div>
-
-<h2 id="判断二叉树是否对称">判断二叉树是否对称</h2>
-
-<ul>
-  <li>递归判断</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span> <span class="nf">IsMirror</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">left</span><span class="p">,</span> <span class="n">TreeNode</span><span class="o">*</span> <span class="n">right</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">left</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">right</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">left</span> <span class="o">||</span> <span class="o">!</span><span class="n">right</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">left</span><span class="o">-&gt;</span><span class="n">val</span> <span class="o">==</span> <span class="n">right</span><span class="o">-&gt;</span><span class="n">val</span><span class="p">)</span> 
-                <span class="o">&amp;&amp;</span> <span class="n">IsMirror</span><span class="p">(</span><span class="n">left</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">)</span> 
-                <span class="o">&amp;&amp;</span> <span class="n">IsMirror</span><span class="p">(</span><span class="n">left</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">,</span> <span class="n">right</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">);</span> 
-<span class="p">}</span>
-
-<span class="kt">bool</span> <span class="nf">IsMirror</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="n">IsMirror</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">root</span><span class="p">);</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<ul>
-  <li>非递归/迭代法判断</li>
-</ul>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span> <span class="nf">IsMirror</span><span class="p">(</span><span class="n">TreeNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">queue</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">*&gt;</span> <span class="n">queue_node</span><span class="p">;</span>
-    <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
-    <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">root</span><span class="p">);</span>
-    <span class="k">while</span><span class="p">(</span><span class="o">!</span><span class="n">queue_node</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="n">TreeNode</span><span class="o">*</span> <span class="n">t1</span> <span class="o">=</span> <span class="n">queue_node</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-        <span class="n">TreeNode</span><span class="o">*</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">queue_node</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">t1</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">t2</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">continue</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="n">t1</span> <span class="o">||</span> <span class="o">!</span><span class="n">t2</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">t1</span><span class="p">.</span><span class="n">left</span><span class="p">);</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">t2</span><span class="p">.</span><span class="n">right</span><span class="p">);</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">t1</span><span class="p">.</span><span class="n">right</span><span class="p">);</span>
-        <span class="n">queue_node</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">t2</span><span class="p">.</span><span class="n">left</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="大数相乘">大数相乘</h2>
-
-<p>是指那些相乘结果或是乘数本身用long long类型都会溢出的数字，通常这些数字都通过string类型进行表示，借助于可动态调整大小的数据结构（vector,string,deque）模拟实现数字的乘法操作。对于普通的乘法，我们知道m位数和n位数相乘，最后的结果位数在区间内[m+n-1,m+n]。例如34*56，我们通常这么计算： 
-将3，4分别于6相乘，记录低位的进位，然后将3，4对5进行相同的操作，知道第二个乘数的最高位乘完，算法结束。 
-所以我们可以保存每个位数的相乘结果，最后统一进位转换。</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span><span class="cpf">&lt;iostream&gt;</span><span class="cp">
-#include</span><span class="cpf">&lt;deque&gt;</span><span class="cp">
-#include</span><span class="cpf">&lt;sstream&gt;</span><span class="cp">
-</span>
-<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="nf">BigNumMultiply</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s1</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">s2</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="c1">//记录最终结果</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">res</span> <span class="o">=</span> <span class="s">""</span><span class="p">;</span>
-    <span class="c1">//使用deque是因为出现进位时可以在队列前插入数据，效率比vector高，大小设为最小</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">vec</span><span class="p">(</span><span class="n">s1</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="n">s2</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">s1</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">s2</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">vec</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="sc">'0'</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">s2</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="sc">'0'</span><span class="p">);</span><span class="c1">//记录相乘结果</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="c1">// 进位处理</span>
-    <span class="kt">int</span> <span class="n">addflag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="c1">// 倒序遍历，是因为最左边的值为最高位，最右边的值在最低位，进位运算要从低位开始</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vec</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">int</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">addflag</span><span class="p">;</span><span class="c1">//当前值加上进位值</span>
-        <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">%</span> <span class="mi">10</span><span class="p">;</span><span class="c1">//当前值</span>
-        <span class="n">addflag</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">/</span> <span class="mi">10</span><span class="p">;</span><span class="c1">//进位值</span>
-    <span class="p">}</span>
-    <span class="c1">//如果有进位，将进位加到队列头部</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">addflag</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">int</span> <span class="n">t</span> <span class="o">=</span> <span class="n">addflag</span> <span class="o">%</span> <span class="mi">10</span><span class="p">;</span>
-        <span class="n">vec</span><span class="p">.</span><span class="n">push_front</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
-        <span class="n">addflag</span> <span class="o">/=</span> <span class="mi">10</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="c1">// 转换为字符串</span>
-    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">c</span> <span class="o">:</span> <span class="n">vec</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">ss</span><span class="p">;</span>
-        <span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="n">c</span><span class="p">;</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="o">+</span> <span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">res</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="反转链表">反转链表</h2>
-
-<p>反转一个单链表。</p>
-
-<p>解决方案</p>
-<h3 id="迭代">迭代</h3>
-
-<blockquote>
-  <p>假设存在链表 1 → 2 → 3 → Ø，我们想要把它改成 Ø ← 1 ← 2 ← 3。</p>
-</blockquote>
-
-<p>在遍历列表时，将当前节点的 next 指针改为指向前一个元素。由于节点没有引用其上一个节点，因此必须事先存储其前一个元素。在更改引用之前，还需要另一个指针来存储下一个节点。不要忘记在最后返回新的头引用！</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ListNode</span><span class="o">*</span> <span class="nf">ReverseList</span><span class="p">(</span><span class="n">ListNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span> <span class="o">||</span> <span class="o">!</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">root</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">prev</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">cur</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">cur</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">ListNode</span><span class="o">*</span> <span class="n">tmp</span> <span class="o">=</span> <span class="n">cur</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
-        <span class="n">cur</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">prev</span><span class="p">;</span>
-        <span class="n">prev</span> <span class="o">=</span> <span class="n">cur</span><span class="p">;</span>
-        <span class="n">cur</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">prev</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>复杂度分析</p>
-
-<ul>
-  <li>
-    <p>时间复杂度：O(n)O(n) 。 假设 nn 是列表的长度，时间复杂度是 O(n)O(n)。</p>
-  </li>
-  <li>
-    <p>空间复杂度：O(1)O(1) 。</p>
-  </li>
-</ul>
-
-<h3 id="递归">递归</h3>
-
-<p>递归版本稍微复杂一些，其关键在于反向工作。假设列表的其余部分已经被反转，现在我该如何反转它前面的部分？假设列表为：n1 → … → nk-1 → nk → nk+1 → … → nm → Ø</p>
-
-<p>若从节点 nk+1 到 nm 已经被反转，而我们正处于 nk。</p>
-
-<blockquote>
-  <p>n1 → … → nk-1 → nk → nk+1 ← … ← nm</p>
-</blockquote>
-
-<p>我们希望 nk+1 的下一个节点指向 nk。</p>
-
-<p>所以，</p>
-
-<blockquote>
-  <p>nk.next.next = nk;</p>
-</blockquote>
-
-<p>要小心的是 n1 的下一个必须指向 Ø 。如果你忽略了这一点，你的链表中可能会产生循环。如果使用大小为 2 的链表测试代码，则可能会捕获此错误。</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ListNode</span><span class="o">*</span> <span class="nf">ReverseList</span><span class="p">(</span><span class="n">ListNode</span><span class="o">*</span> <span class="n">root</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">root</span> <span class="o">||</span> <span class="o">!</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">root</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">tmp_node</span> <span class="o">=</span> <span class="n">reverseList</span><span class="p">(</span><span class="n">root</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">);</span>
-    <span class="n">root</span><span class="o">-&gt;</span><span class="n">next</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">root</span><span class="p">;</span>
-    <span class="n">root</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">tmp_node</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>复杂度分析</p>
-
-<ul>
-  <li>
-    <p>时间复杂度：O(n)O(n) 。 假设 nn 是列表的长度，那么时间复杂度为 O(n)O(n)。</p>
-  </li>
-  <li>
-    <p>空间复杂度：O(n)O(n) 。 由于使用递归，将会使用隐式栈空间。递归深度可能会达到 nn 层。</p>
-  </li>
-</ul>
-
-<h2 id="二叉树转换为双向链表">二叉树转换为双向链表</h2>
-
-<p>题目：输入一棵二叉搜索树（二叉查找树），将该二叉搜索树转换成一个排序的双向链表。要求不能创建任何新的结点，只能调整树中结点指针的指向。</p>
-
-<p>思路： 这道题目关键在于不能创建新的节点，如不然，我们可以直接将二叉排序树中序遍历保存到一个数组中，而后再建立一个双性链表，将数据保存到双向链表里。
-    这里不能创建新节点，我们只能改变节点的指向左右子树的节点，让其变为指向二叉链表中的前后节点，很明显这里同样用的是中序遍历，因此这道题目依然是中序遍历的变种，中序递归构造实现即可，每次递归都保存一个指向已构造好的双向链表的尾节点的指针，将其与下一个节点连接起来。</p>
-
-<p>代码实现（递归）：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span><span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span><span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span> 
-<span class="k">typedef</span> <span class="k">struct</span> <span class="nc">BSTNode</span>
-<span class="p">{</span>
-	<span class="kt">int</span> <span class="n">data</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="nc">BSTNode</span> <span class="o">*</span><span class="n">left</span><span class="p">;</span>
-	<span class="k">struct</span> <span class="nc">BSTNode</span> <span class="o">*</span><span class="n">right</span><span class="p">;</span>
-<span class="p">}</span><span class="n">BSTNode</span><span class="p">,</span><span class="o">*</span><span class="n">BSTree</span><span class="p">;</span>
- 
-<span class="cm">/*
-根据题目要求的格式创建二叉排序树
-*/</span>
-<span class="kt">void</span> <span class="nf">CreateBST</span><span class="p">(</span><span class="n">BSTree</span> <span class="o">*</span><span class="n">pRoot</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="kt">int</span> <span class="n">data</span><span class="p">;</span>
-	<span class="n">scanf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">data</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-		<span class="n">pRoot</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-	<span class="k">else</span>
-	<span class="p">{</span>
-		<span class="o">*</span><span class="n">pRoot</span> <span class="o">=</span> <span class="p">(</span><span class="n">BSTree</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">BSTNode</span><span class="p">));</span>
-		<span class="k">if</span><span class="p">(</span><span class="o">*</span><span class="n">pRoot</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-			<span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
-		<span class="p">(</span><span class="o">*</span><span class="n">pRoot</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">;</span>
-		<span class="p">(</span><span class="o">*</span><span class="n">pRoot</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-		<span class="p">(</span><span class="o">*</span><span class="n">pRoot</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">right</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-		<span class="n">CreateBST</span><span class="p">(</span><span class="o">&amp;</span><span class="p">((</span><span class="o">*</span><span class="n">pRoot</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">));</span>
-		<span class="n">CreateBST</span><span class="p">(</span><span class="o">&amp;</span><span class="p">((</span><span class="o">*</span><span class="n">pRoot</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">));</span>
-	<span class="p">}</span>
-<span class="p">}</span>
- 
-<span class="cm">/*
-采用中序遍历的方式将二叉树转化为双向链表，
-*pLas指向双向链表的最后一个节点
-*/</span>
-<span class="kt">void</span> <span class="nf">ConvertNode</span><span class="p">(</span><span class="n">BSTree</span> <span class="n">pRoot</span><span class="p">,</span><span class="n">BSTree</span> <span class="o">*</span><span class="n">pLast</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">pRoot</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="k">return</span><span class="p">;</span>
-	
-	<span class="c1">//先转化左子树</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="n">ConvertNode</span><span class="p">(</span><span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">,</span><span class="n">pLast</span><span class="p">);</span>
- 
-	<span class="c1">//将双向链表的最后一个节点与根节点连接在一起</span>
-	<span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">=</span> <span class="o">*</span><span class="n">pLast</span><span class="p">;</span>
-	<span class="k">if</span><span class="p">(</span><span class="o">*</span><span class="n">pLast</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="p">(</span><span class="o">*</span><span class="n">pLast</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">right</span> <span class="o">=</span> <span class="n">pRoot</span><span class="p">;</span>
-	<span class="o">*</span><span class="n">pLast</span> <span class="o">=</span> <span class="n">pRoot</span><span class="p">;</span>
- 
-	<span class="c1">//转换右子树</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">right</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="n">ConvertNode</span><span class="p">(</span><span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">,</span><span class="n">pLast</span><span class="p">);</span>
-<span class="p">}</span>
- 
-<span class="cm">/*
-返回双向链表的头结点
-*/</span>
-<span class="n">BSTree</span> <span class="nf">Convert</span><span class="p">(</span><span class="n">BSTree</span> <span class="n">pRoot</span><span class="p">)</span>
-<span class="p">{</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">pRoot</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-	<span class="k">if</span><span class="p">(</span><span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">left</span><span class="o">==</span><span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">pRoot</span><span class="o">-&gt;</span><span class="n">right</span><span class="o">==</span><span class="nb">NULL</span><span class="p">)</span>
-		<span class="k">return</span> <span class="n">pRoot</span><span class="p">;</span>
- 
-	<span class="n">BSTree</span> <span class="n">pLast</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-	<span class="n">ConvertNode</span><span class="p">(</span><span class="n">pRoot</span><span class="p">,</span><span class="o">&amp;</span><span class="n">pLast</span><span class="p">);</span>
-	
-	<span class="c1">//依次从 last 返回 first 头结点</span>
-	<span class="n">BSTree</span> <span class="n">pHead</span> <span class="o">=</span> <span class="n">pLast</span><span class="p">;</span>
-	<span class="k">while</span><span class="p">(</span><span class="n">pHead</span><span class="o">-&gt;</span><span class="n">left</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-		<span class="n">pHead</span> <span class="o">=</span> <span class="n">pHead</span><span class="o">-&gt;</span><span class="n">left</span><span class="p">;</span>
- 
-	<span class="k">return</span> <span class="n">pHead</span><span class="p">;</span>
-<span class="p">}</span>
- 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-<span class="p">{</span>
-	<span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
-	<span class="k">while</span><span class="p">(</span><span class="n">scanf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span><span class="o">&amp;</span><span class="n">n</span><span class="p">)</span> <span class="o">!=</span> <span class="n">EOF</span><span class="p">)</span>
-	<span class="p">{</span>
-		<span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
-		<span class="k">for</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="n">i</span><span class="o">&lt;</span><span class="n">n</span><span class="p">;</span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
-		<span class="p">{</span>
-			<span class="n">BSTree</span> <span class="n">pRoot</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-			<span class="n">CreateBST</span><span class="p">(</span><span class="o">&amp;</span><span class="n">pRoot</span><span class="p">);</span>
-			<span class="n">BSTree</span> <span class="n">pHead</span> <span class="o">=</span> <span class="n">Convert</span><span class="p">(</span><span class="n">pRoot</span><span class="p">);</span>
-			<span class="k">while</span><span class="p">(</span><span class="n">pHead</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
-			<span class="p">{</span>
-				<span class="n">printf</span><span class="p">(</span><span class="s">"%d "</span><span class="p">,</span><span class="n">pHead</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
-				<span class="n">pHead</span> <span class="o">=</span> <span class="n">pHead</span><span class="o">-&gt;</span><span class="n">right</span><span class="p">;</span>
-			<span class="p">}</span>
- 
-			<span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
-			<span class="n">free</span><span class="p">(</span><span class="n">pRoot</span><span class="p">);</span>
-			<span class="n">pRoot</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-		<span class="p">}</span>
-	<span class="p">}</span>
-	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="反序链表求和">反序链表求和</h2>
-
-<p>Input: (2 -&gt; 4 -&gt; 3) + (5 -&gt; 6 -&gt; 4)
-Output: 7 -&gt; 0 -&gt; 8</p>
-
-<p>思路：
-首先要理解题目，输入的两个链表都是反序存储的。也就是链表首位代表数字的个位，第二位代表数字百位。接下来就和一般求和的题目一样了，维护当前求和结果和进位即可。注意最后要判断，是否还有进位，如果有，还需要再生成一位。</p>
-
-<p>代码实现：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">ListNode</span> <span class="p">{</span>
-    <span class="kt">int</span> <span class="n">value</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">next</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="p">(</span><span class="kt">int</span> <span class="n">vul</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="n">vul</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-<span class="c1">// 注意返回值需要手动释放</span>
-<span class="n">ListNode</span><span class="o">*</span> <span class="nf">AddTwoListNumbers</span><span class="p">(</span><span class="n">ListNode</span><span class="o">*</span> <span class="n">list1</span><span class="p">,</span> <span class="n">ListNode</span><span class="o">*</span> <span class="n">list2</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">l1</span> <span class="o">=</span> <span class="n">list1</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">l2</span> <span class="o">=</span> <span class="n">list2</span><span class="p">;</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">dest</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ListNode</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-    <span class="n">ListNode</span><span class="o">*</span> <span class="n">tmp_dest</span> <span class="o">=</span> <span class="n">dest</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 记录进位</span>
-    <span class="k">while</span><span class="p">(</span><span class="n">l1</span> <span class="o">||</span> <span class="n">l2</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">l1</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">sum</span> <span class="o">+=</span> <span class="n">l1</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
-            <span class="n">l1</span> <span class="o">=</span> <span class="n">l1</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">l2</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">sum</span> <span class="o">+=</span> <span class="n">l2</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
-            <span class="n">l2</span> <span class="o">=</span> <span class="n">l2</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="n">tmp_dest</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">carry</span> <span class="o">+</span> <span class="n">sum</span> <span class="o">%</span> <span class="mi">10</span><span class="p">;</span>
-        <span class="n">tmp_dest</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ListNode</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-        <span class="n">tmp_dest</span> <span class="o">=</span> <span class="n">tmp_dest</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
-        <span class="n">carry</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">/</span> <span class="mi">10</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">carry</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">tmp_dest</span><span class="o">-&gt;</span><span class="n">next</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">carry</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">dest</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>时间复杂度：O(n)</p>
-
-<h2 id="查找字符串中字典序最大的序列">查找字符串中字典序最大的序列</h2>
-
-<p>题目描述：给一个字符串，得到它字典序最大的子序列，即：删除一些字符，使得剩下的字符构成的字符串字典序是最大的</p>
-
-<p>代码实现：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">string</span> <span class="nf">GetMaxString</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">src_str</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">src_str</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="n">stack</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="n">dest</span><span class="p">;</span>
-    <span class="n">string</span> <span class="n">dest_str</span><span class="p">;</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">src_str</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">dest</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-            <span class="n">dest</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">src_str</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>
-            <span class="k">continue</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">dest</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">src_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">dest</span><span class="p">.</span><span class="n">top</span><span class="p">())</span> <span class="p">{</span>
-            <span class="n">dest</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-        <span class="p">}</span>
-        <span class="n">dest</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">src_str</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>
-    <span class="p">}</span>
-    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">dest</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
-        <span class="n">dest_str</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">dest_str</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">dest</span><span class="p">.</span><span class="n">top</span><span class="p">());</span>
-        <span class="n">dest</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">dest_str</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="算法" /><category term="c++" /><summary type="html"><![CDATA[二叉树遍历]]></summary></entry></feed>
+</span></code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="协议" /><summary type="html"><![CDATA[Transform your plain text into static websites and blogs.]]></summary></entry></feed>
