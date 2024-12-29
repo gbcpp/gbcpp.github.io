@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>float 和 int 在 Linux 下的计算性能对比 - Mr Chen</title>
+    <title>Blog title - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="float 和 int 在 Linux 下的计算性能对比">
-    <meta name="keywords"  content="Linux, float">
+    <meta name="description" content="Blog title">
+    <meta name="keywords"  content="Life">
     <!-- Open Graph -->
-    <meta property="og:title" content="float 和 int 在 Linux 下的计算性能对比 - Mr Chen">
+    <meta property="og:title" content="Blog title - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/tech/float-performance-comparation.html">
+    <meta property="og:url" content="https://gbcpp.github.io/blog-templete.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/float-performance.html">
+    <meta property="og:previous_url" content="/tech/new-theme-h2o-ac.html">
     
     
-    <meta property="og:next_url" content="/measure-clock-resolution.html">
+    <meta property="og:next_url" content="/algorithm.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2023-10-30 00:00:00 +0000" />
+    <meta property="post-date" content="2020-01-01 00:00:00 +0000" />
     
     
     
@@ -162,13 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Linux" class="post-tag">Linux</a>
-            
-              <a href="/tags.html#float" class="post-tag">float</a>
+              <a href="/tags.html#Life" class="post-tag">Life</a>
             
           
         </div>
-        <h1>float 和 int 在 Linux 下的计算性能对比</h1>
+        <h1>Blog title</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -176,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="23-10-30">
+          <time class="post-meta-item" datetime="20-01-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="23-10-30">
+          <time class="post-meta-item" datetime="20-01-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -193,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.8k  字
+              本文总共  368  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 6 分钟
+              阅读全文大约需要 2 分钟
             </span>
             
               <span class="post-meta-item">
@@ -226,84 +224,25 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
+            <blockquote>
+  <p>人们对学习的态度分为三种类型：犯人、过客和探索者</p>
+</blockquote>
 
-<p>由于 float 在内存中的存储结构与 int 不同，需要存储指数和尾数，并且 cpu 是不支持直接对 float 进行运算的，需要将 float 各部分进行转换后计算，对结果再次进行反向操作进行存储，所以大部分情况下均不支持直接使用 float 进行运行，建议用 int 进行转换运行结果。</p>
+<h2 id="1-犯人">1. 犯人</h2>
 
-<h2 id="代码">代码</h2>
+<p>  他们可能视学习为一种负担或义务，而不是一种机会或乐趣。他们可能觉得被迫学习，而不是出于内心的愿望或对知识的渴望。这种态度可能会限制他们的学习潜力，因为他们可能无法全身心投入。</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;time.h&gt;</span><span class="cp">
-</span>
-<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
-</span>
-<span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int64_t</span> <span class="n">kCalculateNum</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mi">1000L</span><span class="p">;</span>
+<h2 id="2-过客">2. 过客</h2>
 
-<span class="k">static</span> <span class="kt">int64_t</span> <span class="nf">testFloat</span><span class="p">()</span>  <span class="c1">// return void* in POSIX</span>
-<span class="p">{</span>
-  <span class="k">struct</span> <span class="nc">timespec</span> <span class="n">start_ts</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">;</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start_ts</span><span class="p">);</span>
-  <span class="k">volatile</span> <span class="kt">float</span> <span class="n">d</span> <span class="o">=</span> <span class="mf">999999.</span><span class="n">f</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">kCalculateNum</span><span class="p">;</span> <span class="o">++</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="mf">0.7</span><span class="n">f</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end_ts</span><span class="p">);</span>
-  <span class="k">auto</span> <span class="n">diff_ns</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span> <span class="o">+</span>
-                 <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_nsec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">diff_ns</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">;</span>
-<span class="p">}</span>
+<p>  他们可能对学习有一种漠不关心的态度，只是偶尔参与，没有持续的投入或深度的参与。他们可能在学习中得到一些知识，但可能无法充分利用学习的潜力，因为他们没有深入研究或投入足够的时间。</p>
 
-<span class="k">static</span> <span class="kt">int64_t</span> <span class="nf">testInt</span><span class="p">()</span>  <span class="c1">// return void* in POSIX</span>
-<span class="p">{</span>
-  <span class="k">struct</span> <span class="nc">timespec</span> <span class="n">start_ts</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">;</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start_ts</span><span class="p">);</span>
-  <span class="k">volatile</span> <span class="kt">int32_t</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">999999</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">kCalculateNum</span><span class="p">;</span> <span class="o">++</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="mi">7</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end_ts</span><span class="p">);</span>
-  <span class="k">auto</span> <span class="n">diff_ns</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span> <span class="o">+</span>
-                 <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_nsec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">diff_ns</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">;</span>
-<span class="p">}</span>
+<h2 id="3-探索者">3. 探索者</h2>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">float_duration_us</span> <span class="o">=</span> <span class="n">testFloat</span><span class="p">();</span>
-  <span class="k">auto</span> <span class="n">int_duration_us</span> <span class="o">=</span> <span class="n">testInt</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Float calculate times: "</span> <span class="o">&lt;&lt;</span> <span class="n">kCalculateNum</span>
-            <span class="o">&lt;&lt;</span> <span class="s">" took time: "</span> <span class="o">&lt;&lt;</span> <span class="n">float_duration_us</span> <span class="o">&lt;&lt;</span> <span class="s">"us.</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Int calculate times: "</span> <span class="o">&lt;&lt;</span> <span class="n">kCalculateNum</span>
-            <span class="o">&lt;&lt;</span> <span class="s">" took time: "</span> <span class="o">&lt;&lt;</span> <span class="n">int_duration_us</span> <span class="o">&lt;&lt;</span> <span class="s">"us.</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Float / Int radio: "</span>
-            <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">float_duration_us</span> <span class="o">/</span> <span class="n">int_duration_us</span> <span class="o">*</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
+<p>  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。</p>
 
-<h2 id="执行结果">执行结果</h2>
+<h2 id="总结">总结</h2>
+<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>
 
-<ul>
-  <li>编译</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ test_float.cpp <span class="nt">-g3</span> <span class="nt">-o</span> test_float.exe
-</code></pre></div></div>
-
-<ul>
-  <li>结果</li>
-</ul>
-
-<p>多次执行，结果相当，计算 float 类型耗时大约是 int 整形的 62倍，即性能是 int 的 1/62 左右。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobert@DESKTOP-EJV14VH:~/develop/debug<span class="nv">$ </span>g++ test_float.cpp <span class="nt">-g3</span> <span class="nt">-o</span> test_float.exe
-gobert@DESKTOP-EJV14VH:~/develop/debug<span class="nv">$ </span>./test_float.exe
-Float calculate <span class="nb">times</span>: 100000000 took <span class="nb">time</span>: 2537060us.
-Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">time</span>: 40442us.
-Float / Int radio: 62
-</code></pre></div></div>
-
-<p>由于不同的 CPU 和体系架构对 FPU 支持情况的不同，以及不同的运算方法对结果也有很大的影响， 比如 加、减、乘、除，以及系数的不同：大于 1 或者小于 1 等均有不同的结果，上述结论为选择了较为复杂的计算场景，仅供参考！！</p>
 
             <div class="post-copyright">
               <p>
@@ -319,15 +258,15 @@ Float / Int radio: 62
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 float 和 int 在 Linux 下的计算性能对比 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/tech/float-performance-comparation.html" class="cplink">https://gbcpp.github.io/tech/float-performance-comparation.html</a></p>
+              <p><span>本文标题：</span>《 Blog title 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/blog-templete.html" class="cplink">https://gbcpp.github.io/blog-templete.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('linux下-float-与-int-类型计算性能对比')">Linux下 Float 与 Int 类型计算性能对比</a><ul><li><a onclick="scrollToAdjust('代码')">代码</a></li><li><a onclick="scrollToAdjust('执行结果')">执行结果</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('1.-犯人')">1. 犯人</a></li><li><a onclick="scrollToAdjust('2.-过客')">2. 过客</a></li><li><a onclick="scrollToAdjust('3.-探索者')">3. 探索者</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul>
         </div>
       </div>
       
@@ -382,28 +321,25 @@ Float / Int radio: 62
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/float-performance.html" class="read-next-link" aria-label="float 和 int 在 Linux 下的计算性能对比"></a>
+          <a href="/tech/new-theme-h2o-ac.html" class="read-next-link" aria-label="H2O-ac theme for Jekyll"></a>
           <section>
-            <span>float 和 int 在 Linux 下的计算性能对比</span>
-            <p>Linux下 Float 与 Int 类型计算性能对比</p>
+            <span>H2O-ac theme for Jekyll</span>
+            <p>前言</p>
           </section>
           
           <div class="filter"></div>
-          <img src="/assets/img/shan.jpg" alt="">
+          <img src="https://images.unsplash.com/photo-1614659754166-a2fd14dbc4d3?w=1600&q=900" alt="">
           
       </div>
         
 
         
         <div class="read-next-item">
-          <a href="/measure-clock-resolution.html" class="read-next-link" aria-label="获取不同 Clock Id 在不同 Linux Kernel 下的精度"></a>
+          <a href="/algorithm.html" class="read-next-link" aria-label="经典算法题"></a>
             <section>
-              <span>获取不同 Clock Id 在不同 Linux Kernel 下的精度</span>
-              <p></p>
+              <span>经典算法题</span>
+              <p>二叉树遍历</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -418,7 +354,7 @@ Float / Int radio: 62
   
   <script>
     var gitalk = new Gitalk({
-      id: '2023-10-30 00:00:00 +0000',
+      id: '2020-01-01 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -631,7 +567,7 @@ Float / Int radio: 62
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2023-10-30-float-performance-comparation.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2020-01-01-blog-templete.md")
           .then((response) => {
             return response.json();
           })

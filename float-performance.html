@@ -15,16 +15,16 @@
     <!-- Open Graph -->
     <meta property="og:title" content="float 和 int 在 Linux 下的计算性能对比 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/tech/float-performance-comparation.html">
+    <meta property="og:url" content="https://gbcpp.github.io/float-performance.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/float-performance.html">
+    <meta property="og:previous_url" content="/learning-oriented.html">
     
     
-    <meta property="og:next_url" content="/measure-clock-resolution.html">
+    <meta property="og:next_url" content="/tech/float-performance-comparation.html">
     
     <meta property="post-date-format" content="0">
     
@@ -193,13 +193,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.8k  字
+              本文总共  1.6k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 6 分钟
+              阅读全文大约需要 5 分钟
             </span>
             
               <span class="post-meta-item">
@@ -227,8 +227,6 @@
           <article class="markdown-body post">
               
             <h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
-
-<p>由于 float 在内存中的存储结构与 int 不同，需要存储指数和尾数，并且 cpu 是不支持直接对 float 进行运算的，需要将 float 各部分进行转换后计算，对结果再次进行反向操作进行存储，所以大部分情况下均不支持直接使用 float 进行运行，建议用 int 进行转换运行结果。</p>
 
 <h2 id="代码">代码</h2>
 
@@ -303,7 +301,7 @@ Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">tim
 Float / Int radio: 62
 </code></pre></div></div>
 
-<p>由于不同的 CPU 和体系架构对 FPU 支持情况的不同，以及不同的运算方法对结果也有很大的影响， 比如 加、减、乘、除，以及系数的不同：大于 1 或者小于 1 等均有不同的结果，上述结论为选择了较为复杂的计算场景，仅供参考！！</p>
+<p>以上仅供参考！！</p>
 
             <div class="post-copyright">
               <p>
@@ -320,7 +318,7 @@ Float / Int radio: 62
                 </p>
               
               <p><span>本文标题：</span>《 float 和 int 在 Linux 下的计算性能对比 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/tech/float-performance-comparation.html" class="cplink">https://gbcpp.github.io/tech/float-performance-comparation.html</a></p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/float-performance.html" class="cplink">https://gbcpp.github.io/float-performance.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
@@ -382,10 +380,10 @@ Float / Int radio: 62
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/float-performance.html" class="read-next-link" aria-label="float 和 int 在 Linux 下的计算性能对比"></a>
+          <a href="/learning-oriented.html" class="read-next-link" aria-label="面向学习的三种人"></a>
           <section>
-            <span>float 和 int 在 Linux 下的计算性能对比</span>
-            <p>Linux下 Float 与 Int 类型计算性能对比</p>
+            <span>面向学习的三种人</span>
+            <p>  人们对学习的态度分为三种类型：犯人、过客和探索者</p>
           </section>
           
           <div class="filter"></div>
@@ -396,10 +394,10 @@ Float / Int radio: 62
 
         
         <div class="read-next-item">
-          <a href="/measure-clock-resolution.html" class="read-next-link" aria-label="获取不同 Clock Id 在不同 Linux Kernel 下的精度"></a>
+          <a href="/tech/float-performance-comparation.html" class="read-next-link" aria-label="float 和 int 在 Linux 下的计算性能对比"></a>
             <section>
-              <span>获取不同 Clock Id 在不同 Linux Kernel 下的精度</span>
-              <p></p>
+              <span>float 和 int 在 Linux 下的计算性能对比</span>
+              <p>Linux下 Float 与 Int 类型计算性能对比</p>
             </section>
             
             <div class="filter"></div>
@@ -631,7 +629,7 @@ Float / Int radio: 62
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2023-10-30-float-performance-comparation.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2023-10-30-float-performance.md")
           .then((response) => {
             return response.json();
           })
