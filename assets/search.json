@@ -72,9 +72,15 @@
   } ,
 
   {
+    "title"    : "NeoVim 安装配置记录",
+    "tags"     : "develop",
+    "url"      : "/%E9%9A%8F%E6%89%8B%E8%AE%B0/NeoVim.html"
+  } ,
+
+  {
     "title"    : "Blog title",
     "tags"     : "Life",
-    "url"      : "/blog-templete.html"
+    "url"      : "/%E9%9A%8F%E6%89%8B%E8%AE%B0/blog-templete.html"
   } ,
 
   {
