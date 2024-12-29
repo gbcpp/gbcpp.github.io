@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2024-12-29T04:07:50+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2024-12-29T12:38:09+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
 
 <h2 id="头文件">头文件</h2>
@@ -141,7 +141,99 @@
 <p>  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。</p>
 
 <h2 id="总结">总结</h2>
-<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>]]></content><author><name>Mr Chen</name></author><category term="Life" /><summary type="html"><![CDATA[人们对学习的态度分为三种类型：犯人、过客和探索者]]></summary></entry><entry><title type="html">float 和 int 在 Linux 下的计算性能对比</title><link href="https://gbcpp.github.io/tech/float-performance-comparation.html" rel="alternate" type="text/html" title="float 和 int 在 Linux 下的计算性能对比" /><published>2023-10-30T00:00:00+00:00</published><updated>2023-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/tech/float-performance-comparation</id><content type="html" xml:base="https://gbcpp.github.io/tech/float-performance-comparation.html"><![CDATA[<h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
+<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>]]></content><author><name>Mr Chen</name></author><category term="Life" /><summary type="html"><![CDATA[人们对学习的态度分为三种类型：犯人、过客和探索者]]></summary></entry><entry><title type="html">NeoVim 安装配置记录</title><link href="https://gbcpp.github.io/notes/neovim.html" rel="alternate" type="text/html" title="NeoVim 安装配置记录" /><published>2024-01-01T00:00:00+00:00</published><updated>2024-01-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/neovim</id><content type="html" xml:base="https://gbcpp.github.io/notes/neovim.html"><![CDATA[<blockquote>
+  <p>安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。</p>
+</blockquote>
+
+<h2 id="1-windows-wsl-ubuntu">1. Windows WSL Ubuntu</h2>
+
+<p>  WSL 下 Ubuntu 子系统的安装与原生的 Ubuntu 系统安装有所不同，主要是字体的配置方式上有所区别。</p>
+
+<h3 id="11-install-neovim">1.1 Install NeoVim</h3>
+
+<p>  我选择手动下载 NeoVim，这样可以安装官方最新版本，这里选择目前官方的最新版本 0.10.0，依次执行以下命令：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> ~/tools
+<span class="nb">cd</span> ~/tools
+wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
+<span class="nb">tar </span>xzf nvim-linux64.tar.gz
+</code></pre></div></div>
+
+<p>上面下载的 <code class="language-plaintext highlighter-rouge">nvim-linux64.tar.gz</code> 为 NeoVim 的二进制包，可直接运行，可以将上述解压的 NeoVim 中的 bin 目录添加到系统环境变量 <code class="language-plaintext highlighter-rouge">PATH</code>中，或者为 NeoVim 在 <code class="language-plaintext highlighter-rouge">/usr/bin</code>目录下添加一个软连接：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> ~/tools/nvim-linux64/bin/nvim /usr/bin/nvim
+
+<span class="c"># 可通过执行以下命令进行校验</span>
+nvim <span class="nt">--version</span>
+</code></pre></div></div>
+
+<h3 id="12-neovim-configuration">1.2 NeoVim Configuration</h3>
+
+<p>  使用 NeoVim 一个很大的门槛就是前期各种 <code class="language-plaintext highlighter-rouge">Plugins</code>的配置，目前有 <code class="language-plaintext highlighter-rouge">lazyVim</code>将很多易用的 <code class="language-plaintext highlighter-rouge">Plugins</code>打包在了一起，做到了开箱即用。</p>
+
+<p>将 <code class="language-plaintext highlighter-rouge">LazyVim</code> 下载并解压到 <code class="language-plaintext highlighter-rouge">NeoVim</code>的配置目录下，启动 <code class="language-plaintext highlighter-rouge">NeoVim</code>便会自动安装了。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 直接 clone 代码到 neovim 的配置文件目录下</span>
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+
+<span class="c"># 启动 nvim，自动开始安装</span>
+nvim
+</code></pre></div></div>
+
+<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NeroTree 中的图标全是小方块，即乱码：</p>
+
+<p><img src="/assets/img/blog/nerofont_0.png" alt="NeroFont0" /></p>
+
+<p>继续以下操作，安装所有符号等宽展示的字体。</p>
+
+<h3 id="13-install-nerd-font">1.3 Install Nerd Font</h3>
+
+<p><a href="https://www.nerdfonts.com/"></a></p>
+
+<p>选择下载 <code class="language-plaintext highlighter-rouge">JetBrainsMono Font</code> 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 <code class="language-plaintext highlighter-rouge">.ttf</code> 的文件，选中后，右键 <code class="language-plaintext highlighter-rouge">安装</code> 即安装成功。</p>
+
+<h3 id="14-windows-terminal-配置-mono-字体">1.4 Windows Terminal 配置 Mono 字体</h3>
+
+<p>我的 <code class="language-plaintext highlighter-rouge">windows terminal</code> 版本如下 ：</p>
+
+<p><img src="/assets/img/blog/win_terminal.png" alt="" /></p>
+
+<p>该版本没有 UI 的配置界面，通过 <code class="language-plaintext highlighter-rouge">settings.json</code> 进行配置，在 <code class="language-plaintext highlighter-rouge">profiles</code> 的 <code class="language-plaintext highlighter-rouge">defaults</code> 配置中添加 <code class="language-plaintext highlighter-rouge">fontFace</code> 字段指定字体，如下：</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"defaults"</span><span class="p">:</span><span class="w">
+</span><span class="p">{</span><span class="w">
+   </span><span class="err">//</span><span class="w"> </span><span class="err">Put</span><span class="w"> </span><span class="err">settings</span><span class="w"> </span><span class="err">here</span><span class="w"> </span><span class="err">that</span><span class="w"> </span><span class="err">you</span><span class="w"> </span><span class="err">want</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">apply</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">all</span><span class="w"> </span><span class="err">profiles.</span><span class="w">
+   </span><span class="nl">"fontFace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JetBrainsMono Nerd Font Mono"</span><span class="w">
+</span><span class="p">}</span><span class="err">,</span><span class="w">
+
+</span><span class="err">....</span><span class="w">
+</span></code></pre></div></div>
+
+<p>配置成功后，重启 <code class="language-plaintext highlighter-rouge">windows terminal</code>，通过 NeoVim 打开上一次的目录，查看图标显示已正常：</p>
+
+<p><img src="/assets/img/blog/nerofont_1.png" alt="" /></p>
+
+<h2 id="2-mac">2. Mac</h2>
+
+<h2 id="3-ubuntu">3. Ubuntu</h2>
+
+<h2 id="4常用功能介绍">4.常用功能介绍</h2>
+
+<h3 id="41-窗口管理">4.1 窗口管理</h3>
+
+<ul>
+  <li>打开内置控制台，执行命令，这是比较常用的场景，不需要切换窗口，快捷键 <code class="language-plaintext highlighter-rouge">Ctrl + L</code>，目录定位在当前路径，不是当前被打开的目录：</li>
+</ul>
+
+<p><img src="/assets/img/blog/nvim_console.png" alt="" /></p>
+
+<blockquote>
+  <p>关闭亦是使用该快捷键。</p>
+</blockquote>
+
+<ul>
+  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NeroTree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l</code>，<code class="language-plaintext highlighter-rouge">h</code> 和 <code class="language-plaintext highlighter-rouge">l</code> 是 nvim 中移动光标位置的快捷键，加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是左右切换窗口的快捷键。</li>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="notes" /><category term="develop" /><summary type="html"><![CDATA[安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。]]></summary></entry><entry><title type="html">float 和 int 在 Linux 下的计算性能对比</title><link href="https://gbcpp.github.io/tech/float-performance-comparation.html" rel="alternate" type="text/html" title="float 和 int 在 Linux 下的计算性能对比" /><published>2023-10-30T00:00:00+00:00</published><updated>2023-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/tech/float-performance-comparation</id><content type="html" xml:base="https://gbcpp.github.io/tech/float-performance-comparation.html"><![CDATA[<h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
 
 <p>由于 float 在内存中的存储结构与 int 不同，需要存储指数和尾数，并且 cpu 是不支持直接对 float 进行运算的，需要将 float 各部分进行转换后计算，对结果再次进行反向操作进行存储，所以大部分情况下均不支持直接使用 float 进行运行，建议用 int 进行转换运行结果。</p>
 
@@ -765,308 +857,4 @@ https://datatracker.ietf.org/doc/html/rfc4960#section-3.3.4</p>
 <ul>
   <li>这个 sack 整体是有延迟的，其计算 rtt 时，是直接通过 sendts - current ts，明显没有考虑 delay ack time；</li>
   <li>其只有在没有 gap_ack_blocks 时，即没有出现丢包时才统计其 RTT，这样在丢包严重时，可能会出现长时间无法更新 rtt，或者在 rtt 和 loss 突然增大时，出现长时间无法更新 rtt 的情况，一直以旧的 rtt 为准。</li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="协议" /><summary type="html"><![CDATA[DataChannel 实现 DataChannel 的实现有两种，webrtc 目前使用自行基于 C++ 开发的 dcsctp，mediasoup 和 libdatachannel 基于 usrsctp，usrsctp 为开源 sctp 协议实现，均遵守 rfc 4960 标准。 RFC：https://tools.ietf.org/html/rfc4960]]></summary></entry><entry><title type="html">后台服务绑定 CPU 核</title><link href="https://gbcpp.github.io/service-bind-cpu.html" rel="alternate" type="text/html" title="后台服务绑定 CPU 核" /><published>2023-09-30T00:00:00+00:00</published><updated>2023-09-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/service-bind-cpu</id><content type="html" xml:base="https://gbcpp.github.io/service-bind-cpu.html"><![CDATA[<blockquote>
-  <p>一个 Prod 用的服务启动升级脚本，检查了 CPU 核心数，并按照指定顺序绑定 CPU 核心，以提升性能。</p>
-</blockquote>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
-<span class="nv">SERVICENAME</span><span class="o">=</span><span class="nv">$1</span>
-<span class="nv">VERSION</span><span class="o">=</span><span class="nv">$2</span>
-<span class="nv">BINPATH</span><span class="o">=</span>/home/devops/<span class="nv">$SERVICENAME</span>/bin/
-<span class="nv">PACKAGE</span><span class="o">=</span>/home/devops/<span class="nv">$SERVICENAME</span>/package/
-
-<span class="c"># xxx 进程名|进程文件名</span>
-<span class="nv">PROCESS</span><span class="o">=</span><span class="nv">$SERVICENAME</span>.exe
-<span class="nv">LOCK_FILE</span><span class="o">=</span><span class="s2">"/</span><span class="nv">$BINPATH</span><span class="s2">/.xxxxx.</span><span class="nv">$PROCESS</span><span class="s2">.lock"</span>
-
-<span class="c"># we think cpu binding means will enable cpu perception</span>
-<span class="nv">USE_CPU_TOPOLOGY_SERVER_TYPE</span><span class="o">=</span><span class="s2">"server"</span>
-<span class="nv">USE_CPU_TOPOLOGY_TAG</span><span class="o">=</span><span class="s2">"vm_use_cpu_topology:true vm_bind_cpu:true"</span>
-<span class="nv">USE_CPU_TOPOLOGY_PROVIDER</span><span class="o">=</span><span class="s2">"aws"</span>
-<span class="nv">USE_CPU_TOPOLOGY_IDC</span><span class="o">=</span><span class="s2">""</span>
-
-<span class="nv">USE_CPU_TOPOLOGY</span><span class="o">=</span>
-
-<span class="c"># control bind core and xdp in hybrid deployment machine</span>
-<span class="nv">is_hybrid</span><span class="o">=</span>0
-
-<span class="k">function </span>CheckDir<span class="o">()</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">[</span> <span class="o">!</span> <span class="nt">-d</span> <span class="nv">$BINPATH</span> <span class="o">]</span><span class="p">;</span> <span class="k">then </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="nv">$BINPATH</span><span class="p">;</span> <span class="k">fi</span>
-<span class="o">}</span>
-
-<span class="k">function </span>CheckHybridDeploy<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">get_message</span><span class="o">=</span><span class="sb">`</span>curl <span class="nt">-4</span> https://meta.xxxxx.co/latest/meta-data/tag <span class="nt">--max-time</span> 10<span class="sb">`</span>
-    <span class="nv">match</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="k">${</span><span class="nv">get_message</span><span class="k">}</span> | <span class="nb">grep</span> <span class="nt">-a</span> <span class="s2">"servicevosmixed:1"</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="sb">`</span>
-    <span class="k">if</span> <span class="o">[</span> <span class="k">${</span><span class="nv">match</span><span class="k">}</span> <span class="nt">-gt</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">is_hybrid</span><span class="o">=</span>1
-    <span class="k">fi
-    </span><span class="nb">echo</span> <span class="s2">"Is hybrid : </span><span class="k">${</span><span class="nv">is_hybrid</span><span class="k">}</span><span class="s2">"</span>
-<span class="o">}</span>
-
-<span class="c"># 排他锁，防止相同时间内进行其它操作，比如操作时，防止zabbix触发自动拉起</span>
-<span class="k">function </span>Lock<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">ls</span> <span class="s2">"</span><span class="nv">$LOCK_FILE</span><span class="s2">"</span> <span class="o">&gt;</span>/dev/null 2&gt;&amp;1
-    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$?</span> <span class="nt">-ne</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">sudo touch</span> <span class="s2">"</span><span class="nv">$LOCK_FILE</span><span class="s2">"</span>
-    <span class="k">else
-        </span><span class="nv">lockTime</span><span class="o">=</span><span class="si">$(</span><span class="nb">stat</span> <span class="nt">-t</span> <span class="s2">"</span><span class="nv">$LOCK_FILE</span><span class="s2">"</span> | <span class="nb">awk</span> <span class="s1">'{print $12}'</span><span class="si">)</span>
-        <span class="nv">currentTime</span><span class="o">=</span><span class="si">$(</span><span class="nb">date</span> +%s<span class="si">)</span>
-        <span class="nv">duration</span><span class="o">=</span><span class="k">$((</span>currentTime <span class="o">-</span> lockTime<span class="k">))</span>
-        <span class="nb">echo</span> <span class="nv">$duration</span>
-        <span class="k">if</span> <span class="o">[[</span> <span class="nv">$duration</span> <span class="nt">-gt</span> 20 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nb">sudo touch</span> <span class="s2">"</span><span class="nv">$LOCK_FILE</span><span class="s2">"</span>
-        <span class="k">else
-            </span><span class="nb">echo</span> <span class="s2">"Less than 20 seconds since last operation"</span>
-            <span class="nb">exit </span>1
-        <span class="k">fi
-    fi</span>
-<span class="o">}</span>
-
-<span class="k">function </span>Unlock<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">sudo rm</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$LOCK_FILE</span><span class="s2">"</span>
-<span class="o">}</span>
-
-<span class="k">function </span>NeedUseCPUTopology<span class="o">()</span> <span class="o">{</span> <span class="c"># not zero mean need bind cpu</span>
-
-    <span class="k">if</span> <span class="o">[[</span> <span class="nt">-n</span> <span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY</span><span class="k">}</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        return</span> <span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY</span><span class="k">}</span>
-    <span class="k">fi</span>
-    
-    <span class="c"># check is vm</span>
-    <span class="k">if</span> <span class="o">[[</span> <span class="s2">"</span><span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY_SERVER_TYPE</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> <span class="k">*</span><span class="s2">"</span><span class="si">$(</span>hostnamectl | <span class="nb">grep </span>Chassis | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">':'</span> <span class="nt">-f2</span> | xargs<span class="si">)</span><span class="s2">"</span><span class="k">*</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">USE_CPU_TOPOLOGY</span><span class="o">=</span>1
-        <span class="k">return</span> <span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY</span><span class="k">}</span>
-    <span class="k">fi</span>
-    
-    <span class="c"># get machine tag</span>
-    <span class="k">for </span>machine_tag <span class="k">in</span> <span class="si">$(</span><span class="nb">timeout </span>10 curl https://meta.xxxxx.co/2022-09-13/meta-data/tag 2&gt;/dev/null<span class="si">)</span><span class="p">;</span> <span class="k">do
-        if</span> <span class="o">[[</span> <span class="s2">"</span><span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY_TAG</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> <span class="k">*</span><span class="s2">"</span><span class="k">${</span><span class="nv">machine_tag</span><span class="k">}</span><span class="s2">"</span><span class="k">*</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nv">USE_CPU_TOPOLOGY</span><span class="o">=</span>1
-            <span class="k">return</span> <span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY</span><span class="k">}</span>
-        <span class="k">fi
-    done</span>
-    
-    <span class="c"># # get cluster name</span>
-    <span class="c"># if [[ "${USE_CPU_TOPOLOGY_IDC}" == *"$(curl https://meta.xxxxx.co/2022-09-13/meta-data/cluster 2&gt;/dev/null)"* ]]; then</span>
-    <span class="c">#     USE_CPU_TOPOLOGY=1;</span>
-    <span class="c">#     return ${USE_CPU_TOPOLOGY}</span>
-    <span class="c"># fi</span>
-    
-    <span class="c"># get provider</span>
-    <span class="c"># if [[ "${USE_CPU_TOPOLOGY_PROVIDER}" == *"$(curl https://meta.xxxxx.co/2022-09-13/meta-data/provider 2&gt;/dev/null)"* ]]; then</span>
-    <span class="c">#     USE_CPU_TOPOLOGY=1;</span>
-    <span class="c">#     return ${USE_CPU_TOPOLOGY}</span>
-    <span class="c"># fi</span>
-    
-    <span class="nv">USE_CPU_TOPOLOGY</span><span class="o">=</span>0
-    <span class="k">return</span> <span class="k">${</span><span class="nv">USE_CPU_TOPOLOGY</span><span class="k">}</span>
-
-<span class="o">}</span>
-
-<span class="c"># 获取当前机器物理核心数</span>
-<span class="k">function </span>GetCpuNumber<span class="o">()</span> <span class="o">{</span>
-    <span class="c"># if not use topology, we will presume machine have open HT, and just return all process count / 2</span>
-    NeedUseCPUTopology <span class="o">&amp;&amp;</span> <span class="o">{</span> <span class="nb">echo</span> <span class="k">$((</span><span class="si">$(</span><span class="nb">grep</span> <span class="nt">-c</span> processor /proc/cpuinfo<span class="si">)</span> <span class="o">/</span> <span class="m">2</span><span class="k">))</span> <span class="o">&amp;&amp;</span> <span class="k">return </span>0<span class="p">;</span> <span class="o">}</span>
-    
-    <span class="nv">CORE</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> /proc/cpuinfo | <span class="nb">grep</span> <span class="s2">"core id"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    <span class="nv">PHYSICAL</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> /proc/cpuinfo | <span class="nb">grep</span> <span class="s2">"physical id"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    <span class="nv">LOGIC</span><span class="o">=</span><span class="k">$((</span>CORE <span class="o">*</span> PHYSICAL<span class="k">))</span>
-    <span class="nb">echo</span> <span class="nv">$LOGIC</span>
-<span class="o">}</span>
-
-<span class="k">function </span>GetMemTotalSize<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">memTotalSize</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> /proc/meminfo | <span class="nb">grep </span>MemTotal | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="si">)</span>
-    <span class="nb">echo</span> <span class="nv">$memTotalSize</span>
-<span class="o">}</span>
-
-<span class="c"># 设置进程数</span>
-<span class="k">function </span>GetProcessNumber<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">local </span><span class="nv">processNumber</span><span class="o">=</span>1
-    <span class="nv">cpuNumber</span><span class="o">=</span><span class="si">$(</span>GetCpuNumber<span class="si">)</span>
-    <span class="nv">memTotalSize</span><span class="o">=</span><span class="si">$(</span>GetMemTotalSize<span class="si">)</span>
-    <span class="k">if</span> <span class="o">[</span> <span class="nv">$cpuNumber</span> <span class="nt">-ge</span> 10 <span class="o">]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">processNumber_tmp</span><span class="o">=</span><span class="k">$((</span>cpuNumber <span class="o">-</span> <span class="m">2</span><span class="k">))</span>
-        <span class="c"># 内存总容量足够的机器按满配起</span>
-        <span class="k">if</span> <span class="o">[[</span> <span class="nv">$memTotalSize</span> <span class="nt">-ge</span> <span class="k">$((</span>processNumber_tmp <span class="o">*</span> <span class="m">2359296</span><span class="k">))</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nv">processNumber_pre</span><span class="o">=</span><span class="nv">$processNumber_tmp</span>
-            <span class="k">if</span> <span class="o">[[</span> <span class="nv">$approuter_running</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-                </span><span class="nv">processNumber</span><span class="o">=</span><span class="k">$((</span>processNumber_pre <span class="o">-</span> <span class="m">4</span><span class="k">))</span>
-            <span class="k">else
-                </span><span class="nv">processNumber</span><span class="o">=</span><span class="nv">$processNumber_pre</span>
-            <span class="k">fi</span>
-        <span class="c"># 内存总容量不够的机器计算实际要起的进程数</span>
-        <span class="k">else
-            </span><span class="nv">processNumber_pre</span><span class="o">=</span><span class="k">$((</span>memTotalSize <span class="o">/</span> <span class="m">2359296</span><span class="k">))</span>
-            <span class="k">if</span> <span class="o">[[</span> <span class="nv">$approuter_running</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-                </span><span class="nv">processNumber</span><span class="o">=</span><span class="k">$((</span>processNumber_pre <span class="o">-</span> <span class="m">4</span><span class="k">))</span>
-            <span class="k">else
-                </span><span class="nv">processNumber</span><span class="o">=</span><span class="nv">$processNumber_pre</span>
-            <span class="k">fi
-        fi
-    elif</span> <span class="o">[[</span> <span class="nv">$cpuNumber</span> <span class="nt">-gt</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">processNumber_pre</span><span class="o">=</span><span class="k">$((</span>cpuNumber <span class="o">-</span> <span class="m">1</span><span class="k">))</span>
-        <span class="k">if</span> <span class="o">[[</span> <span class="nv">$approuter_running</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nv">processNumber</span><span class="o">=</span><span class="k">$((</span>processNumber_pre <span class="o">-</span> <span class="m">4</span><span class="k">))</span>
-        <span class="k">else
-            </span><span class="nv">processNumber</span><span class="o">=</span><span class="nv">$processNumber_pre</span>
-        <span class="k">fi
-    elif</span> <span class="o">[[</span> <span class="nv">$cpuNumber</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">processNumber</span><span class="o">=</span>1
-    <span class="k">fi
-    if</span> <span class="o">[</span> <span class="nv">$processNumber</span> <span class="nt">-gt</span> 30 <span class="o">]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">processNumber</span><span class="o">=</span>30
-    <span class="k">fi
-    </span><span class="nb">echo</span> <span class="nv">$processNumber</span>
-<span class="o">}</span>
-
-<span class="k">function </span>CheckApprouterProcessRunningStaus<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">approuterNumber</span><span class="o">=</span><span class="si">$(</span>ps aux | <span class="nb">grep</span> <span class="nt">-w</span> <span class="s2">"reuseport.exe"</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nb">grep</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    <span class="k">if</span> <span class="o">[</span> <span class="nv">$approuterNumber</span> <span class="nt">-gt</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">approuter_running</span><span class="o">=</span>1
-    <span class="k">else
-        </span><span class="nv">approuter_running</span><span class="o">=</span>0
-    <span class="k">fi</span>
-<span class="o">}</span>
-
-<span class="c"># 检查当前进程数</span>
-<span class="k">function </span>CheckProcessNumber<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">processNumber</span><span class="o">=</span><span class="si">$(</span>GetProcessNumber<span class="si">)</span>
-    <span class="nv">currentNumber</span><span class="o">=</span><span class="si">$(</span>ps aux | <span class="nb">grep</span> <span class="nt">-w</span> <span class="s2">"./</span><span class="nv">$PROCESS</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s1">'gzip'</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nb">grep</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nv">$0</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"appRestart</span><span class="se">\|</span><span class="s2">appStart</span><span class="se">\|</span><span class="s2">appStop</span><span class="se">\|</span><span class="s2">appUpgrade"</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    
-    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$currentNumber</span> <span class="nt">-ne</span> <span class="nv">$processNumber</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">echo</span> <span class="s2">"current process number: </span><span class="nv">$currentNumber</span><span class="s2">, need process number: </span><span class="nv">$processNumber</span><span class="s2">"</span>
-        Unlock
-        <span class="nb">exit </span>1
-    <span class="k">fi</span>
-<span class="o">}</span>
-
-<span class="c"># 检查当前进程数</span>
-<span class="k">function </span>CheckNoProcess<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">currentNumber</span><span class="o">=</span><span class="si">$(</span>ps aux | <span class="nb">grep</span> <span class="nt">-w</span> <span class="s2">"./</span><span class="nv">$PROCESS</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s1">'gzip'</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nb">grep</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nv">$0</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"appRestart</span><span class="se">\|</span><span class="s2">appStart</span><span class="se">\|</span><span class="s2">appStop</span><span class="se">\|</span><span class="s2">appUpgrade"</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-
-    <span class="k">if</span> <span class="o">[[</span> <span class="nv">$currentNumber</span> <span class="nt">-ne</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">echo</span> <span class="s2">"current process number: </span><span class="nv">$currentNumber</span><span class="s2">, should be 0"</span>
-        Unlock
-        <span class="nb">exit </span>1
-    <span class="k">fi</span>
-<span class="o">}</span>
-
-<span class="c"># 停止进程</span>
-<span class="k">function </span>Stop<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">sudo </span>killall <span class="nt">-q</span> <span class="s2">"</span><span class="nv">$PROCESS</span><span class="s2">"</span>
-    <span class="nb">sleep </span>30
-    <span class="nb">echo</span> <span class="s2">"Stop Process finished"</span>
-    CheckNoProcess
-<span class="o">}</span>
-
-<span class="c"># 升级程序</span>
-<span class="k">function </span>Upgrade<span class="o">()</span> <span class="o">{</span>
-    <span class="c">#检查文件是否存在</span>
-    <span class="k">if </span><span class="nb">test</span> <span class="o">!</span> <span class="nt">-e</span> <span class="s2">"</span><span class="nv">$PACKAGE</span><span class="s2">/</span><span class="nv">$SERVICENAME</span><span class="s2">.exe"</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">echo</span> <span class="s2">"upgrade package not exist"</span>
-        <span class="nb">exit </span>1
-    <span class="k">fi</span>
-    
-    <span class="c">#检查程序及版本</span>
-    <span class="nb">local </span><span class="nv">exeVersion</span><span class="o">=</span><span class="si">$(</span><span class="s2">"</span><span class="nv">$PACKAGE</span><span class="s2">/</span><span class="nv">$SERVICENAME</span><span class="s2">.exe"</span> <span class="nt">-v</span> | <span class="nb">awk</span> <span class="s1">'{sub(/^[\t ]*/, "");print}'</span><span class="si">)</span>
-    <span class="nb">local </span><span class="nv">upVersion</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PROCESS</span><span class="s2">"</span>_<span class="s2">"</span><span class="nv">$exeVersion</span><span class="s2">"</span>
-    <span class="k">if</span> <span class="o">[[</span> <span class="s2">"</span><span class="nv">$upVersion</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"</span><span class="nv">$VERSION</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">echo</span> <span class="s2">"version mismatch, package version: </span><span class="nv">$upVersion</span><span class="s2">, need version: </span><span class="nv">$VERSION</span><span class="s2">"</span>
-        Unlock
-        <span class="nb">exit </span>1
-    <span class="k">fi
-    
-    if </span><span class="nb">test</span> <span class="o">!</span> <span class="nt">-d</span> <span class="s2">"</span><span class="nv">$BINPATH</span><span class="s2">"</span><span class="p">;</span> <span class="k">then
-        </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$BINPATH</span><span class="s2">"</span>
-    <span class="k">fi</span>
-    
-    <span class="c"># copy程序到bin下</span>
-    <span class="nb">sudo cp</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$PACKAGE</span><span class="s2">/</span><span class="nv">$SERVICENAME</span><span class="s2">.exe"</span> <span class="s2">"</span><span class="nv">$BINPATH</span><span class="s2">/</span><span class="nv">$PROCESS</span><span class="s2">"</span>
-<span class="o">}</span>
-
-<span class="c"># 启动进程</span>
-<span class="k">function </span>Start<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">cd</span> <span class="s2">"</span><span class="nv">$BINPATH</span><span class="s2">"</span>
-    <span class="nb">sudo </span>bash <span class="nt">-c</span> <span class="s2">"echo 3 &gt; /proc/sys/vm/drop_caches"</span>
-    <span class="nb">sleep </span>10
-    
-    <span class="nv">processNumber</span><span class="o">=</span><span class="si">$(</span>GetProcessNumber<span class="si">)</span>
-    <span class="nv">currentNumber</span><span class="o">=</span><span class="si">$(</span>ps aux | <span class="nb">grep</span> <span class="nt">-w</span> <span class="s2">"./</span><span class="nv">$PROCESS</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s1">'gzip'</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nb">grep</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nv">$0</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"appRestart</span><span class="se">\|</span><span class="s2">appStart</span><span class="se">\|</span><span class="s2">appStop</span><span class="se">\|</span><span class="s2">appUpgrade"</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    
-    <span class="nb">echo</span> <span class="s2">"Need: </span><span class="nv">$processNumber</span><span class="s2">, Current: </span><span class="nv">$currentNumber</span><span class="s2">"</span>
-    <span class="nv">run_process_command</span><span class="o">=</span><span class="k">${</span><span class="nv">PROCESS</span><span class="k">}</span>
-    <span class="k">if</span> <span class="o">[</span> <span class="k">${</span><span class="nv">is_hybrid</span><span class="k">}</span> <span class="nt">-eq</span> 1 <span class="o">]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nv">run_process_command</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">run_process_command</span><span class="k">}</span><span class="s2"> --disable_xdp=true"</span>
-    <span class="k">fi
-    for</span> <span class="o">((</span>i <span class="o">=</span> currentNumber<span class="p">;</span> i &lt; <span class="s2">"</span><span class="nv">$processNumber</span><span class="s2">"</span><span class="p">;</span> i++<span class="o">))</span><span class="p">;</span> <span class="k">do
-        </span><span class="nb">sudo</span> ./<span class="nv">$run_process_command</span>
-        <span class="nb">sleep </span>3
-    <span class="k">done</span>
-<span class="o">}</span>
-
-<span class="c"># 绑定核心</span>
-<span class="k">function </span>BindingProcesstoPhysicalCores<span class="o">()</span> <span class="o">{</span>
-
-    NeedUseCPUTopology <span class="o">&amp;&amp;</span> <span class="k">return </span>0
-
-    <span class="k">if</span> <span class="o">[</span> <span class="k">${</span><span class="nv">is_hybrid</span><span class="k">}</span> <span class="nt">-eq</span> 1 <span class="o">]</span><span class="p">;</span> <span class="k">then
-        return </span>0
-    <span class="k">fi
-    
-    </span><span class="nv">TOTAL_CPU</span><span class="o">=</span><span class="si">$(</span><span class="nb">grep</span> <span class="nt">-c</span> processor /proc/cpuinfo<span class="si">)</span>
-    <span class="nv">CORE</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> /proc/cpuinfo | <span class="nb">grep</span> <span class="s2">"core id"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    <span class="nv">PHYSICAL</span><span class="o">=</span><span class="si">$(</span><span class="nb">cat</span> /proc/cpuinfo | <span class="nb">grep</span> <span class="s2">"physical id"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span>
-    <span class="nv">LOGIC</span><span class="o">=</span><span class="k">$((</span>CORE <span class="o">*</span> PHYSICAL<span class="k">))</span>
-    <span class="nv">PIDS</span><span class="o">=</span><span class="si">$(</span>ps aux | <span class="nb">grep</span> <span class="nt">-w</span> <span class="s2">"./</span><span class="nv">$PROCESS</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nb">grep</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="nv">$0</span> | <span class="nb">grep</span> <span class="nt">-v</span> <span class="s2">"start</span><span class="se">\|</span><span class="s2">ansible"</span> | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="si">)</span>
-    
-    <span class="k">if</span> <span class="o">[[</span> <span class="k">$((</span><span class="nv">$TOTAL_CPU</span> <span class="o">/</span> <span class="m">2</span><span class="k">))</span> <span class="nt">-eq</span> <span class="nv">$LOGIC</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        if</span> <span class="o">[[</span> <span class="si">$(</span><span class="nb">cat</span> /sys/devices/system/cpu/cpu0/topology/thread_siblings_list | <span class="nb">grep</span> - | <span class="nb">wc</span> <span class="nt">-l</span><span class="si">)</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
-            </span><span class="nv">cpu_thread_seq</span><span class="o">=</span><span class="s2">"continuous"</span> <span class="c">#CPU-No. vs Core ID Like CPU0-Core0_Thread0,CPU1-Core0_Thread1,CPU2-Core1_Thread0,CPU3-Core1_Thread1...</span>
-        <span class="k">else
-            </span><span class="nv">cpu_thread_seq</span><span class="o">=</span><span class="s2">"discontinuous"</span> <span class="c">#CPU-No. vs Core ID Like CPU0-Core0_Thread0,CPU1-Core1_Thread0,..,CPU10-Core0_Thread1,CPU1-Core0_Thread1...</span>
-        <span class="k">fi
-    elif</span> <span class="o">[[</span> <span class="nv">$TOTAL_CPU</span> <span class="nt">-eq</span> <span class="nv">$LOGIC</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        </span><span class="nv">cpu_thread_seq</span><span class="o">=</span><span class="s2">"na"</span> <span class="c"># CPU do not enable or not support Hyper-Threading</span>
-    <span class="k">fi
-    
-    if</span> <span class="o">[[</span> <span class="nv">$cpu_thread_seq</span> <span class="o">=</span> <span class="s2">"discontinuous"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        if</span> <span class="o">[[</span> <span class="nv">$approuter_running</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then</span> <span class="c">#有app_router保留4个核心，从倒数第5个物理核开始使用</span>
-            <span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$LOGIC</span> <span class="o">-</span> <span class="m">5</span><span class="k">))</span>
-        <span class="k">else
-            </span><span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$LOGIC</span> <span class="o">-</span> <span class="m">1</span><span class="k">))</span> <span class="c">#没有app_router正常从最后1个物理核开始使用</span>
-        <span class="k">fi
-    
-        for </span>pid <span class="k">in</span> <span class="k">${</span><span class="nv">PIDS</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> <span class="k">do
-            </span><span class="nb">sudo </span>taskset <span class="nt">-p</span> <span class="nt">--cpu-list</span> <span class="nv">$cpu</span> <span class="nv">$pid</span>
-            <span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$cpu</span> <span class="o">-</span> <span class="m">1</span><span class="k">))</span>
-        <span class="k">done
-    elif</span> <span class="o">[[</span> <span class="nv">$cpu_thread_seq</span> <span class="o">=</span> <span class="s2">"continuous"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        if</span> <span class="o">[[</span> <span class="nv">$approuter_running</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then</span> <span class="c">#有app_router保留4个核心即8个逻辑核，从倒数第10个逻辑核开始使用</span>
-            <span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$TOTAL_CPU</span> <span class="o">-</span> <span class="m">10</span><span class="k">))</span>
-        <span class="k">else
-            </span><span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$TOTAL_CPU</span> <span class="o">-</span> <span class="m">2</span><span class="k">))</span> <span class="c">#没有app_router正常从倒数第2个逻辑核开始用</span>
-        <span class="k">fi
-    
-        for </span>pid <span class="k">in</span> <span class="k">${</span><span class="nv">PIDS</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> <span class="k">do
-            </span><span class="nb">sudo </span>taskset <span class="nt">-p</span> <span class="nt">--cpu-list</span> <span class="nv">$cpu</span> <span class="nv">$pid</span>
-            <span class="nv">cpu</span><span class="o">=</span><span class="k">$((</span><span class="nv">$cpu</span> <span class="o">-</span> <span class="m">2</span><span class="k">))</span>
-        <span class="k">done
-    elif</span> <span class="o">[[</span> <span class="nv">$cpu_thread_seq</span> <span class="o">=</span> <span class="s2">"na"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-        for </span>pid <span class="k">in</span> <span class="k">${</span><span class="nv">PIDS</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> <span class="k">do
-            </span><span class="nb">sudo </span>taskset <span class="nt">-p</span> 0xFFFF <span class="nv">$pid</span>
-        <span class="k">done
-    fi</span>
-
-<span class="o">}</span>
-
-CheckApprouterProcessRunningStaus <span class="o">&amp;&amp;</span>
-    CheckDir <span class="o">&amp;&amp;</span>
-    CheckHybridDeploy <span class="o">&amp;&amp;</span>
-    Lock <span class="o">&amp;&amp;</span>
-    Stop <span class="o">&amp;&amp;</span>
-    Upgrade <span class="o">&amp;&amp;</span>
-    Start <span class="o">&amp;&amp;</span>
-    BindingProcesstoPhysicalCores <span class="o">&amp;&amp;</span>
-    CheckProcessNumber
-Unlock
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="后台" /><summary type="html"><![CDATA[一个 Prod 用的服务启动升级脚本，检查了 CPU 核心数，并按照指定顺序绑定 CPU 核心，以提升性能。]]></summary></entry></feed>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="协议" /><summary type="html"><![CDATA[DataChannel 实现 DataChannel 的实现有两种，webrtc 目前使用自行基于 C++ 开发的 dcsctp，mediasoup 和 libdatachannel 基于 usrsctp，usrsctp 为开源 sctp 协议实现，均遵守 rfc 4960 标准。 RFC：https://tools.ietf.org/html/rfc4960]]></summary></entry></feed>
