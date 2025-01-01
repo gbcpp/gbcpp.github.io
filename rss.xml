@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 01 Jan 2025 10:19:58 +0000</pubDate>
-    <lastBuildDate>Wed, 01 Jan 2025 10:19:58 +0000</lastBuildDate>
+    <pubDate>Wed, 01 Jan 2025 13:53:03 +0000</pubDate>
+    <lastBuildDate>Wed, 01 Jan 2025 13:53:03 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -414,7 +414,7 @@ git clone https://github.com/LazyVim/starter ~/.config/nvim
 nvim
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;安装完成后，使用 nvim 随便打开一个目录可以看到 NVim-Tree 中的图标全是小方块，即乱码：&lt;/p&gt;
+&lt;p&gt;安装完成后，使用 nvim 随便打开一个目录可以看到 NeoTree 中的图标全是小方块，即乱码：&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/img/blog/nerofont_0.png&quot; alt=&quot;NeroFont0&quot; /&gt;&lt;/p&gt;
 
@@ -466,8 +466,14 @@ nvim
 &lt;/blockquote&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;切换光标在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NVim-Tree&lt;/code&gt; 和代码窗口中，使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl + h|l&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;h&lt;/code&gt; 和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;l&lt;/code&gt; 是 nvim 中移动光标位置的快捷键，加上 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl&lt;/code&gt; 键便是左右切换窗口的快捷键。&lt;/li&gt;
+  &lt;li&gt;切换光标在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NeoTree&lt;/code&gt; 和代码窗口中，使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl + h|l|j|k&lt;/code&gt;，即是 nvim 中移动光标位置的快捷键加上 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl&lt;/code&gt; 键便是上下左右切换窗口的快捷键。&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;h3 id=&quot;快捷键引导&quot;&gt;快捷键引导&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Normal&lt;/code&gt;模式下输入空格键弹出功能菜单，均可按照快捷键说明进行操作，功能菜单有多层，退格键可返回，Esc 键退出。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/nvim_menu.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 </description>
         <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
