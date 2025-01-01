@@ -4,7 +4,7 @@ title: 经典算法题
 date: 2019-06-11
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
-categories: learn
+categories: Notes
 tags: 
 - 算法
 - c++

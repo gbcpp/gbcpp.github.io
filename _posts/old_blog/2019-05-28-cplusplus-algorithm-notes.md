@@ -6,7 +6,7 @@ author: Mr Chen
 # cover: '/assets/assets/img/shan.jpg'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
-categories: learn
+categories: Notes
 tags: 
 - algorithm
 ---

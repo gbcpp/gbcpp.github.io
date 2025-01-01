@@ -3,7 +3,7 @@ layout: post
 title: 'float 和 int 在 Linux 下的计算性能对比'
 date: 2023-10-30
 author: Mr Chen
-categories: tech
+categories: Tech
 cover: '/assets/img/shan.jpg'
 tags: 
 - Linux

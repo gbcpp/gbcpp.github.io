@@ -3,7 +3,7 @@ layout: post
 title: 'H2O theme for Jekyll'
 subtitle: '或许是最漂亮的Jekyll主题'
 date: 2017-04-18
-categories: tech
+categories: Tech
 author: kaeyleo
 cover: '/assets/img/hu.png'
 tags: jekyll 前端开发 设计

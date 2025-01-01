@@ -3,7 +3,7 @@ layout: post
 title: MathJax Test
 subtitle: "Support MathJax"
 date: 2017-07-30
-categories: test
+categories: Tech
 tags: mathjax 
 cover: /assets/img/hu.png
 ---

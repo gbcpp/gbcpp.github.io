@@ -3,7 +3,7 @@ layout: post
 title: 'H2O-ac theme for Jekyll'
 subtitle: '基于或许是最漂亮的 Jekyll 主题 H2O 的学术版'
 date: 2021-12-22 19:50:00 +0800
-categories: tech
+categories: Tech
 author: zhonger
 cover: 'https://images.unsplash.com/photo-1614659754166-a2fd14dbc4d3?w=1600&q=900'
 tags: jekyll theme blog ac develop 主题 前端开发 学术 运维

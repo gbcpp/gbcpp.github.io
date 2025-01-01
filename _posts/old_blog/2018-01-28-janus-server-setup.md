@@ -3,7 +3,7 @@ layout: post
 title: janus 服务器搭建
 date: 2018-01-28 23:40:40
 author: Mr Chen
-categories: learn
+categories: Notes
 tags:
 - Janus
 - RTC
