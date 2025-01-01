@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux 基于 webrtc 进行流媒体开发 - Mr Chen</title>
+    <title>Windows 下编译 WebRTC - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="Linux 基于 webrtc 进行流媒体开发">
-    <meta name="keywords"  content="WebRTC, OpenSource, Linux">
+    <meta name="description" content="Windows 下编译 WebRTC">
+    <meta name="keywords"  content="RTC">
     <!-- Open Graph -->
-    <meta property="og:title" content="Linux 基于 webrtc 进行流媒体开发 - Mr Chen">
+    <meta property="og:title" content="Windows 下编译 WebRTC - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/rtc/Linux-%E4%B8%8B%E5%BC%80%E5%8F%91%E5%9F%BA%E4%BA%8E-webrtc-%E7%9A%84%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91-SDK.html">
+    <meta property="og:url" content="https://gbcpp.github.io/rtc/Windows-Build-WebRTC.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/meidasoup-demo-build.html">
+    <meta property="og:previous_url" content="/tech/Windows-10-Install-NetFrameWork-3-5.html">
     
     
-    <meta property="og:next_url" content="/notes/fix-aec-bug-on-android.html">
+    <meta property="og:next_url" content="/learn/janus-server-setup.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2019-01-23 10:56:31 +0000" />
+    <meta property="post-date" content="2018-01-28 23:58:14 +0000" />
     
     
     
@@ -162,15 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
-            
-              <a href="/tags.html#OpenSource" class="post-tag">OpenSource</a>
-            
-              <a href="/tags.html#Linux" class="post-tag">Linux</a>
+              <a href="/tags.html#RTC" class="post-tag">RTC</a>
             
           
         </div>
-        <h1>Linux 基于 webrtc 进行流媒体开发</h1>
+        <h1>Windows 下编译 WebRTC</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -178,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="18-01-28">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="18-01-28">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -195,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  3.4k  字
+              本文总共  4.0k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 10 分钟
+              阅读全文大约需要 12 分钟
             </span>
             
               <span class="post-meta-item">
@@ -225,149 +221,230 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>在 Linux 平台下开发实时通话 SDK 其实是主要应用于未来的 IOT 行业，先基于 Ubuntu 作为开发平台，完成后再基于每个客户提供的其交叉编译工具链进行交叉编译以供用户使用。</p>
+            <p>– Windows 下编译 WebRTC</p>
 
+<h1 id="一系统环境准备">一、系统环境准备</h1>
+
+<h2 id="1参考官方文档">1、参考官方文档</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://webrtc.org/native-code/development/   //官方编译指导首页
+https://webrtc.org/native-code/development/prerequisite-sw/  //依赖工具安装指导页
+http://dev.chromium.org/developers/how-tos/install-depot-tools //用于下载代码的工具包安装指导页面
+</code></pre></div></div>
 <!--more-->
 
-<h2 id="基于-ubuntu-下载-webrtc">基于 Ubuntu 下载 webrtc</h2>
+<h2 id="2windows-10--mingw--vs2015">2、Windows 10 &amp; MingW &amp; VS2015</h2>
 
-<h3 id="自行下载编译">自行下载编译</h3>
+<p>如果已经安装了 cygwin，则建议先将其重命名为 cygwin_bak，使其目录内的工具无效，因为 WebRTC 官方文档已经明确不推荐使用 CygWin 了，否则编译过程中可能会发生各种奇奇怪怪的错误，原文如下：</p>
 
-<p>如果是自己下载编译的话，可以参考官方教程，或者参考本人之前的一篇博客： https://www.jianshu.com/p/09f065f3feb0 ，其实 Ubuntu 下编译 webrtc 是比较简单的，只要可以翻墙，其它都只是时间问题了。</p>
-
-<h3 id="无法翻墙下载">无法翻墙下载</h3>
-
-<p>那么可以通过下载本人配置的一个 Docker 镜像进行进行编译： https://hub.docker.com/r/cgb0210/ubuntu_build ，由于 Docker 不适合作为开发环境，下载后，建议用户将 develop 目录下的文件拷贝到自己的开发环境中，并参考 https://www.jianshu.com/p/09f065f3feb0 配置相关环境变量，实现本地编译,过程主要包含 3 步：</p>
-
-<h3 id="配置-depot_tools-环境变量">配置 depot_tools 环境变量</h3>
-
-<p>将 <code class="language-plaintext highlighter-rouge">export PATH=$PATH:/home/gobert/develop/depot_tools</code> 添加到 <code class="language-plaintext highlighter-rouge">/etc/profile</code> 文件尾部；</p>
-
-<h3 id="安装-golang-并配置环境">安装 GoLang 并配置环境</h3>
-
-<h3 id="安装-linux-依赖包">安装 Linux 依赖包</h3>
-
-<p>执行 webrtc 目录下的 <code class="language-plaintext highlighter-rouge">/build/install-build-deps.sh</code> 脚本命令，如： <code class="language-plaintext highlighter-rouge">sudo sh build/install-build-deps.sh</code>；</p>
-
-<h2 id="编译-webrtc">编译 webrtc</h2>
-
-<p>默认情况下，Linux 下基于 ninja 编译的话，其编译器使用的是 clang，且其依赖的 stdc 标准库为其 ./buildtools/third_party/libc++ 内置的，所以如果外部想要基于 clang 编译的 libwebrtc.a 进行开发的话，上层依然需要使用 clang 做为编译器，且链接 webrtc 内部的 libc++ 标准库，否则将会产生各种 <code class="language-plaintext highlighter-rouge">error: undefined reference to symbol ...</code>，无法解决，虽然 clang 比 g++ 要优秀很多，但本人目前还是习惯使用 g++ 进行开发，所以需要指定 g++ 编译器，同时需要注意以下事项：</p>
-
-<h3 id="rtti-run-time-type-identification-运行时类型识别">RTTI （Run-Time Type Identification 运行时类型识别）</h3>
-
-<p>webrtc 内部各模块配置了不同的 rtti 属性，开、关各不相同，默认情况下，加载 libwebrtc.a 会产生 <code class="language-plaintext highlighter-rouge">undefined reference to </code>typeinfo for [classname]’<code class="language-plaintext highlighter-rouge"> 错误，为此我们可以在链接 libwebrtc.a 的根编译脚本文件中配置统一去除 rtti 属性，以解决此类问题，打开根目录下的 BUILD.gn 文件，在 </code>rtc_static_library(“webrtc”)<code class="language-plaintext highlighter-rouge"> 尾部添加 </code>cflags_cc = [” -fno-rtti” ]` 即可，如下：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (!build_with_chromium) {
-# Target to build all the WebRTC production code.
-rtc_static_library("webrtc") {
-    
-    ...
-    
-    cflags_cc = [" -fno-rtti" ]
-    }
-}
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Chromium is mostly designed to be run using the native Windows tools and the Msys (Git for Windows) toolchain. Cygwin is not recommended, and likely things will fail in cryptic ways.
 </code></pre></div></div>
 
-<p>这样便可以解决所有 undefined reference to <code class="language-plaintext highlighter-rouge">typeinfo for [classname]'</code> 类的错误。</p>
+<p>自行下载并安装 MingW。</p>
 
-<h3 id="找不到-builtin_audio_decoder_factory-模块的所有符号">找不到 builtin_audio_decoder_factory 模块的所有符号</h3>
+<p>自行下载安装 VS2015，因为最新的 webrtc 使用到了 C++ 11的一些新特性，如果使用 VS2013 等较旧的一些 IDE，可能会由于 对 C++ 11 支持的不够完整，而产生编译错误。</p>
 
-<p>这应该是 webrtc branch：68 版本的 bug，在各平台均会出现此类问题，原因在于其在编译脚本中漏写了 <code class="language-plaintext highlighter-rouge">builtin_audio_decoder_factory</code> 模块，加上即可，打开 <code class="language-plaintext highlighter-rouge">audio/BUILD.gn</code> 文件，在 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_encoder_factory",</code> 下面添加一行 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_decoder_factory",</code> 即可。</p>
+<h2 id="3安装-python">3、安装 python</h2>
+<p>下载并安装 python，并将其目录配置在环境变量中，一定要安装 Python 2.7 版本的，太高或者太低均会报错！</p>
 
-<h3 id="编译">编译</h3>
-
-<p>编译命令如下：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen -C out/linux/Release  --args="is_debug=false target_cpu=\"x64\" rtc_include_tests=false rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\" is_component_build=false is_clang=false treat_warnings_as_errors=false use_custom_libcxx=false strip_debug_info=true use_rtti=false"
+<p>安装完成后，将 Python 所在目录添加到 PATH 环境变量中，并通过</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set PTATH=C:
+exit
 </code></pre></div></div>
-<p>其中 <code class="language-plaintext highlighter-rouge">rtc_include_tests=false</code> 为禁止编译单元测试程序，可大大节省编译时间；
-<code class="language-plaintext highlighter-rouge">rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\"</code> 为激活内部 H.264 编解码器。</p>
+<p>使环境变量生效，确认 Python 是否已经正确配置，执行命令</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>where python
+</code></pre></div></div>
+<p>如果可以有效输出 python.exe 所在目录，则配置正确。</p>
 
-<h2 id="demo-程序">Demo 程序</h2>
+<h2 id="4安装-depot_tools">4、安装 depot_tools</h2>
 
-<h3 id="编译测试程序加载并调用-webrtc-接口">编译测试程序加载并调用 webrtc 接口。</h3>
+<p>安装 WebRTC 代码下载工具 depot_tools（Google），参考页面：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://dev.chromium.org/developers/how-tos/install-depot-tools
+</code></pre></div></div>
+<p>，Windows 下设置环境变量，需将 depot_toolss 所在目录添加到环境变量 ‘PATH’ 的最前面（目录中不要有空格），记得在标准的 cmd 中执行下</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp">
-</span>
-<span class="cp">#include</span> <span class="cpf">"api/jsep.h"</span><span class="cp">
-</span>
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">webrtc</span><span class="p">;</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
-<span class="p">{</span>
-    <span class="n">SdpParseError</span> <span class="n">error</span><span class="p">;</span>
-    <span class="k">auto</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">CreateSessionDescription</span><span class="p">(</span><span class="s">"offer"</span><span class="p">,</span> <span class="s">"sdp"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ptr</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription return null, error str:%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">description</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription success!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gclient
 </code></pre></div></div>
 
-<h3 id="编写-cmakeliststxt-脚本文件">编写 CMakeLists.txt 脚本文件</h3>
+<p>命令，首次启动，它会自动下载安装所依赖的一些工具，<strong>但切记不要在非标准的 cmd 中执行此命令，如 cmder</strong>；</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake_minimum_required(VERSION 3.5)
-project(demo)
+<h2 id="5下载安装-windows-sdk-10">5、下载安装 Windows SDK 10</h2>
 
-set(CMAKE_POSITION_INDEPENDENT_CODE     TRUE)
+<p>官方下载地址 <a href="https://developer.microsoft.com/zh-cn/windows/downloads/windows-10-sdk" rel="nofollow" target="_blank" class="extlinks">Windows10 sdk</a></p>
 
-set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS}")
-SET(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} -fno-exceptions -fPIC")
-set(CMAKE_SHARED_LINKER_FLAGS   "${CMAKE_SHARED_LINKER_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS      "${CMAKE_EXE_LINKER_FLAGS}")
+<p>并配置环境变量 WINDOWSSDKDIR 指向 SDK 安装目录，如</p>
 
-set(ARCH_PATH linux)
-set(WEBRTC_PATH "/home/gobert/develop/webrtc/src")
-set(WEBRTC_LIBRARY_PATH "/home/gobert/develop/webrtc/src/out/Linux/Release/obj")
-
-add_definitions(
-    "-DWEBRTC_POSIX"
-    "-DWEBRTC_LINUX"
-    "-DUSE_GLIB=1"
-)
-
-if (Linux)
-set(ARCH_PATH linux)
-elseif (Arm)
-set(ARCH_PATH arm)
-endif ()
-
-include_directories(
-    ${WEBRTC_PATH}
-    )
-
-set(SOURCE_FILES
-    main.cpp
-)
-
-link_directories(
-    ${link_directories}
-    ${WEBRTC_PATH}/out/Linux/Release/obj
-    /usr/lib/x86_64-linux-gnu/
-)
-
-link_libraries(
-    "${WEBRTC_LIBRARY_PATH}/libwebrtc.a"
-    )
-
-add_executable(demo ${SOURCE_FILES})
-
-TARGET_LINK_LIBRARIES(demo pthread stdc++)
-
-set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
-
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>WINDOWSSDKDIR=D:\Windows Kits\10
 </code></pre></div></div>
 
-<h3 id="编译-1">编译</h3>
+<h2 id="6修改系统语言">6、修改系统语言</h2>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake &amp;&amp; make
+<p>首先更改 Windows 系统区域语言为  英语，具体方法如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Panel → System and Security → System → Advanced system settings
+中文：
+控制面板-&gt;时钟、语言和区域-&gt;区域-&gt;管理（选项卡）-&gt;更改系统区域设置； 并重启
 </code></pre></div></div>
+
+<h2 id="7-设置默认编译工具-ide-版本">7、 设置默认编译工具 IDE 版本</h2>
+
+<p>系统环境变量中添加变量 DEPOT_TOOLS_WIN_TOOLCHAIN ，值设为 0；这个环境变量作用是告诉 deppt_tools 使用本地已安装的默认的 Visual Studio 版本去编译；否则 depot_tools 会使用 Google 内部默认的版本；</p>
+
+<h2 id="8设置环境变量用于生成-vs-工程文件">8、设置环境变量，用于生成 VS 工程文件</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set DEPOT_TOOLS_WIN_TOOLCHAIN=0
+set GYP_GENERATORS=ninja,msvs-ninja
+set GYP_MSVS_VERSION=2015
+</code></pre></div></div>
+
+<h2 id="9安装-directx-sdk">9、安装 DirectX SDk</h2>
+
+<p>安装DirectX SDK June 2010，安装完成后可能会报错，错误代码“s1023”,这是因为与系统已有的visual c++ redistributable packages版本冲突，不用管它，直接退出安装程序即可。这里我们需要的只是安装目录下的头文件和库。</p>
+
+<p>#二、 下载 WebRTC 源码</p>
+
+<p>注：CMD 命令行窗口使用管理员权限打开；</p>
+
+<h2 id="1下载源码">1、下载源码</h2>
+
+<p>选定好 WebRTC 源码存放目录后，如 E:/OpenSource 目下，通过 CMD 进入此目录，依次执行以下命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir webrtc-checkout
+cd webrtc-checkout
+fetch --nohooks webrtc
+gclient sync
+</code></pre></div></div>
+<p>前三条命令一次获取 WebRTC 源码，需要下载较长的时间。</p>
+
+<p>如果在执行 gclient sync 命令时，发现以下错误信息：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Please follow the instructions at https://www.chromium.org/developers/how-tos/build-instructions-windows                                                                          
+***
+returned non-zero exit status 1 in E:\OpenSource\webrtc-checkout                          
+</code></pre></div></div>
+
+<p>仔细查看报错信息，可以看到，命令执行失败，并建议我们先参考</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://www.chromium.org/developers/how-tos/build-instructions-windows 
+</code></pre></div></div>
+<p>指导页完成 Windows 下的一些编译准备工作，可能是漏掉了一些前期准备工作，主要是</p>
+
+<p><strong>更改 Windows 系统区域语言为  英语</strong></p>
+
+<p>具体方法如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Panel → System and Security → System → Advanced system settings
+中文：
+控制面板-&gt;时钟、语言和区域-&gt;区域-&gt;管理（选项卡）-&gt;更改系统区域设置； 并重启
+</code></pre></div></div>
+
+<p><strong>系统环境变量中添加变量 DEPOT_TOOLS_WIN_TOOLCHAIN ，值设为 0</strong></p>
+
+<p>这个环境变量作用是告诉 deppt_tools 使用本地已安装的默认的 Visual Studio 版本去编译；否则 depot_tools 会使用 Google 内部默认的版本；</p>
+
+<p>至此环境已经彻底准备好，重新执行</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gclient sync
+</code></pre></div></div>
+<p>命名执行成功！</p>
+
+<h2 id="2-可选项指定如何跟踪处理新的分支">2、 可选项：指定如何跟踪处理新的分支</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  git config branch.autosetupmerge always
+  git config branch.autosetuprebase always
+</code></pre></div></div>
+
+<p><strong>git config branch.autosetupmerge always</strong></p>
+
+<p>表示 自动从远程分支合并提交到本地分支，如果不做此设置，你需要手动 merge；</p>
+
+<p><strong>git config branch.autosetuprebase always</strong></p>
+
+<p>设置在执行 git pull  命令时做 rebase 而不是是 merge；可选的值还有 never：不自动 rebase， local 跟踪本地分支进行 rebase， remote 跟踪远程分支进行 rebase， always 所有跟踪的分支都自动进行 rebase；  ​</p>
+
+<h2 id="3-可选项创建一个新的本地分支">3、 可选项：创建一个新的本地分支</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  cd src
+  git checkout master
+  git new-branch your-branch-name
+</code></pre></div></div>
+
+<p>建议创建下新的本地开发分支，如： git new-branch dev  ​</p>
+
+<ul>
+  <li>
+    <p>编译前更新下最新代码</p>
+
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>git pull
+</code></pre></div>    </div>
+
+    <p><strong>注：</strong>如果在上一步中，没有创建新的分支，则使用</p>
+
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>git fetch
+</code></pre></div>    </div>
+
+    <p>命令代替，以获取最新代码。</p>
+  </li>
+</ul>
+
+<p><strong>注：</strong>由于WebRTC 目前还在频繁的更新中，建议定期的去下载更新下编译工具链及其依赖，通过执行
+gclient sync 既可!</p>
+
+<h1 id="三编译">三、编译</h1>
+
+<p>WebRTC  目前使用 GN 来生成构建脚本，Ninja 进行构建，所以系统平台均是。</p>
+
+<p>所以网上说的通过 GYP 生成 VS 解决方案工程文件的博文都已失效，用的均为旧版本的 webrtc。</p>
+
+<h2 id="1通过-ninja-编译">1、通过 Ninja 编译</h2>
+
+<h3 id="a-生成-ninja-工程文件">a、 生成 Ninja 工程文件</h3>
+
+<p>Ninja 工程文件由 GN 生成，为其选择一个放置的目录中，如 out/Debug 或者 out/Release，这里官方建议选择 out/Default 这样可以放置 debug 和 release，在 src 目录下还行一下命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen out/Default
+</code></pre></div></div>
+
+<p>如果 提示 gn 命令 not found，需检查 depot_tools 环境变量设置是否生效。</p>
+
+<p>执行以下命令生成 Ninja 工程文件</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen out/Default
+</code></pre></div></div>
+
+<p>如果需要生成 release 工程文件，需在后面加上关闭 debug 的参数  <strong>–args=is_debug= false</strong></p>
+
+<p>如果需要清理 Ninja 工程文件，但保持 GN 环境配置不变的话，可以执行以下命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn clean out/Default
+</code></pre></div></div>
+
+<h3 id="b通过-ninja-命令编译">b、通过 Ninja 命令编译</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ninja -C out/Default
+</code></pre></div></div>
+
+<h2 id="2通过-vs-ide-编译">2、通过 VS IDE 编译</h2>
+
+<p>除了 ninja 外，其他的构建系统不受支持(可能会失败)，比如Windows上的Visual Studio或者OSX上的Xcode。GN支持一种混合使用的方法，即由 Visual studio/xcode 用于编辑和驱动编译。</p>
+
+<p>官方原文如下：</p>
+
+<p>Other build systems are <strong>not supported</strong> (and may fail), such as Visual Studio on Windows or Xcode on OSX. GN supports a hybrid approach of using <a href="https://ninja-build.org/" rel="nofollow" target="_blank" class="extlinks">Ninja</a> for building, but Visual Studio/Xcode for editing and driving compilation.</p>
+
+<h3 id="a生成-vs-解决方案工程文件">a、生成 VS 解决方案工程文件</h3>
+<p>src 目录下执行以下命令（默认生成 Debug ）：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen --ide=vs out/Debug
+</code></pre></div></div>
+
+<p>会在 out/VS 目录下生成 all.sln 解决方案文件；如果需要生成 release 工程文件，需在后面加上关闭 debug 的参数  <strong>–args=’is_debug= false’</strong>
+即：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen --ide=vs out/Release --args=is_debug= false
+</code></pre></div></div>
+
+<h3 id="b打开-allsln-文件编译">b、打开 all.sln 文件编译</h3>
+
 
             <div class="post-copyright">
               <p>
@@ -383,15 +460,15 @@ set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 Linux 基于 webrtc 进行流媒体开发 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/Linux-%E4%B8%8B%E5%BC%80%E5%8F%91%E5%9F%BA%E4%BA%8E-webrtc-%E7%9A%84%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91-SDK.html" class="cplink">https://gbcpp.github.io/rtc/Linux-%E4%B8%8B%E5%BC%80%E5%8F%91%E5%9F%BA%E4%BA%8E-webrtc-%E7%9A%84%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91-SDK.html</a></p>
+              <p><span>本文标题：</span>《 Windows 下编译 WebRTC 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/Windows-Build-WebRTC.html" class="cplink">https://gbcpp.github.io/rtc/Windows-Build-WebRTC.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('基于-ubuntu-下载-webrtc')">基于 Ubuntu 下载 webrtc</a><ul><li><a onclick="scrollToAdjust('自行下载编译')">自行下载编译</a></li><li><a onclick="scrollToAdjust('无法翻墙下载')">无法翻墙下载</a></li><li><a onclick="scrollToAdjust('配置-depot_tools-环境变量')">配置 depot_tools 环境变量</a></li><li><a onclick="scrollToAdjust('安装-golang-并配置环境')">安装 GoLang 并配置环境</a></li><li><a onclick="scrollToAdjust('安装-linux-依赖包')">安装 Linux 依赖包</a></li></ul></li><li><a onclick="scrollToAdjust('编译-webrtc')">编译 webrtc</a><ul><li><a onclick="scrollToAdjust('rtti-（run-time-type-identification-运行时类型识别）')">RTTI （Run-Time Type Identification 运行时类型识别）</a></li><li><a onclick="scrollToAdjust('找不到-builtin_audio_decoder_factory-模块的所有符号')">找不到 builtin_audio_decoder_factory 模块的所有符号</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul></li><li><a onclick="scrollToAdjust('demo-程序')">Demo 程序</a><ul><li><a onclick="scrollToAdjust('编译测试程序加载并调用-webrtc-接口。')">编译测试程序加载并调用 webrtc 接口。</a></li><li><a onclick="scrollToAdjust('编写-cmakelists.txt-脚本文件')">编写 CMakeLists.txt 脚本文件</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('一、系统环境准备')">一、系统环境准备</a><ul><li><a onclick="scrollToAdjust('1、参考官方文档')">1、参考官方文档</a></li><li><a onclick="scrollToAdjust('2、windows-10-&amp;-mingw-&amp;-vs2015')">2、Windows 10 &amp; MingW &amp; VS2015</a></li><li><a onclick="scrollToAdjust('3、安装-python')">3、安装 python</a></li><li><a onclick="scrollToAdjust('4、安装-depot_tools')">4、安装 depot_tools</a></li><li><a onclick="scrollToAdjust('5、下载安装-windows-sdk-10')">5、下载安装 Windows SDK 10</a></li><li><a onclick="scrollToAdjust('6、修改系统语言')">6、修改系统语言</a></li><li><a onclick="scrollToAdjust('7、-设置默认编译工具-ide-版本')">7、 设置默认编译工具 IDE 版本</a></li><li><a onclick="scrollToAdjust('8、设置环境变量，用于生成-vs-工程文件')">8、设置环境变量，用于生成 VS 工程文件</a></li><li><a onclick="scrollToAdjust('9、安装-directx-sdk')">9、安装 DirectX SDk</a></li><li><a onclick="scrollToAdjust('1、下载源码')">1、下载源码</a></li><li><a onclick="scrollToAdjust('2、-可选项指定如何跟踪处理新的分支')">2、 可选项：指定如何跟踪处理新的分支</a></li><li><a onclick="scrollToAdjust('3、-可选项创建一个新的本地分支')">3、 可选项：创建一个新的本地分支</a></li></ul></li><li><a onclick="scrollToAdjust('三、编译')">三、编译</a><ul><li><a onclick="scrollToAdjust('1、通过-ninja-编译')">1、通过 Ninja 编译</a><ul><li><a onclick="scrollToAdjust('a、-生成-ninja-工程文件')">a、 生成 Ninja 工程文件</a></li><li><a onclick="scrollToAdjust('b、通过-ninja-命令编译')">b、通过 Ninja 命令编译</a></li></ul></li><li><a onclick="scrollToAdjust('2、通过-vs-ide-编译')">2、通过 VS IDE 编译</a><ul><li><a onclick="scrollToAdjust('a、生成-vs-解决方案工程文件')">a、生成 VS 解决方案工程文件</a></li><li><a onclick="scrollToAdjust('b、打开-all.sln-文件编译')">b、打开 all.sln 文件编译</a></li></ul></li></ul></li></ul>
         </div>
       </div>
       
@@ -446,10 +523,10 @@ set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
+          <a href="/tech/Windows-10-Install-NetFrameWork-3-5.html" class="read-next-link" aria-label="Windows 10 安装 .NetFrameWork 3.5"></a>
           <section>
-            <span>mediasoup 公网环境部署</span>
-            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
+            <span>Windows 10 安装 .NetFrameWork 3.5</span>
+            <p>Windows 10 下安装 .NetFrameWork 3.5</p>
           </section>
           
       </div>
@@ -457,10 +534,10 @@ set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
 
         
         <div class="read-next-item">
-          <a href="/notes/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
+          <a href="/learn/janus-server-setup.html" class="read-next-link" aria-label="janus 服务器搭建"></a>
             <section>
-              <span>Android AEC 无效的解决方案</span>
-              <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
+              <span>janus 服务器搭建</span>
+              <p>  Ubuntu 下 Janus Server 搭建笔记</p>
             </section>
             
         </div>
@@ -476,7 +553,7 @@ set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
   
   <script>
     var gitalk = new Gitalk({
-      id: '2019-01-23 10:56:31 +0000',
+      id: '2018-01-28 23:58:14 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -689,7 +766,7 @@ set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-Linux-下开发基于-webrtc-的实时音视频-SDK.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-01-28-Windows-Build-WebRTC.md")
           .then((response) => {
             return response.json();
           })

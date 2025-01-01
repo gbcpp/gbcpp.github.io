@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoVim 安装配置记录 - Mr Chen</title>
+    <title>Windows 10 安装 .NetFrameWork 3.5 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="NeoVim 安装配置记录">
-    <meta name="keywords"  content="develop">
+    <meta name="description" content="Windows 10 安装 .NetFrameWork 3.5">
+    <meta name="keywords"  content="Windows">
     <!-- Open Graph -->
-    <meta property="og:title" content="NeoVim 安装配置记录 - Mr Chen">
+    <meta property="og:title" content="Windows 10 安装 .NetFrameWork 3.5 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/neovim.html">
+    <meta property="og:url" content="https://gbcpp.github.io/tech/Windows-10-Install-NetFrameWork-3-5.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/transport/WebTransport.html">
+    <meta property="og:previous_url" content="/notes/build-boost-on-window-with-virtualstudio.html">
     
     
-    <meta property="og:next_url" content="/learn/blog-templete.html">
+    <meta property="og:next_url" content="/rtc/Windows-Build-WebRTC.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2024-01-01 00:00:00 +0000" />
+    <meta property="post-date" content="2018-02-26 14:05:19 +0000" />
     
     
     
@@ -162,11 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#develop" class="post-tag">develop</a>
+              <a href="/tags.html#Windows" class="post-tag">Windows</a>
             
           
         </div>
-        <h1>NeoVim 安装配置记录</h1>
+        <h1>Windows 10 安装 .NetFrameWork 3.5</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="24-01-01">
+          <time class="post-meta-item" datetime="18-02-26">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="24-01-01">
+          <time class="post-meta-item" datetime="18-02-26">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.3k  字
+              本文总共  495  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 4 分钟
+              阅读全文大约需要 2 分钟
             </span>
             
               <span class="post-meta-item">
@@ -221,99 +221,33 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。</p>
-</blockquote>
+            <h1 id="windows-10-下安装-netframework-35">Windows 10 下安装 .NetFrameWork 3.5</h1>
 
-<h2 id="windows-wsl-ubuntu">Windows WSL Ubuntu</h2>
+<p>某些软件依赖.NetFrameWork 3.5,但是通过系统自带的 <code class="language-plaintext highlighter-rouge">启动或关闭 Windows 功能</code>的界面接口去添加 .NetFrameWork 3.5 会失败，即使先删除了 .NetFrameWork 4.7 也是会失败，比如会报如下一些错误：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0x800F0906
+0x800F081F
+0x800F0907
+0x800F0922
+...
+</code></pre></div></div>
+<p>现总结如下安装方法;
+<!--more--></p>
 
-<p>  WSL 下 Ubuntu 子系统的安装与原生的 Ubuntu 系统安装有所不同，主要是字体的配置方式上有所区别。</p>
+<h2 id="下载-netframework-35-离线安装包">下载 .NetFrameWork 3.5 离线安装包</h2>
 
-<h3 id="install-neovim">Install NeoVim</h3>
+<p><a href="https://d11.baidupcs.com/file/f035714091c087774ca76a254018be04?bkt=p3-000014508cb2b9cb0151cee0f9ed3c6b0021&amp;xcode=7cbd07a2b4f6f74a3477739bc86162007cbccbd369afad2e710b2321bcd8d2e5e4b423467a61eb46&amp;fid=2098421940-250528-207166886389709&amp;time=1519614793&amp;sign=FDTAXGERLQBHSKa-DCb740ccc5511e5e8fedcff06b081203-kspSbRcHERbGt4GGM8ncJm%2B0M%2F8%3D&amp;to=d11&amp;size=72329390&amp;sta_dx=72329390&amp;sta_cs=70095&amp;sta_ft=cab&amp;sta_ct=7&amp;sta_mt=7&amp;fm2=MH%2CYangquan%2CAnywhere%2C%2Cshanghai%2Cct&amp;vuk=282335&amp;iv=0&amp;newver=1&amp;newfm=1&amp;secfm=1&amp;flow_ver=3&amp;pkey=000014508cb2b9cb0151cee0f9ed3c6b0021&amp;sl=79364174&amp;expires=8h&amp;rt=sh&amp;r=512254481&amp;mlogid=1309641164889007677&amp;vbdid=2429812664&amp;fin=NetFx3.cab&amp;fn=NetFx3.cab&amp;rtype=1&amp;dp-logid=1309641164889007677&amp;dp-callid=0.1.1&amp;hps=1&amp;tsl=100&amp;csl=100&amp;csign=azJdY%2B10Z49b0LbASthGmxMFU9c%3D&amp;so=0&amp;ut=6&amp;uter=4&amp;serv=0&amp;uc=1415919733&amp;ic=69126377&amp;ti=f8fdaa4589ff2f184c4630f76c465917b1fcaab7023e5652&amp;by=themis" rel="nofollow" target="_blank" class="extlinks">下载地址</a></p>
 
-<p>  我选择手动下载 NeoVim，这样可以安装官方最新版本，这里选择目前官方的最新版本 0.10.0，依次执行以下命令：</p>
+<p>下载完成后，将此文件 <code class="language-plaintext highlighter-rouge">NetFx3.cab</code> 不要解压直接拷贝到 <code class="language-plaintext highlighter-rouge">C:/Windows</code> 目录下;</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> ~/tools
-<span class="nb">cd</span> ~/tools
-wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
-<span class="nb">tar </span>xzf nvim-linux64.tar.gz
+<h2 id="命令安装">命令安装</h2>
+
+<p>以管理员权限运行 cmd 命令，执行以下命令直至 100% 成功即可：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dism.exe /online /enable-feature /featurename:netfx3 /Source:L:\sources\sxs
 </code></pre></div></div>
 
-<p>上面下载的 <code class="language-plaintext highlighter-rouge">nvim-linux64.tar.gz</code> 为 NeoVim 的二进制包，可直接运行，可以将上述解压的 NeoVim 中的 bin 目录添加到系统环境变量 <code class="language-plaintext highlighter-rouge">PATH</code>中，或者为 NeoVim 在 <code class="language-plaintext highlighter-rouge">/usr/bin</code>目录下添加一个软连接：</p>
+<h2 id="安装完成">安装完成</h2>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> ~/tools/nvim-linux64/bin/nvim /usr/bin/nvim
-
-<span class="c"># 可通过执行以下命令进行校验</span>
-nvim <span class="nt">--version</span>
-</code></pre></div></div>
-
-<h3 id="neovim-configuration">NeoVim Configuration</h3>
-
-<p>  使用 NeoVim 一个很大的门槛就是前期各种 <code class="language-plaintext highlighter-rouge">Plugins</code>的配置，目前有 <code class="language-plaintext highlighter-rouge">lazyVim</code>将很多易用的 <code class="language-plaintext highlighter-rouge">Plugins</code>打包在了一起，做到了开箱即用。</p>
-
-<p>将 <code class="language-plaintext highlighter-rouge">LazyVim</code> 下载并解压到 <code class="language-plaintext highlighter-rouge">NeoVim</code>的配置目录下，启动 <code class="language-plaintext highlighter-rouge">NeoVim</code>便会自动安装了。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 直接 clone 代码到 neovim 的配置文件目录下</span>
-git clone https://github.com/LazyVim/starter ~/.config/nvim
-
-<span class="c"># 启动 nvim，自动开始安装</span>
-nvim
-</code></pre></div></div>
-
-<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NeroTree 中的图标全是小方块，即乱码：</p>
-
-<p><img src="/assets/img/blog/nerofont_0.png" alt="NeroFont0"></p>
-
-<p>继续以下操作，安装所有符号等宽展示的字体。</p>
-
-<h3 id="install-nerd-font">Install Nerd Font</h3>
-
-<p><a href="https://www.nerdfonts.com/" rel="nofollow" target="_blank" class="extlinks"></a></p>
-
-<p>选择下载 <code class="language-plaintext highlighter-rouge">JetBrainsMono Font</code> 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 <code class="language-plaintext highlighter-rouge">.ttf</code> 的文件，选中后，右键 <code class="language-plaintext highlighter-rouge">安装</code> 即安装成功。</p>
-
-<h3 id="windows-terminal-配置-mono-字体">Windows Terminal 配置 Mono 字体</h3>
-
-<p>我的 <code class="language-plaintext highlighter-rouge">windows terminal</code> 版本如下 ：</p>
-
-<p><img src="/assets/img/blog/win_terminal.png" alt=""></p>
-
-<p>该版本没有 UI 的配置界面，通过 <code class="language-plaintext highlighter-rouge">settings.json</code> 进行配置，在 <code class="language-plaintext highlighter-rouge">profiles</code> 的 <code class="language-plaintext highlighter-rouge">defaults</code> 配置中添加 <code class="language-plaintext highlighter-rouge">fontFace</code> 字段指定字体，如下：</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"defaults"</span><span class="p">:</span><span class="w">
-</span><span class="p">{</span><span class="w">
-   </span><span class="err">//</span><span class="w"> </span><span class="err">Put</span><span class="w"> </span><span class="err">settings</span><span class="w"> </span><span class="err">here</span><span class="w"> </span><span class="err">that</span><span class="w"> </span><span class="err">you</span><span class="w"> </span><span class="err">want</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">apply</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">all</span><span class="w"> </span><span class="err">profiles.</span><span class="w">
-   </span><span class="nl">"fontFace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JetBrainsMono Nerd Font Mono"</span><span class="w">
-</span><span class="p">}</span><span class="err">,</span><span class="w">
-
-</span><span class="err">....</span><span class="w">
-</span></code></pre></div></div>
-
-<p>配置成功后，重启 <code class="language-plaintext highlighter-rouge">windows terminal</code>，通过 NeoVim 打开上一次的目录，查看图标显示已正常：</p>
-
-<p><img src="/assets/img/blog/nerofont_1.png" alt=""></p>
-
-<h2 id="mac">Mac</h2>
-
-<h2 id="ubuntu">Ubuntu</h2>
-
-<h2 id="常用功能介绍">常用功能介绍</h2>
-
-<h3 id="窗口管理">窗口管理</h3>
-
-<ul>
-  <li>打开内置控制台，执行命令，这是比较常用的场景，不需要切换窗口，快捷键 <code class="language-plaintext highlighter-rouge">Ctrl + L</code>，目录定位在当前路径，不是当前被打开的目录：</li>
-</ul>
-
-<p><img src="/assets/img/blog/nvim_console.png" alt=""></p>
-
-<blockquote>
-  <p>关闭亦是使用该快捷键。</p>
-</blockquote>
-
-<ul>
-  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NeroTree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l</code>，<code class="language-plaintext highlighter-rouge">h</code> 和 <code class="language-plaintext highlighter-rouge">l</code> 是 nvim 中移动光标位置的快捷键，加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是左右切换窗口的快捷键。</li>
-</ul>
+<p>如果不出问题的话是可以安装成功的，且不用重启，这时打开控制面板中 <code class="language-plaintext highlighter-rouge">启动或关闭 Windows 功能</code> 的界面，可以看到 <code class="language-plaintext highlighter-rouge">.Net FrameWork 3.5</code> 已经安装成功了，这时勾选 <code class="language-plaintext highlighter-rouge">.Net FrameWork 4.7</code> 并确定，以免其它已安装的依赖软件不能正常运行。</p>
 
 
             <div class="post-copyright">
@@ -330,15 +264,15 @@ nvim
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 NeoVim 安装配置记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/neovim.html" class="cplink">https://gbcpp.github.io/notes/neovim.html</a></p>
+              <p><span>本文标题：</span>《 Windows 10 安装 .NetFrameWork 3.5 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/tech/Windows-10-Install-NetFrameWork-3-5.html" class="cplink">https://gbcpp.github.io/tech/Windows-10-Install-NetFrameWork-3-5.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('windows-wsl-ubuntu')">Windows WSL Ubuntu</a><ul><li><a onclick="scrollToAdjust('install-neovim')">Install NeoVim</a></li><li><a onclick="scrollToAdjust('neovim-configuration')">NeoVim Configuration</a></li><li><a onclick="scrollToAdjust('install-nerd-font')">Install Nerd Font</a></li><li><a onclick="scrollToAdjust('windows-terminal-配置-mono-字体')">Windows Terminal 配置 Mono 字体</a></li></ul></li><li><a onclick="scrollToAdjust('mac')">Mac</a></li><li><a onclick="scrollToAdjust('ubuntu')">Ubuntu</a></li><li><a onclick="scrollToAdjust('常用功能介绍')">常用功能介绍</a><ul><li><a onclick="scrollToAdjust('窗口管理')">窗口管理</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('windows-10-下安装-.netframework-3.5')">Windows 10 下安装 .NetFrameWork 3.5</a><ul><li><a onclick="scrollToAdjust('下载-.netframework-3.5-离线安装包')">下载 .NetFrameWork 3.5 离线安装包</a></li><li><a onclick="scrollToAdjust('命令安装')">命令安装</a></li><li><a onclick="scrollToAdjust('安装完成')">安装完成</a></li></ul></li></ul>
         </div>
       </div>
       
@@ -393,25 +327,25 @@ nvim
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/transport/WebTransport.html" class="read-next-link" aria-label="基于 HTTP/3 的 WebTransport "></a>
+          <a href="/notes/build-boost-on-window-with-virtualstudio.html" class="read-next-link" aria-label="BOOST 在 Windows 下通过 VS 进行编译"></a>
           <section>
-            <span>基于 HTTP/3 的 WebTransport </span>
-            <p>  本文主要翻译自https://datatracker.ietf.org/doc/html/draft-vvv-...</p>
+            <span>BOOST 在 Windows 下通过 VS 进行编译</span>
+            <p>下载 Boost 源码</p>
           </section>
+          
+          <div class="filter"></div>
+          <img src="/assets/img/boost_logo.webp" alt="">
           
       </div>
         
 
         
         <div class="read-next-item">
-          <a href="/learn/blog-templete.html" class="read-next-link" aria-label="Blog title"></a>
+          <a href="/rtc/Windows-Build-WebRTC.html" class="read-next-link" aria-label="Windows 下编译 WebRTC"></a>
             <section>
-              <span>Blog title</span>
-              <p>  人们对学习的态度分为三种类型：犯人、过客和探索者。</p>
+              <span>Windows 下编译 WebRTC</span>
+              <p>– Windows 下编译 WebRTC</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -426,7 +360,7 @@ nvim
   
   <script>
     var gitalk = new Gitalk({
-      id: '2024-01-01 00:00:00 +0000',
+      id: '2018-02-26 14:05:19 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -639,7 +573,7 @@ nvim
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/utility/2024-12-29-neovim.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-02-26-Windows-10-Install-NetFrameWork-3-5.md")
           .then((response) => {
             return response.json();
           })

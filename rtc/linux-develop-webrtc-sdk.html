@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoVim 安装配置记录 - Mr Chen</title>
+    <title>Linux 基于 webrtc 进行流媒体开发 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="NeoVim 安装配置记录">
-    <meta name="keywords"  content="develop">
+    <meta name="description" content="Linux 基于 webrtc 进行流媒体开发">
+    <meta name="keywords"  content="WebRTC, OpenSource, Linux">
     <!-- Open Graph -->
-    <meta property="og:title" content="NeoVim 安装配置记录 - Mr Chen">
+    <meta property="og:title" content="Linux 基于 webrtc 进行流媒体开发 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/neovim.html">
+    <meta property="og:url" content="https://gbcpp.github.io/rtc/linux-develop-webrtc-sdk.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/transport/WebTransport.html">
+    <meta property="og:previous_url" content="/notes/meidasoup-demo-build.html">
     
     
-    <meta property="og:next_url" content="/learn/blog-templete.html">
+    <meta property="og:next_url" content="/notes/fix-aec-bug-on-android.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2024-01-01 00:00:00 +0000" />
+    <meta property="post-date" content="2019-01-23 10:56:31 +0000" />
     
     
     
@@ -162,11 +162,15 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#develop" class="post-tag">develop</a>
+              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
+            
+              <a href="/tags.html#OpenSource" class="post-tag">OpenSource</a>
+            
+              <a href="/tags.html#Linux" class="post-tag">Linux</a>
             
           
         </div>
-        <h1>NeoVim 安装配置记录</h1>
+        <h1>Linux 基于 webrtc 进行流媒体开发</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +178,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="24-01-01">
+          <time class="post-meta-item" datetime="19-01-23">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="24-01-01">
+          <time class="post-meta-item" datetime="19-01-23">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +195,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.3k  字
+              本文总共  3.4k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 4 分钟
+              阅读全文大约需要 10 分钟
             </span>
             
               <span class="post-meta-item">
@@ -221,100 +225,149 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。</p>
-</blockquote>
+            <p>在 Linux 平台下开发实时通话 SDK 其实是主要应用于未来的 IOT 行业，先基于 Ubuntu 作为开发平台，完成后再基于每个客户提供的其交叉编译工具链进行交叉编译以供用户使用。</p>
 
-<h2 id="windows-wsl-ubuntu">Windows WSL Ubuntu</h2>
+<!--more-->
 
-<p>  WSL 下 Ubuntu 子系统的安装与原生的 Ubuntu 系统安装有所不同，主要是字体的配置方式上有所区别。</p>
+<h2 id="基于-ubuntu-下载-webrtc">基于 Ubuntu 下载 webrtc</h2>
 
-<h3 id="install-neovim">Install NeoVim</h3>
+<h3 id="自行下载编译">自行下载编译</h3>
 
-<p>  我选择手动下载 NeoVim，这样可以安装官方最新版本，这里选择目前官方的最新版本 0.10.0，依次执行以下命令：</p>
+<p>如果是自己下载编译的话，可以参考官方教程，或者参考本人之前的一篇博客： https://www.jianshu.com/p/09f065f3feb0 ，其实 Ubuntu 下编译 webrtc 是比较简单的，只要可以翻墙，其它都只是时间问题了。</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> ~/tools
-<span class="nb">cd</span> ~/tools
-wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
-<span class="nb">tar </span>xzf nvim-linux64.tar.gz
+<h3 id="无法翻墙下载">无法翻墙下载</h3>
+
+<p>那么可以通过下载本人配置的一个 Docker 镜像进行进行编译： https://hub.docker.com/r/cgb0210/ubuntu_build ，由于 Docker 不适合作为开发环境，下载后，建议用户将 develop 目录下的文件拷贝到自己的开发环境中，并参考 https://www.jianshu.com/p/09f065f3feb0 配置相关环境变量，实现本地编译,过程主要包含 3 步：</p>
+
+<h3 id="配置-depot_tools-环境变量">配置 depot_tools 环境变量</h3>
+
+<p>将 <code class="language-plaintext highlighter-rouge">export PATH=$PATH:/home/gobert/develop/depot_tools</code> 添加到 <code class="language-plaintext highlighter-rouge">/etc/profile</code> 文件尾部；</p>
+
+<h3 id="安装-golang-并配置环境">安装 GoLang 并配置环境</h3>
+
+<h3 id="安装-linux-依赖包">安装 Linux 依赖包</h3>
+
+<p>执行 webrtc 目录下的 <code class="language-plaintext highlighter-rouge">/build/install-build-deps.sh</code> 脚本命令，如： <code class="language-plaintext highlighter-rouge">sudo sh build/install-build-deps.sh</code>；</p>
+
+<h2 id="编译-webrtc">编译 webrtc</h2>
+
+<p>默认情况下，Linux 下基于 ninja 编译的话，其编译器使用的是 clang，且其依赖的 stdc 标准库为其 ./buildtools/third_party/libc++ 内置的，所以如果外部想要基于 clang 编译的 libwebrtc.a 进行开发的话，上层依然需要使用 clang 做为编译器，且链接 webrtc 内部的 libc++ 标准库，否则将会产生各种 <code class="language-plaintext highlighter-rouge">error: undefined reference to symbol ...</code>，无法解决，虽然 clang 比 g++ 要优秀很多，但本人目前还是习惯使用 g++ 进行开发，所以需要指定 g++ 编译器，同时需要注意以下事项：</p>
+
+<h3 id="rtti-run-time-type-identification-运行时类型识别">RTTI （Run-Time Type Identification 运行时类型识别）</h3>
+
+<p>webrtc 内部各模块配置了不同的 rtti 属性，开、关各不相同，默认情况下，加载 libwebrtc.a 会产生 <code class="language-plaintext highlighter-rouge">undefined reference to </code>typeinfo for [classname]’<code class="language-plaintext highlighter-rouge"> 错误，为此我们可以在链接 libwebrtc.a 的根编译脚本文件中配置统一去除 rtti 属性，以解决此类问题，打开根目录下的 BUILD.gn 文件，在 </code>rtc_static_library(“webrtc”)<code class="language-plaintext highlighter-rouge"> 尾部添加 </code>cflags_cc = [” -fno-rtti” ]` 即可，如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (!build_with_chromium) {
+# Target to build all the WebRTC production code.
+rtc_static_library("webrtc") {
+    
+    ...
+    
+    cflags_cc = [" -fno-rtti" ]
+    }
+}
 </code></pre></div></div>
 
-<p>上面下载的 <code class="language-plaintext highlighter-rouge">nvim-linux64.tar.gz</code> 为 NeoVim 的二进制包，可直接运行，可以将上述解压的 NeoVim 中的 bin 目录添加到系统环境变量 <code class="language-plaintext highlighter-rouge">PATH</code>中，或者为 NeoVim 在 <code class="language-plaintext highlighter-rouge">/usr/bin</code>目录下添加一个软连接：</p>
+<p>这样便可以解决所有 undefined reference to <code class="language-plaintext highlighter-rouge">typeinfo for [classname]'</code> 类的错误。</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> ~/tools/nvim-linux64/bin/nvim /usr/bin/nvim
+<h3 id="找不到-builtin_audio_decoder_factory-模块的所有符号">找不到 builtin_audio_decoder_factory 模块的所有符号</h3>
 
-<span class="c"># 可通过执行以下命令进行校验</span>
-nvim <span class="nt">--version</span>
+<p>这应该是 webrtc branch：68 版本的 bug，在各平台均会出现此类问题，原因在于其在编译脚本中漏写了 <code class="language-plaintext highlighter-rouge">builtin_audio_decoder_factory</code> 模块，加上即可，打开 <code class="language-plaintext highlighter-rouge">audio/BUILD.gn</code> 文件，在 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_encoder_factory",</code> 下面添加一行 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_decoder_factory",</code> 即可。</p>
+
+<h3 id="编译">编译</h3>
+
+<p>编译命令如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen -C out/linux/Release  --args="is_debug=false target_cpu=\"x64\" rtc_include_tests=false rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\" is_component_build=false is_clang=false treat_warnings_as_errors=false use_custom_libcxx=false strip_debug_info=true use_rtti=false"
+</code></pre></div></div>
+<p>其中 <code class="language-plaintext highlighter-rouge">rtc_include_tests=false</code> 为禁止编译单元测试程序，可大大节省编译时间；
+<code class="language-plaintext highlighter-rouge">rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\"</code> 为激活内部 H.264 编解码器。</p>
+
+<h2 id="demo-程序">Demo 程序</h2>
+
+<h3 id="编译测试程序加载并调用-webrtc-接口">编译测试程序加载并调用 webrtc 接口。</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp">
+</span>
+<span class="cp">#include</span> <span class="cpf">"api/jsep.h"</span><span class="cp">
+</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">webrtc</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+    <span class="n">SdpParseError</span> <span class="n">error</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">CreateSessionDescription</span><span class="p">(</span><span class="s">"offer"</span><span class="p">,</span> <span class="s">"sdp"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ptr</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription return null, error str:%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">description</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription success!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </code></pre></div></div>
 
-<h3 id="neovim-configuration">NeoVim Configuration</h3>
+<h3 id="编写-cmakeliststxt-脚本文件">编写 CMakeLists.txt 脚本文件</h3>
 
-<p>  使用 NeoVim 一个很大的门槛就是前期各种 <code class="language-plaintext highlighter-rouge">Plugins</code>的配置，目前有 <code class="language-plaintext highlighter-rouge">lazyVim</code>将很多易用的 <code class="language-plaintext highlighter-rouge">Plugins</code>打包在了一起，做到了开箱即用。</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake_minimum_required(VERSION 3.5)
+project(demo)
 
-<p>将 <code class="language-plaintext highlighter-rouge">LazyVim</code> 下载并解压到 <code class="language-plaintext highlighter-rouge">NeoVim</code>的配置目录下，启动 <code class="language-plaintext highlighter-rouge">NeoVim</code>便会自动安装了。</p>
+set(CMAKE_POSITION_INDEPENDENT_CODE     TRUE)
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 直接 clone 代码到 neovim 的配置文件目录下</span>
-git clone https://github.com/LazyVim/starter ~/.config/nvim
+set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} -fno-exceptions -fPIC")
+set(CMAKE_SHARED_LINKER_FLAGS   "${CMAKE_SHARED_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS      "${CMAKE_EXE_LINKER_FLAGS}")
 
-<span class="c"># 启动 nvim，自动开始安装</span>
-nvim
+set(ARCH_PATH linux)
+set(WEBRTC_PATH "/home/gobert/develop/webrtc/src")
+set(WEBRTC_LIBRARY_PATH "/home/gobert/develop/webrtc/src/out/Linux/Release/obj")
+
+add_definitions(
+    "-DWEBRTC_POSIX"
+    "-DWEBRTC_LINUX"
+    "-DUSE_GLIB=1"
+)
+
+if (Linux)
+set(ARCH_PATH linux)
+elseif (Arm)
+set(ARCH_PATH arm)
+endif ()
+
+include_directories(
+    ${WEBRTC_PATH}
+    )
+
+set(SOURCE_FILES
+    main.cpp
+)
+
+link_directories(
+    ${link_directories}
+    ${WEBRTC_PATH}/out/Linux/Release/obj
+    /usr/lib/x86_64-linux-gnu/
+)
+
+link_libraries(
+    "${WEBRTC_LIBRARY_PATH}/libwebrtc.a"
+    )
+
+add_executable(demo ${SOURCE_FILES})
+
+TARGET_LINK_LIBRARIES(demo pthread stdc++)
+
+set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
+
 </code></pre></div></div>
 
-<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NeroTree 中的图标全是小方块，即乱码：</p>
+<h3 id="编译-1">编译</h3>
 
-<p><img src="/assets/img/blog/nerofont_0.png" alt="NeroFont0"></p>
-
-<p>继续以下操作，安装所有符号等宽展示的字体。</p>
-
-<h3 id="install-nerd-font">Install Nerd Font</h3>
-
-<p><a href="https://www.nerdfonts.com/" rel="nofollow" target="_blank" class="extlinks"></a></p>
-
-<p>选择下载 <code class="language-plaintext highlighter-rouge">JetBrainsMono Font</code> 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 <code class="language-plaintext highlighter-rouge">.ttf</code> 的文件，选中后，右键 <code class="language-plaintext highlighter-rouge">安装</code> 即安装成功。</p>
-
-<h3 id="windows-terminal-配置-mono-字体">Windows Terminal 配置 Mono 字体</h3>
-
-<p>我的 <code class="language-plaintext highlighter-rouge">windows terminal</code> 版本如下 ：</p>
-
-<p><img src="/assets/img/blog/win_terminal.png" alt=""></p>
-
-<p>该版本没有 UI 的配置界面，通过 <code class="language-plaintext highlighter-rouge">settings.json</code> 进行配置，在 <code class="language-plaintext highlighter-rouge">profiles</code> 的 <code class="language-plaintext highlighter-rouge">defaults</code> 配置中添加 <code class="language-plaintext highlighter-rouge">fontFace</code> 字段指定字体，如下：</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"defaults"</span><span class="p">:</span><span class="w">
-</span><span class="p">{</span><span class="w">
-   </span><span class="err">//</span><span class="w"> </span><span class="err">Put</span><span class="w"> </span><span class="err">settings</span><span class="w"> </span><span class="err">here</span><span class="w"> </span><span class="err">that</span><span class="w"> </span><span class="err">you</span><span class="w"> </span><span class="err">want</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">apply</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">all</span><span class="w"> </span><span class="err">profiles.</span><span class="w">
-   </span><span class="nl">"fontFace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JetBrainsMono Nerd Font Mono"</span><span class="w">
-</span><span class="p">}</span><span class="err">,</span><span class="w">
-
-</span><span class="err">....</span><span class="w">
-</span></code></pre></div></div>
-
-<p>配置成功后，重启 <code class="language-plaintext highlighter-rouge">windows terminal</code>，通过 NeoVim 打开上一次的目录，查看图标显示已正常：</p>
-
-<p><img src="/assets/img/blog/nerofont_1.png" alt=""></p>
-
-<h2 id="mac">Mac</h2>
-
-<h2 id="ubuntu">Ubuntu</h2>
-
-<h2 id="常用功能介绍">常用功能介绍</h2>
-
-<h3 id="窗口管理">窗口管理</h3>
-
-<ul>
-  <li>打开内置控制台，执行命令，这是比较常用的场景，不需要切换窗口，快捷键 <code class="language-plaintext highlighter-rouge">Ctrl + L</code>，目录定位在当前路径，不是当前被打开的目录：</li>
-</ul>
-
-<p><img src="/assets/img/blog/nvim_console.png" alt=""></p>
-
-<blockquote>
-  <p>关闭亦是使用该快捷键。</p>
-</blockquote>
-
-<ul>
-  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NeroTree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l</code>，<code class="language-plaintext highlighter-rouge">h</code> 和 <code class="language-plaintext highlighter-rouge">l</code> 是 nvim 中移动光标位置的快捷键，加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是左右切换窗口的快捷键。</li>
-</ul>
-
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake &amp;&amp; make
+</code></pre></div></div>
 
             <div class="post-copyright">
               <p>
@@ -330,15 +383,15 @@ nvim
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 NeoVim 安装配置记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/neovim.html" class="cplink">https://gbcpp.github.io/notes/neovim.html</a></p>
+              <p><span>本文标题：</span>《 Linux 基于 webrtc 进行流媒体开发 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/linux-develop-webrtc-sdk.html" class="cplink">https://gbcpp.github.io/rtc/linux-develop-webrtc-sdk.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('windows-wsl-ubuntu')">Windows WSL Ubuntu</a><ul><li><a onclick="scrollToAdjust('install-neovim')">Install NeoVim</a></li><li><a onclick="scrollToAdjust('neovim-configuration')">NeoVim Configuration</a></li><li><a onclick="scrollToAdjust('install-nerd-font')">Install Nerd Font</a></li><li><a onclick="scrollToAdjust('windows-terminal-配置-mono-字体')">Windows Terminal 配置 Mono 字体</a></li></ul></li><li><a onclick="scrollToAdjust('mac')">Mac</a></li><li><a onclick="scrollToAdjust('ubuntu')">Ubuntu</a></li><li><a onclick="scrollToAdjust('常用功能介绍')">常用功能介绍</a><ul><li><a onclick="scrollToAdjust('窗口管理')">窗口管理</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('基于-ubuntu-下载-webrtc')">基于 Ubuntu 下载 webrtc</a><ul><li><a onclick="scrollToAdjust('自行下载编译')">自行下载编译</a></li><li><a onclick="scrollToAdjust('无法翻墙下载')">无法翻墙下载</a></li><li><a onclick="scrollToAdjust('配置-depot_tools-环境变量')">配置 depot_tools 环境变量</a></li><li><a onclick="scrollToAdjust('安装-golang-并配置环境')">安装 GoLang 并配置环境</a></li><li><a onclick="scrollToAdjust('安装-linux-依赖包')">安装 Linux 依赖包</a></li></ul></li><li><a onclick="scrollToAdjust('编译-webrtc')">编译 webrtc</a><ul><li><a onclick="scrollToAdjust('rtti-（run-time-type-identification-运行时类型识别）')">RTTI （Run-Time Type Identification 运行时类型识别）</a></li><li><a onclick="scrollToAdjust('找不到-builtin_audio_decoder_factory-模块的所有符号')">找不到 builtin_audio_decoder_factory 模块的所有符号</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul></li><li><a onclick="scrollToAdjust('demo-程序')">Demo 程序</a><ul><li><a onclick="scrollToAdjust('编译测试程序加载并调用-webrtc-接口。')">编译测试程序加载并调用 webrtc 接口。</a></li><li><a onclick="scrollToAdjust('编写-cmakelists.txt-脚本文件')">编写 CMakeLists.txt 脚本文件</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul></li></ul>
         </div>
       </div>
       
@@ -393,10 +446,10 @@ nvim
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/transport/WebTransport.html" class="read-next-link" aria-label="基于 HTTP/3 的 WebTransport "></a>
+          <a href="/notes/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
           <section>
-            <span>基于 HTTP/3 的 WebTransport </span>
-            <p>  本文主要翻译自https://datatracker.ietf.org/doc/html/draft-vvv-...</p>
+            <span>mediasoup 公网环境部署</span>
+            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
           </section>
           
       </div>
@@ -404,14 +457,11 @@ nvim
 
         
         <div class="read-next-item">
-          <a href="/learn/blog-templete.html" class="read-next-link" aria-label="Blog title"></a>
+          <a href="/notes/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
             <section>
-              <span>Blog title</span>
-              <p>  人们对学习的态度分为三种类型：犯人、过客和探索者。</p>
+              <span>Android AEC 无效的解决方案</span>
+              <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -426,7 +476,7 @@ nvim
   
   <script>
     var gitalk = new Gitalk({
-      id: '2024-01-01 00:00:00 +0000',
+      id: '2019-01-23 10:56:31 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -639,7 +689,7 @@ nvim
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/utility/2024-12-29-neovim.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-linux-develop-webrtc-sdk.md")
           .then((response) => {
             return response.json();
           })
