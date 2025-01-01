@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>解决 WebRTC 花屏问题记录 - Mr Chen</title>
+    <title>网络包序号回绕 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="解决 WebRTC 花屏问题记录">
-    <meta name="keywords"  content="WebRTC">
+    <meta name="description" content="网络包序号回绕">
+    <meta name="keywords"  content="协议">
     <!-- Open Graph -->
-    <meta property="og:title" content="解决 WebRTC 花屏问题记录 - Mr Chen">
+    <meta property="og:title" content="网络包序号回绕 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/packet_number.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/linux-common-comands-notes.html">
+    <meta property="og:previous_url" content="/protocol/sctp-optimize.html">
     
     
-    <meta property="og:next_url" content="/notes/build-boost-on-window-with-virtualstudio.html">
+    <meta property="og:next_url" content="/tech/new-theme-h2o-ac.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2018-03-19 00:00:00 +0000" />
+    <meta property="post-date" content="2023-04-18 00:00:00 +0000" />
     
     
     
@@ -162,11 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
+              <a href="/tags.html#%E5%8D%8F%E8%AE%AE" class="post-tag">协议</a>
             
           
         </div>
-        <h1>解决 WebRTC 花屏问题记录</h1>
+        <h1>网络包序号回绕</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="23-04-18">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="18-03-19">
+          <time class="post-meta-item" datetime="23-04-18">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.4k  字
+              本文总共  3.1k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 5 分钟
+              阅读全文大约需要 9 分钟
             </span>
             
               <span class="post-meta-item">
@@ -214,8 +214,6 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">实现 RTCDataChannel 类似于裸 UDP 的传输效率</h2>
-      
 
       
       
@@ -224,103 +222,159 @@
           <article class="markdown-body post">
               
             <blockquote>
-  <p>现象：WebRTC native 层经常打印 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code>，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。</p>
+  <p>Transform your plain text into static websites and blogs.</p>
 </blockquote>
 
-<!--more-->
+<h2 id="需求">需求</h2>
 
-<h1 id="情景描述">情景描述</h1>
+<p>在实现一套基于 UDP/DataChannel 自定义可靠传输算法时，自定义的协议头中肯定也是要用到 sequence Id 来标记包序号，用于重传，计算 RTT 等需求。</p>
 
-<p>当前基于 WebRTC 开发自己的音视频实时通话的产品，服务器选择了 licode，在多端 H5、Android、iOS、C++ Native 端均有一定的概率会出现绿屏、花屏的现象，特别是在弱网下出现的概率更高；</p>
+<h2 id="方案">方案</h2>
 
-<p>在出现绿屏、花屏时，native log 也会经常输出的 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log，花屏时，或者完全无法播放（有流量，但无画面），此 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log 出现的概率更高；</p>
+<p>一般情况下我们都是使用 32字节的 UINT 记录 sequence id，通过不断的递增包序号总是会达到最大值 UINT_MAX，然后回绕到 0 的，此时需要判断新的 sequence id （比如 1， 2，3， xxx），是要 “大于” 旧的 sequence id （4294967293， 4294967294， 4294967295）的，如果直接通过关系运算符  &gt;  &lt; 等进行判断的话，就会得到错误的结果，回绕后的新包序号 sequence id 要排到旧的包序号 sequence id 之前了，针对此种情况，需要一种特殊的 “关系运算符” 比较，在此提供如下比较方法。</p>
 
-<p>当前已排除不同订阅终端在同一房间内跨运营商的网络问题，但依然会存在此类问题；</p>
+<h3 id="方案一">方案一</h3>
 
-<p>RTP/RTCP</p>
+<p>通过比较两个包序号之间差值与 kPacketNumberMask 与运算后的结果，与 UINT_MAX / 4 之间的关系来判断。</p>
+
+<p>此种判断方法的前提是认定递增的包序号，在队列中不可能出现最新和最旧的包序号差值能够达到 (kPacketNumberMask » 1)，即 UINT_MAX / 4 如此之大的，否则说明包序号设计非常的不合理。</p>
+
+<p>有了正确的判断包序号大小的方法，再配合 std::map 可自定义的 key_compare 便可实现对产生回绕的包序号自动排序能力，完整的 Example：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 定义 UINT_MAX 的一半</span>
+<span class="c1">// BIN: 01111111111111111111111111111111; HEX:7FFFFFFF; DEC:2147483647</span>
+<span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">kPacketNumberMask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1u</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> 
+
+<span class="c1">// 当用 UINT 的较小的数 减去 较大的数不够减时，得到的结果会产生回绕：</span>
+<span class="c1">// 如：3 - UINT_MAX = 4， 4 用 二进制表示为：100b</span>
+<span class="c1">// 用 kPacketNumberMask &amp; 100b = 100b， 100b 是小于 (kPacketNumberMask &gt;&gt; 1) 的，结果为 true；</span>
+
+
+<span class="c1">// &gt;</span>
+<span class="kt">bool</span> <span class="nf">greaterThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// &lt;</span>
+<span class="kt">bool</span> <span class="nf">lessThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">greaterThan</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">left</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// &lt;=</span>
+<span class="kt">bool</span> <span class="nf">lessEqual</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">left</span> <span class="o">==</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<ul>
+  <li>Example:</li>
+</ul>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="cp">#include</span> <span class="cpf">&lt;map&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;climits&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+
+
+<span class="k">const</span> <span class="kt">uint32_t</span> <span class="n">kPacketNumberMask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1u</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+
+<span class="kt">bool</span> <span class="nf">greaterThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="nf">lessThan</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">greaterThan</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">left</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="nf">lessEqual</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">left</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">left</span> <span class="o">==</span> <span class="n">right</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">kPacketNumberMask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="n">right</span><span class="p">))</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">kPacketNumberMask</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="nc">CompareUint</span> <span class="o">:</span> <span class="k">public</span> <span class="n">std</span><span class="o">::</span><span class="n">binary_function</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span> <span class="kt">uint32_t</span><span class="p">,</span> <span class="kt">bool</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="kt">bool</span> <span class="k">operator</span><span class="p">()(</span><span class="kt">uint32_t</span> <span class="n">lhs</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">rhs</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="c1">// return !greaterThan(lhs, rhs);</span>
+    <span class="k">return</span> <span class="n">lessEqual</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">);</span>
+ <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">CompareUint</span><span class="o">&gt;</span> <span class="n">pkt_map</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 3"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 2"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 1"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="n">UINT_MAX</span> <span class="o">-</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s">"UINT_MAX - 0"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">"1"</span><span class="p">;</span>
+  <span class="n">pkt_map</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s">"2"</span><span class="p">;</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"-------------------------------------------------</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"UINT_MAX: "</span> <span class="o">&lt;&lt;</span> <span class="n">UINT_MAX</span> <span class="o">&lt;&lt;</span> <span class="s">", +1 = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">UINT_MAX</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"3 - UINT_MAX = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span><span class="n">UINT_MAX</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"0 - UINT_MAX = "</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="mi">0</span> <span class="o">-</span><span class="n">UINT_MAX</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="n">itor</span> <span class="o">:</span> <span class="n">pkt_map</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"key: "</span> <span class="o">&lt;&lt;</span> <span class="n">itor</span><span class="p">.</span><span class="n">first</span> <span class="o">&lt;&lt;</span> <span class="s">", value: "</span> <span class="o">&lt;&lt;</span> <span class="n">itor</span><span class="p">.</span><span class="n">second</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <ul>
   <li>
-    <p>SR（Sender Report） 发送端报告</p>
-  </li>
-  <li>
-    <p>RR（Receiver Report）接收端报告</p>
-  </li>
-  <li>
-    <p>REMB (Receiver Estimated Maximum Bitrate)</p>
+    <p>运行结果：</p>
+
+    <blockquote>
+      <p>编译：g++  main.cpp -std=c++17  -o main.exe</p>
+    </blockquote>
   </li>
 </ul>
 
-<p>接收端最大接收码率估测，接收端会估计本地接收的最大带宽能力，并通过RTCP REMB 消息返回给对端，这样对端可以调整自己的发送端码率，达到动态调整带宽的目的，具体消息类型通过rtcp的属性 `
-Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分是 </code>REMG` 消息，此部分是四个字节，</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-------------------------------------------------</span>
+UINT_MAX: 4294967295, +1 <span class="o">=</span> 0
+3 - UINT_MAX <span class="o">=</span> 4
+0 - UINT_MAX <span class="o">=</span> 1
+key: 4294967292, value: UINT_MAX - 3
+key: 4294967293, value: UINT_MAX - 2
+key: 4294967294, value: UINT_MAX - 1
+key: 4294967295, value: UINT_MAX - 0
+key: 1, value: 1
+key: 2, value: 2
+</code></pre></div></div>
 
-<p>REMG 信令协商：webrtc里面的协商格式是：<code class="language-plaintext highlighter-rouge">a=rtcp-fb:100 goog-remb，100 是codec payload</code>; 这里goog 实际上是 google 实现了自己版本的remb。</p>
+<h3 id="方案二">方案二</h3>
+<p>内核中使用的方法：</p>
 
-<ul>
-  <li>
-    <p>GCC 码率估计算法（接收端），用来生成 <code class="language-plaintext highlighter-rouge">REMG</code> 包</p>
-  </li>
-  <li>
-    <p>TMMBR（Temporal Max Media Bitrate Request），表示临时最大码率请求。表明接收端当前带宽受限，告诉发送端控制码率。</p>
-  </li>
-  <li>
-    <p>TMMBN（Temporal Max Media Bitrate Notification）临时最大码率通知。</p>
-  </li>
-  <li>
-    <p>SDES 源描述，主要功能是作为会话成员有关标识信息的载体，如用户名、邮件地址、电话号码等，此外还具有向会话成员传达会话控制信息的功能。</p>
-  </li>
-  <li>
-    <p>BYE　通知离开，主要功能是指示某一个或者几个源不再有效，即通知会话中的其他成员自己将退出会话。</p>
-  </li>
-  <li>
-    <p>APP　由应用程序自己定义，解决了RTCP的扩展性问题，并且为协议的实现者提供了很大的灵活性。</p>
-  </li>
-</ul>
-
-<p><strong>关键帧请求</strong></p>
-
-<ul>
-  <li>
-    <p>PLI（Picture Loss Indication）</p>
-  </li>
-  <li>
-    <p>SLI（Slice Loss Indication）</p>
-  </li>
-</ul>
-
-<p>发送方接收到接收方反馈的PLI或SLI需要重新让编码器生成关键帧并发送给接收端。</p>
-
-<ul>
-  <li>FIR（Full Intra Request）</li>
-</ul>
-
-<p>这里面 Intra 的含义是图像内编码，不需要其他图像信息即可解码；Inter 指图像间编码，解码需要参考帧。所以 Intra Frame 其实就是指 I 帧，Inter Frame指 P 帧或 B 帧。</p>
-
-<blockquote>
-  <p>那么为什么在 PLI 和 SLI 之外还需要一个 FIR 呢？
-原因是使用场景不同，FIR 更多是在一个中心化的 Video Conference 中，新的参与者加入，就需要发送一个 FIR，其他的参与者给他发送一个关键帧这样才能解码，而 PLI 和 SLI 的含义更多是在发生丢包或解码错误时使用。</p>
-</blockquote>
-
-<p><strong>重传请求</strong></p>
-
-<ul>
-  <li>RTX／NACK／RPSI</li>
-</ul>
-
-<p>这个重传跟关键帧请求的区别是它可以要求任意帧进行重传;</p>
-
-<ul>
-  <li>
-    <p>RED（redundant packet）冗余包，配合 FEC 使用。</p>
-  </li>
-  <li>
-    <p>FEC 前向纠错算法，经 FEC 算法计算后，通过 RED 生成冗余包。</p>
-  </li>
-  <li>
-    <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747" rel="nofollow" target="_blank" class="extlinks">参考 ULR</a></p>
-  </li>
-</ul>
-
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">before</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">seq1</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">seq2</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kt">int32_t</span><span class="p">)(</span><span class="n">seq1</span><span class="o">-</span><span class="n">seq2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#define after(seq2, seq1)   before(seq1, seq2)
+</span></code></pre></div></div>
 
             <div class="post-copyright">
               <p>
@@ -336,15 +390,15 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 解决 WebRTC 花屏问题记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html" class="cplink">https://gbcpp.github.io/resolve_webrtc_video_blurry_frame_issue.html</a></p>
+              <p><span>本文标题：</span>《 网络包序号回绕 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/packet_number.html" class="cplink">https://gbcpp.github.io/notes/packet_number.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('情景描述')">情景描述</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('需求')">需求</a></li><li><a onclick="scrollToAdjust('方案')">方案</a><ul><li><a onclick="scrollToAdjust('方案一')">方案一</a></li><li><a onclick="scrollToAdjust('方案二')">方案二</a></li></ul></li></ul>
         </div>
       </div>
       
@@ -399,28 +453,25 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/linux-common-comands-notes.html" class="read-next-link" aria-label="Linux 常用命令备忘录"></a>
+          <a href="/protocol/sctp-optimize.html" class="read-next-link" aria-label="RtcDataChannel(sctp) protocol optimize"></a>
           <section>
-            <span>Linux 常用命令备忘录</span>
-            <p>  记录 Linux 常用命令</p>
+            <span>RtcDataChannel(sctp) protocol optimize</span>
+            <p>DataChannel 实现DataChannel 的实现有两种，webrtc 目前使用自行基于 C++ 开发的 ...</p>
           </section>
-          
-          <div class="filter"></div>
-          <img src="/assets/img/shan.jpg" alt="">
           
       </div>
         
 
         
         <div class="read-next-item">
-          <a href="/notes/build-boost-on-window-with-virtualstudio.html" class="read-next-link" aria-label="BOOST 在 Windows 下通过 VS 进行编译"></a>
+          <a href="/tech/new-theme-h2o-ac.html" class="read-next-link" aria-label="H2O-ac theme for Jekyll"></a>
             <section>
-              <span>BOOST 在 Windows 下通过 VS 进行编译</span>
-              <p>下载 Boost 源码</p>
+              <span>H2O-ac theme for Jekyll</span>
+              <p>前言</p>
             </section>
             
             <div class="filter"></div>
-            <img src="/assets/img/boost_logo.webp" alt="">
+            <img src="https://images.unsplash.com/photo-1614659754166-a2fd14dbc4d3?w=1600&q=900" alt="">
             
         </div>
         
@@ -435,7 +486,7 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
   
   <script>
     var gitalk = new Gitalk({
-      id: '2018-03-19 00:00:00 +0000',
+      id: '2023-04-18 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -648,7 +699,7 @@ Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分�
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-19-resolve_webrtc_video_blurry_frame_issue.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/utility/2023-09-30-packet_number.md")
           .then((response) => {
             return response.json();
           })

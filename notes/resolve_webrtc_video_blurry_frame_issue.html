@@ -8,25 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C++ 程序输出当前堆栈 - Mr Chen</title>
+    <title>解决 WebRTC 花屏问题记录 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="C++ 程序输出当前堆栈">
-    <meta name="keywords"  content="C++">
+    <meta name="description" content="解决 WebRTC 花屏问题记录">
+    <meta name="keywords"  content="WebRTC">
     <!-- Open Graph -->
-    <meta property="og:title" content="C++ 程序输出当前堆栈 - Mr Chen">
+    <meta property="og:title" content="解决 WebRTC 花屏问题记录 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/print_stacktrace.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/resolve_webrtc_video_blurry_frame_issue.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
+    <meta property="og:previous_url" content="/notes/linux-common-comands-notes.html">
     
-    <meta property="og:next_url" content="/notes/learning-cpp-notes.html">
+    
+    <meta property="og:next_url" content="/notes/build-boost-on-window-with-virtualstudio.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2024-06-11 00:00:00 +0000" />
+    <meta property="post-date" content="2018-03-19 00:00:00 +0000" />
     
     
     
@@ -160,11 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#C++" class="post-tag">C++</a>
+              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
             
           
         </div>
-        <h1>C++ 程序输出当前堆栈</h1>
+        <h1>解决 WebRTC 花屏问题记录</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -172,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="24-06-11">
+          <time class="post-meta-item" datetime="18-03-19">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="24-06-11">
+          <time class="post-meta-item" datetime="18-03-19">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -189,7 +191,7 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.6k  字
+              本文总共  1.4k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
@@ -212,6 +214,8 @@
     </header>
     <div class="post-content visible">
       
+      <h2 class="post-subtitle">实现 RTCDataChannel 类似于裸 UDP 的传输效率</h2>
+      
 
       
       
@@ -219,88 +223,103 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
-互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
+            <blockquote>
+  <p>现象：WebRTC native 层经常打印 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code>，订阅端会出现部分绿屏、花屏的情况，严重影响视频通话体验。</p>
+</blockquote>
 
-<h2 id="头文件">头文件</h2>
+<!--more-->
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;cxxabi.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;execinfo.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span></code></pre></div></div>
+<h1 id="情景描述">情景描述</h1>
 
-<h2 id="源码">源码</h2>
+<p>当前基于 WebRTC 开发自己的音视频实时通话的产品，服务器选择了 licode，在多端 H5、Android、iOS、C++ Native 端均有一定的概率会出现绿屏、花屏的现象，特别是在弱网下出现的概率更高；</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Utils</span><span class="o">::</span><span class="n">PrintStackTrace</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxFrames</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxPrettyFunctionNameLength</span> <span class="o">=</span> <span class="mi">512</span><span class="p">;</span>
+<p>在出现绿屏、花屏时，native log 也会经常输出的 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log，花屏时，或者完全无法播放（有流量，但无画面），此 <code class="language-plaintext highlighter-rouge">Failed to unprotect SRTP packet, err=9</code> log 出现的概率更高；</p>
 
-  <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">oss</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="o">*</span><span class="n">addrlist</span><span class="p">[</span><span class="n">kMaxFrames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+<p>当前已排除不同订阅终端在同一房间内跨运营商的网络问题，但依然会存在此类问题；</p>
 
-  <span class="c1">// 获取当前堆栈中的地址</span>
-  <span class="kt">int</span> <span class="n">addrlen</span> <span class="o">=</span> <span class="n">backtrace</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addrlist</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">));</span>
+<p>RTP/RTCP</p>
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">addrlen</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="s">"StackTraces: "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<ul>
+  <li>
+    <p>SR（Sender Report） 发送端报告</p>
+  </li>
+  <li>
+    <p>RR（Receiver Report）接收端报告</p>
+  </li>
+  <li>
+    <p>REMB (Receiver Estimated Maximum Bitrate)</p>
+  </li>
+</ul>
 
-  <span class="c1">// 解析地址为函数名</span>
-  <span class="kt">char</span> <span class="o">**</span><span class="n">symbollist</span> <span class="o">=</span> <span class="n">backtrace_symbols</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="n">addrlen</span><span class="p">);</span>
+<p>接收端最大接收码率估测，接收端会估计本地接收的最大带宽能力，并通过RTCP REMB 消息返回给对端，这样对端可以调整自己的发送端码率，达到动态调整带宽的目的，具体消息类型通过rtcp的属性 `
+Unique identifier<code class="language-plaintext highlighter-rouge"> 来区分是 </code>REMG` 消息，此部分是四个字节，</p>
 
-  <span class="c1">// 解析函数名的更多信息</span>
-  <span class="kt">size_t</span> <span class="n">funcNameSize</span> <span class="o">=</span> <span class="n">kMaxPrettyFunctionNameLength</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">funcName</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">char</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">malloc</span><span class="p">(</span><span class="n">funcNameSize</span><span class="p">));</span>
+<p>REMG 信令协商：webrtc里面的协商格式是：<code class="language-plaintext highlighter-rouge">a=rtcp-fb:100 goog-remb，100 是codec payload</code>; 这里goog 实际上是 google 实现了自己版本的remb。</p>
 
-  <span class="c1">// 跳过第一个元素（即本身）</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">addrlen</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginName</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+<ul>
+  <li>
+    <p>GCC 码率估计算法（接收端），用来生成 <code class="language-plaintext highlighter-rouge">REMG</code> 包</p>
+  </li>
+  <li>
+    <p>TMMBR（Temporal Max Media Bitrate Request），表示临时最大码率请求。表明接收端当前带宽受限，告诉发送端控制码率。</p>
+  </li>
+  <li>
+    <p>TMMBN（Temporal Max Media Bitrate Notification）临时最大码率通知。</p>
+  </li>
+  <li>
+    <p>SDES 源描述，主要功能是作为会话成员有关标识信息的载体，如用户名、邮件地址、电话号码等，此外还具有向会话成员传达会话控制信息的功能。</p>
+  </li>
+  <li>
+    <p>BYE　通知离开，主要功能是指示某一个或者几个源不再有效，即通知会话中的其他成员自己将退出会话。</p>
+  </li>
+  <li>
+    <p>APP　由应用程序自己定义，解决了RTCP的扩展性问题，并且为协议的实现者提供了很大的灵活性。</p>
+  </li>
+</ul>
 
-    <span class="c1">// 解析符号名称及偏移量</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'('</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginName</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'+'</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">')'</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">endOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-        <span class="k">break</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
+<p><strong>关键帧请求</strong></p>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">beginName</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span> <span class="o">&amp;&amp;</span> <span class="n">endOffset</span> <span class="o">&amp;&amp;</span> <span class="n">beginName</span> <span class="o">&lt;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-      <span class="o">*</span><span class="n">beginName</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">beginOffset</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+<ul>
+  <li>
+    <p>PLI（Picture Loss Indication）</p>
+  </li>
+  <li>
+    <p>SLI（Slice Loss Indication）</p>
+  </li>
+</ul>
 
-      <span class="c1">// 解码并打印函数名称</span>
-      <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
-      <span class="kt">char</span> <span class="o">*</span><span class="n">ret</span> <span class="o">=</span>
-          <span class="n">abi</span><span class="o">::</span><span class="n">__cxa_demangle</span><span class="p">(</span><span class="n">beginName</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">funcNameSize</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">ret</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-      <span class="c1">// 如果无法解析，直接输出原始符号信息</span>
-      <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">funcName</span><span class="p">);</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">symbollist</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
-<span class="p">}</span>
-</code></pre></div></div>
+<p>发送方接收到接收方反馈的PLI或SLI需要重新让编码器生成关键帧并发送给接收端。</p>
 
-<h2 id="编译">编译</h2>
+<ul>
+  <li>FIR（Full Intra Request）</li>
+</ul>
 
-<p><code class="language-plaintext highlighter-rouge">ldflags</code> 参数一定要指定 <code class="language-plaintext highlighter-rouge">-ldynamiclib</code> 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
-主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。</p>
+<p>这里面 Intra 的含义是图像内编码，不需要其他图像信息即可解码；Inter 指图像间编码，解码需要参考帧。所以 Intra Frame 其实就是指 I 帧，Inter Frame指 P 帧或 B 帧。</p>
 
-<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>
+<blockquote>
+  <p>那么为什么在 PLI 和 SLI 之外还需要一个 FIR 呢？
+原因是使用场景不同，FIR 更多是在一个中心化的 Video Conference 中，新的参与者加入，就需要发送一个 FIR，其他的参与者给他发送一个关键帧这样才能解码，而 PLI 和 SLI 的含义更多是在发生丢包或解码错误时使用。</p>
+</blockquote>
+
+<p><strong>重传请求</strong></p>
+
+<ul>
+  <li>RTX／NACK／RPSI</li>
+</ul>
+
+<p>这个重传跟关键帧请求的区别是它可以要求任意帧进行重传;</p>
+
+<ul>
+  <li>
+    <p>RED（redundant packet）冗余包，配合 FEC 使用。</p>
+  </li>
+  <li>
+    <p>FEC 前向纠错算法，经 FEC 算法计算后，通过 RED 生成冗余包。</p>
+  </li>
+  <li>
+    <p>SRTP 详解 <a href="http://blog.csdn.net/ljinddlj/article/details/3912747" rel="nofollow" target="_blank" class="extlinks">参考 ULR</a></p>
+  </li>
+</ul>
 
 
             <div class="post-copyright">
@@ -317,15 +336,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 C++ 程序输出当前堆栈 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/print_stacktrace.html" class="cplink">https://gbcpp.github.io/print_stacktrace.html</a></p>
+              <p><span>本文标题：</span>《 解决 WebRTC 花屏问题记录 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/resolve_webrtc_video_blurry_frame_issue.html" class="cplink">https://gbcpp.github.io/notes/resolve_webrtc_video_blurry_frame_issue.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('头文件')">头文件</a></li><li><a onclick="scrollToAdjust('源码')">源码</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('情景描述')">情景描述</a></li></ul>
         </div>
       </div>
       
@@ -379,17 +398,29 @@
       </section>
       <section class="post-footer-item read-next">
         
+        <div class="read-next-item">
+          <a href="/notes/linux-common-comands-notes.html" class="read-next-link" aria-label="Linux 常用命令备忘录"></a>
+          <section>
+            <span>Linux 常用命令备忘录</span>
+            <p>  记录 Linux 常用命令</p>
+          </section>
+          
+          <div class="filter"></div>
+          <img src="/assets/img/shan.jpg" alt="">
+          
+      </div>
+        
 
         
         <div class="read-next-item">
-          <a href="/notes/learning-cpp-notes.html" class="read-next-link" aria-label="温故而知新之-C++"></a>
+          <a href="/notes/build-boost-on-window-with-virtualstudio.html" class="read-next-link" aria-label="BOOST 在 Windows 下通过 VS 进行编译"></a>
             <section>
-              <span>温故而知新之-C++</span>
-              <p>指针的退化及如何避免</p>
+              <span>BOOST 在 Windows 下通过 VS 进行编译</span>
+              <p>下载 Boost 源码</p>
             </section>
             
             <div class="filter"></div>
-            <img src="/assets/img/benpao2.jpg" alt="">
+            <img src="/assets/img/boost_logo.webp" alt="">
             
         </div>
         
@@ -404,7 +435,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2024-06-11 00:00:00 +0000',
+      id: '2018-03-19 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -617,7 +648,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/utility/2024-06-11-print_stacktrace.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-19-resolve_webrtc_video_blurry_frame_issue.md")
           .then((response) => {
             return response.json();
           })

@@ -2,7 +2,7 @@
   {
     "title"    : "C++ 程序输出当前堆栈",
     "tags"     : "C++",
-    "url"      : "/print_stacktrace.html"
+    "url"      : "/notes/print_stacktrace.html"
   } ,
 
   {
@@ -68,7 +68,7 @@
   {
     "title"    : "后台服务绑定 CPU 核",
     "tags"     : "后台",
-    "url"      : "/service-bind-cpu.html"
+    "url"      : "/notes/service-bind-cpu.html"
   } ,
 
   {
@@ -80,7 +80,7 @@
   {
     "title"    : "网络包序号回绕",
     "tags"     : "协议",
-    "url"      : "/packet_number.html"
+    "url"      : "/notes/packet_number.html"
   } ,
 
   {
@@ -152,7 +152,7 @@
   {
     "title"    : "解决 WebRTC 花屏问题记录",
     "tags"     : "WebRTC",
-    "url"      : "/resolve_webrtc_video_blurry_frame_issue.html"
+    "url"      : "/notes/resolve_webrtc_video_blurry_frame_issue.html"
   } ,
 
   {
