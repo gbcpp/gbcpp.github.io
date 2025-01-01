@@ -4,6 +4,7 @@ title: 'Hello Jekyll'
 date: 2017-04-18
 author: Jekyll
 cover: '/assets/img/hu.png'
+categories: Notes
 tags: jekyll
 ---
 
