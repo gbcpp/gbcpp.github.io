@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-01T13:53:03+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-01T13:55:04+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
 
 <h2 id="头文件">头文件</h2>
@@ -363,7 +363,7 @@ nvim
 
 <h3 id="install-nerd-font">Install Nerd Font</h3>
 
-<p><a href="https://www.nerdfonts.com/"></a></p>
+<p><a href="https://www.nerdfonts.com/">Nerd Font</a></p>
 
 <p>选择下载 <code class="language-plaintext highlighter-rouge">JetBrainsMono Font</code> 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 <code class="language-plaintext highlighter-rouge">.ttf</code> 的文件，选中后，右键 <code class="language-plaintext highlighter-rouge">安装</code> 即安装成功。</p>
 
