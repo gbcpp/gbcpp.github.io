@@ -1,9 +1,11 @@
 ---
+layout: post
 title: 'WebRTC 源码阅读之 rtc::Thread'
-tags: 'WebRTC::Thread'
+author: Mr Chen
 categories: RTC
-abbrlink: 4226121902
 date: 2018-03-30 06:13:22
+tags:
+- RTC
 ---
 
 >`rtc::Thread` 为 WebRTC内部实现的线程类，在 WebRTC中有广泛的应用，WebRTC内部 network thread、 worker thread、signal thread 等均要求为此线程类实例；
@@ -15,7 +17,7 @@ date: 2018-03-30 06:13:22
 ## 接口介绍
 
 `rtc::Thread` 继承自消息队列`rtc::MessageQueue` ，内部提供了丰富的创建、管理接口，其借助于 `线程局部存储/线程局部静态变量` 实现线程的安全调用，以及是否是当前线程的有效判断。
-![rtc::Thread UML 类图](/images/线程.png)
+![rtc::Thread UML 类图](/images/old_blog/线程.png)
 
 ## RTC_DISALLOW_COPY_AND_ASSIGN
 

@@ -1,9 +1,11 @@
 ---
+layout: post
 title: webrtc on linux alsa audio device blocking
-tags: WebRTC Linux alsa
-categories: RTC
-abbrlink: a2661658
 date: 2019-04-16 11:56:05
+author: Mr Chen
+categories: RTC
+tags:
+- RTC
 ---
 
 基于 webrtc 开发嵌入式 linux 实时音视频，其中音频 alsa 模块存在一个不小的 Bug，在较多的声卡上存在播放失败并阻塞的严重问题，问题如下：

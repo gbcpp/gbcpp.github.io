@@ -1,4 +1,5 @@
 ---
+layout: post
 title: Linux 基于 webrtc 进行流媒体开发
 tags: webrtc Linux Ubuntu g++
 author: Mr Chen

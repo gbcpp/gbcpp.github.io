@@ -1,9 +1,11 @@
 ---
+layout: post
 title: WebRTC 发送端无法获取丢包率的解决办法，以及如何获取 rtt
-categories: RTC
-tags: WebRTC RTT 丢包率
-abbrlink: 21d9b983
 date: 2019-05-07 14:49:21
+author: Mr Chen
+categories: RTC
+tags:
+- RTC
 ---
 
 WebRTC 自 M68 版本推出新的重载方法 `GetStats` 以后，使用新的接口便再也获取不到发送端的丢包率了（包括所有的 Native 端和 Web 端），原因是在 `void OnStatsDelivered(const rtc::scoped_refptr<const RTCStatsReport>& report)` 回调中返回的结构体 `RTCStatsReport` 中没有 `packets_lost` 的定义，只有 `packets_sent`、`frames_encoded` 等信息，默认只能获取到发送的码率、帧率，而得不到丢包率、rtt 等判断网络质量的关键信息。不过 WebRTC 底层其实已经将丢包信息、rtt 等关键信息实时统计上来了，只是 `PeerConnectionInterface` 在获取 Statistics 时，没有将相关信息打包进 `RTCStatsReport` 结构体中，那么解决办法就是：在 `RTCStatsReport` 结构体中新增定义 `packets_lost`、`rtt_ms` 字段，并为其赋值即可，下面为 Native 源码中需要修改的相关代码。

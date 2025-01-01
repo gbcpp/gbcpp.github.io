@@ -5,7 +5,6 @@ subtitle:
 date: 2024-01-01
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
-categories: notes
 categories: learn
 tags: 
 - Life
