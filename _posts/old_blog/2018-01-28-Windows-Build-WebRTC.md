@@ -1,12 +1,12 @@
 ---
+layout: post
 title: Windows 下编译 WebRTC
-categories: RTC
-abbrlink: 3694004066
 date: 2018-01-28 23:58:14
+author: Mr Chen
+categories: RTC
 tags:
+- RTC
 ---
-
--- Windows 下编译 WebRTC
 
 # 一、系统环境准备
 

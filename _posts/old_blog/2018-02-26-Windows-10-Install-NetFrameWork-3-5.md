@@ -1,9 +1,11 @@
 ---
+layout: post
 title: Windows 10 安装 .NetFrameWork 3.5
-categories: OPC
-abbrlink: 3530668087
 date: 2018-02-26 14:05:19
+author: Mr Chen
+categories: Tech
 tags:
+- Windows
 ---
 
 # Windows 10 下安装 .NetFrameWork 3.5

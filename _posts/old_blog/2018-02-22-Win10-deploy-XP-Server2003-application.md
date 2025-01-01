@@ -1,9 +1,11 @@
 ---
+layout: post
 title: Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序
-categories: OPC
-abbrlink: 2298614161
+author: Mr Chen
 date: 2018-02-22 11:47:18
+categories: Tech
 tags:
+- Windows
 ---
 
 # 场景

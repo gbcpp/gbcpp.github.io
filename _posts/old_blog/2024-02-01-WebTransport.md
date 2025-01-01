@@ -1,8 +1,13 @@
 ---
+layout: post
 title: '基于 HTTP/3 的 WebTransport '
 tags: WebTransport
-categories: RTC
-abbrlink: '19988603'
+author: Mr Chen
+date: 2024-02-01
+categories: Transport
+tag:
+- Transport
+- Protocol
 ---
 
 > 本文主要翻译自https://datatracker.ietf.org/doc/html/draft-vvv-webtransport-http3 ，如有错误请指正。
