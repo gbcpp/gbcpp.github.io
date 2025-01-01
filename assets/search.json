@@ -20,7 +20,7 @@
   {
     "title"    : "基于 HTTP/3 的 WebTransport ",
     "tags"     : "Protocol",
-    "url"      : "/transport/WebTransport.html"
+    "url"      : "/protocol/WebTransport.html"
   } ,
 
   {
@@ -32,7 +32,7 @@
   {
     "title"    : "Blog title",
     "tags"     : "Life",
-    "url"      : "/learn/blog-templete.html"
+    "url"      : "/notes/blog-templete.html"
   } ,
 
   {
@@ -92,13 +92,13 @@
   {
     "title"    : "经典算法题",
     "tags"     : "算法 c++",
-    "url"      : "/learn/algorithm.html"
+    "url"      : "/notes/algorithm.html"
   } ,
 
   {
     "title"    : "C++ 常用算法",
     "tags"     : "algorithm",
-    "url"      : "/learn/cplusplus-algorithm-notes.html"
+    "url"      : "/notes/cplusplus-algorithm-notes.html"
   } ,
 
   {
@@ -182,7 +182,7 @@
   {
     "title"    : "janus 服务器搭建",
     "tags"     : "Janus RTC opensource",
-    "url"      : "/learn/janus-server-setup.html"
+    "url"      : "/notes/janus-server-setup.html"
   } ,
 
   {
@@ -194,7 +194,7 @@
   {
     "title"    : "MathJax Test",
     "tags"     : "mathjax",
-    "url"      : "/test/mathjax-test.html"
+    "url"      : "/tech/mathjax-test.html"
   } ,
 
   {

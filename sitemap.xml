@@ -9,7 +9,7 @@
 <lastmod>2017-04-18T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/test/mathjax-test.html</loc>
+<loc>https://gbcpp.github.io/tech/mathjax-test.html</loc>
 <lastmod>2017-07-30T00:00:00+00:00</lastmod>
 </url>
 <url>
@@ -17,7 +17,7 @@
 <lastmod>2018-01-01T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/learn/janus-server-setup.html</loc>
+<loc>https://gbcpp.github.io/notes/janus-server-setup.html</loc>
 <lastmod>2018-01-28T23:40:40+00:00</lastmod>
 </url>
 <url>
@@ -73,11 +73,11 @@
 <lastmod>2019-05-07T14:49:21+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/learn/cplusplus-algorithm-notes.html</loc>
+<loc>https://gbcpp.github.io/notes/cplusplus-algorithm-notes.html</loc>
 <lastmod>2019-05-28T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/learn/algorithm.html</loc>
+<loc>https://gbcpp.github.io/notes/algorithm.html</loc>
 <lastmod>2019-06-11T00:00:00+00:00</lastmod>
 </url>
 <url>
@@ -117,7 +117,7 @@
 <lastmod>2023-10-30T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/learn/blog-templete.html</loc>
+<loc>https://gbcpp.github.io/notes/blog-templete.html</loc>
 <lastmod>2024-01-01T00:00:00+00:00</lastmod>
 </url>
 <url>
@@ -125,7 +125,7 @@
 <lastmod>2024-01-01T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/transport/WebTransport.html</loc>
+<loc>https://gbcpp.github.io/protocol/WebTransport.html</loc>
 <lastmod>2024-02-01T00:00:00+00:00</lastmod>
 </url>
 <url>
@@ -184,6 +184,6 @@
 </url>
 <url>
 <loc>https://gbcpp.github.io/assets/books/PlantUML_Language_Reference_Guide_zh.pdf</loc>
-<lastmod>2025-01-01T09:36:12+00:00</lastmod>
+<lastmod>2025-01-01T09:40:30+00:00</lastmod>
 </url>
 </urlset>
