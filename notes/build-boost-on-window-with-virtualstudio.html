@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android AEC 无效的解决方案 - Mr Chen</title>
+    <title>BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="Android AEC 无效的解决方案">
-    <meta name="keywords"  content="Audio, WebRTC, Android">
+    <meta name="description" content="BOOST 在 Windows 下通过 VS 进行编译">
+    <meta name="keywords"  content="BOOST">
     <!-- Open Graph -->
-    <meta property="og:title" content="Android AEC 无效的解决方案 - Mr Chen">
+    <meta property="og:title" content="BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/fix-aec-bug-on-android.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/build-boost-on-window-with-virtualstudio.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/meidasoup-demo-build.html">
+    <meta property="og:previous_url" content="/resolve_webrtc_video_blurry_frame_issue.html">
     
     
-    <meta property="og:next_url" content="/resolve_webrtc_video_blurry_frame_issue.html">
+    <meta property="og:next_url" content="/notes/cpp-log-library-spdlog.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2019-01-23 00:00:00 +0000" />
+    <meta property="post-date" content="2018-03-12 00:00:00 +0000" />
     
     
     
@@ -155,22 +155,18 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
       data-theme="default"
     >
       <div class="post-wrapper">
         <div class="post-tags">
           
             
-              <a href="/tags.html#Audio" class="post-tag">Audio</a>
-            
-              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
-            
-              <a href="/tags.html#Android" class="post-tag">Android</a>
+              <a href="/tags.html#BOOST" class="post-tag">BOOST</a>
             
           
         </div>
-        <h1>Android AEC 无效的解决方案</h1>
+        <h1>BOOST 在 Windows 下通过 VS 进行编译</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -178,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -195,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.4k  字
+              本文总共  2.0k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 5 分钟
+              阅读全文大约需要 6 分钟
             </span>
             
               <span class="post-meta-item">
@@ -215,6 +211,9 @@
         </div>
       </div>
       
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/boost_logo.webp') center no-repeat; background-size: cover;"></div>
+      
     </header>
     <div class="post-content visible">
       
@@ -225,121 +224,71 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。</p>
-
-<p>因为只有部分机型才会出现此类问题，并且会不断产生新的机型出现，如果在代码中写 HardCode，那么产品的发布将会很被动，因为随时可能会有新的问题机型产生，为此开发一套特殊机型下发的服务，在 APP 启动时向此服务发起请求，校验此机型是否需要配置为 16KHz，然后再启动 RTC 进行音视频通话。此服务通过 Go 进行开发。</p>
-
-<p>GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android</p>
+            <h1 id="下载-boost-源码">下载 Boost 源码</h1>
 
 <!--more-->
 
-<h2 id="启动服务">启动服务</h2>
+<p>从官方下载 Boost 源码，之前用的一直是 boost 1.58.0，今天去官方网站看到最新的已经是 boost 1.66.0，最新版本的下载地址是：<a href="https://akamai.bintray.com/59/596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628?__gda__=exp=1520835412~hmac=6d6c97450b9b0b9421f696c922c483f87493fe9a10890fc7235a1c30c120f8e1&amp;response-content-disposition=attachment%3Bfilename%3D%22boost_1_66_0.7z%22&amp;response-content-type=application%2Fx-7z-compressed&amp;requestInfo=U2FsdGVkX19TK62uO_jw5nC8JAtKkRu4cX28_lg3Z3y4xQkcbs9DqFSaTA0PDQKfCQ9Q94pRYGu60LzIyLyeN5mNvuokt1GI_MdVPpMBQLpNhTWhePsfBOrGtyhg6MOCF0JFr3mSugB0Sihk9fO5Wr1BR4MLQS9n78rtxF7JwNmR7sZ6on6X6jtu9UTYTMBy&amp;response-X-Checksum-Sha1=075d0b43980614054b1f1bafd189f863bba6600e&amp;response-X-Checksum-Sha2=596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628" rel="nofollow" target="_blank" class="extlinks">下载地址</a></p>
 
-<p>启动命令：</p>
+<p>建议使用迅雷进行下载，通过浏览器下的比较慢。
+下载后解压到自己的开源项目目录下，如：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code></p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go run main.go <span class="nt">-addr</span><span class="o">=</span><span class="s2">"127.0.0.1:6688"</span> <span class="nt">-prefix</span><span class="o">=</span><span class="s2">"/v1/aecm/"</span> <span class="nt">-user</span><span class="o">=</span><span class="s2">"root"</span> <span class="nt">-password</span><span class="o">=</span><span class="s2">"123456"</span>
+<h1 id="windows-下通过-visual-studio-2015-编译">Windows 下通过 Visual Studio 2015 编译</h1>
+
+<p>启动 VS2015 的 X86 本机工具命令提示符，即 <code class="language-plaintext highlighter-rouge">VS2015 x86 Native Tools Command Prompt</code> ，进入 boost 源码目录：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>，然后执行以下命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    bootstrap.bat   //首先执行此命令生成 b2 编译工具
+    bjam stage --toolset=msvc-14.0 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14" link=static runtime-link=static runtime-link=static threading=multi debug release  
 </code></pre></div></div>
 
-<blockquote>
-  <p>实际部署后根据实际目标名称进行启动，但启动参数不变，可通过 -h 查看帮助。</p>
-</blockquote>
-
-<h2 id="android-端查询接口">Android 端查询接口</h2>
-
-<p>API 查询接口提供两种，一是查询指定 <code class="language-plaintext highlighter-rouge">Model</code> 是否存在于此白名单列表中，二是查询所有的白名单列表；</p>
-
-<h3 id="1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code>
-</h3>
-
-<blockquote>
-  <p>这里及以后均假设 SEV_ADDR 即为 服务器地址。</p>
-</blockquote>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: OPTIONS
-
-Request Headers:
-model=xxx
-
-Result:
-200 ok
+<p>以上命令生成 32bit 静态库；如果希望生成 64bit，则使用以下命令：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bjam stage --toolset=msvc-14.0 architecture=x86 address-model=64 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14-x64" link=static runtime-link=static runtime-link=static threading=multi debug release
 </code></pre></div></div>
 
-<blockquote>
-  <p>通过返回 http status 判断 xxx 是否在白名单中，200 为是，否则为 否。</p>
-</blockquote>
+<h1 id="相关编译选项">相关编译选项</h1>
 
-<h3 id="2查询所有白名单">2、查询所有白名单</h3>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: QUERY
-
-Result:
-200 ok
-Content type: text/json
-body: json string
-</code></pre></div></div>
-
-<blockquote>
-  <p>如果返回 200 ok，则说明查询成功，可通过 content body 的 json string 进行解析，格式如下：</p>
-</blockquote>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nl">"7"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:37"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="nl">"8"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:39"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<h2 id="添加新机型">添加新机型</h2>
-
-<p>通过以下 API 即可添加</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: ADD
-
-Request Headers:
-osVersion=Android 6.2
-brand=postman_brand
-model=xxx
-sdkVersion=1.0.0
-packageName=com.org.xxx
-author=gobert
-
-Result:
-200 ok
-</code></pre></div></div>
-
-<h2 id="删除已有机型">删除已有机型</h2>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method:DELETE
-
-Request Headers:
-model=xxx
-
-Result:
-200 ok
-</code></pre></div></div>
+<p>下面详细解释一下每个参数的含义：</p>
+<ul>
+  <li>
+    <p>stage/install：
+stage表示只生成库（dll和lib），install还会生成包含头文件的include目录。本人推荐使用stage，因为install生成的这个include目录实际就是boost安装包解压缩后的boost目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0\boost</code>，只比include目录多几个非hpp文件，都很小），所以可以直接使用，而且不同的IDE都可以使用同一套头文件，这样既节省编译时间，也节省硬盘空间。</p>
+  </li>
+  <li>
+    <p>toolset：
+指定编译器，可选的如borland、gcc、msvc（VC6）、msvc-14.0（VS2015）等。</p>
+  </li>
+  <li>
+    <p>without/with：
+选择不编译/编译哪些库。因为python、mpi等库我都用不着，所以排除之。还有wave、graph、math、regex、test、program_options、serialization、signals这几个库编出的静态lib都非常大，所以不需要的也可以without掉。这可以根据各人需要进行选择，默认是全部编译。但是需要注意，如果选择编译python的话，是需要python语言支持的，应该到 python <a href="http://www.python.org/" rel="nofollow" target="_blank" class="extlinks">官方主页</a>下载安装。查看boost包含库的命令是bjam –show-libraries。</p>
+  </li>
+  <li>
+    <p>stagedir/prefix：
+stage时使用stagedir，install时使用prefix，表示编译生成文件的路径。推荐给不同的IDE指定不同的目录。</p>
+  </li>
+  <li>
+    <p>build-dir：编译生成的中间文件的路径。这个本人这里没用到，默认就在根目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>）下，目录名为bin.v2，等编译完成后可将这个目录全部删除（没用了），所以不需要去设置。</p>
+  </li>
+  <li>
+    <p>link：
+生成动态链接库/静态链接库。生成动态链接库需使用shared方式，生成静态链接库需使用static方式。一般boost库可能都是以static方式编译，因为最终发布程序带着boost的dll感觉会比较累赘。</p>
+  </li>
+  <li>
+    <p>runtime-link：
+动态/静态链接C/C++运行时库。同样有shared和static两种方式，这样runtime-link和link一共可以产生4种组合方式，各人可以根据自己的需要选择编译。一般link只选static的话，只需要编译2种组合即可，即link=static runtime-link=shared和link=static runtime-link=static，本人一般就编这两种组合。</p>
+  </li>
+  <li>
+    <p>threading：
+单/多线程编译。一般都写多线程程序，当然要指定multi方式了；如果需要编写单线程程序，那么还需要编译单线程库，可以使用single方式。</p>
+  </li>
+  <li>
+    <p>debug/release：
+编译debug/release版本。一般都是程序的debug版本对应库的debug版本，所以两个都编译。</p>
+  </li>
+  <li>
+    <p>address-model=32/64 	
+寻址模式(生成32位还是64位库)</p>
+  </li>
+</ul>
 
 
             <div class="post-copyright">
@@ -356,15 +305,15 @@ Result:
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 Android AEC 无效的解决方案 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/fix-aec-bug-on-android.html" class="cplink">https://gbcpp.github.io/fix-aec-bug-on-android.html</a></p>
+              <p><span>本文标题：</span>《 BOOST 在 Windows 下通过 VS 进行编译 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/build-boost-on-window-with-virtualstudio.html" class="cplink">https://gbcpp.github.io/notes/build-boost-on-window-with-virtualstudio.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('启动服务')">启动服务</a></li><li><a onclick="scrollToAdjust('android-端查询接口')">Android 端查询接口</a><ul><li><a onclick="scrollToAdjust('1、查询指定-<code-class="language-plaintext-highlighter-rouge">model</code>')">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></a></li><li><a onclick="scrollToAdjust('2、查询所有白名单')">2、查询所有白名单</a></li></ul></li><li><a onclick="scrollToAdjust('添加新机型')">添加新机型</a></li><li><a onclick="scrollToAdjust('删除已有机型')">删除已有机型</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('下载-boost-源码')">下载 Boost 源码</a></li><li><a onclick="scrollToAdjust('windows-下通过-visual-studio-2015-编译')">Windows 下通过 Visual Studio 2015 编译</a></li><li><a onclick="scrollToAdjust('相关编译选项')">相关编译选项</a></li></ul>
         </div>
       </div>
       
@@ -419,10 +368,10 @@ Result:
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
+          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
           <section>
-            <span>mediasoup 公网环境部署</span>
-            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
+            <span>解决 WebRTC 花屏问题记录</span>
+            <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
           </section>
           
       </div>
@@ -430,10 +379,10 @@ Result:
 
         
         <div class="read-next-item">
-          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
+          <a href="/notes/cpp-log-library-spdlog.html" class="read-next-link" aria-label="c++ 开源日志库 spdlog"></a>
             <section>
-              <span>解决 WebRTC 花屏问题记录</span>
-              <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
+              <span>c++ 开源日志库 spdlog</span>
+              <p>C++日志组件 spdlog</p>
             </section>
             
         </div>
@@ -449,7 +398,7 @@ Result:
   
   <script>
     var gitalk = new Gitalk({
-      id: '2019-01-23 00:00:00 +0000',
+      id: '2018-03-12 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -662,7 +611,7 @@ Result:
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-fix-aec-bug-on-android.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-12-build-boost-on-window-with-virtualstudio.md")
           .then((response) => {
             return response.json();
           })
