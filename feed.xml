@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-01T09:51:28+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-01T10:19:58+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
 
 <h2 id="头文件">头文件</h2>
@@ -355,7 +355,7 @@ git clone https://github.com/LazyVim/starter ~/.config/nvim
 nvim
 </code></pre></div></div>
 
-<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NeroTree 中的图标全是小方块，即乱码：</p>
+<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NVim-Tree 中的图标全是小方块，即乱码：</p>
 
 <p><img src="/assets/img/blog/nerofont_0.png" alt="NeroFont0" /></p>
 
@@ -407,7 +407,7 @@ nvim
 </blockquote>
 
 <ul>
-  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NeroTree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l</code>，<code class="language-plaintext highlighter-rouge">h</code> 和 <code class="language-plaintext highlighter-rouge">l</code> 是 nvim 中移动光标位置的快捷键，加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是左右切换窗口的快捷键。</li>
+  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NVim-Tree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l</code>，<code class="language-plaintext highlighter-rouge">h</code> 和 <code class="language-plaintext highlighter-rouge">l</code> 是 nvim 中移动光标位置的快捷键，加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是左右切换窗口的快捷键。</li>
 </ul>]]></content><author><name>Mr Chen</name></author><category term="notes" /><category term="develop" /><summary type="html"><![CDATA[安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。]]></summary></entry><entry><title type="html">float 和 int 在 Linux 下的计算性能对比</title><link href="https://gbcpp.github.io/tech/float-performance-comparation.html" rel="alternate" type="text/html" title="float 和 int 在 Linux 下的计算性能对比" /><published>2023-10-30T00:00:00+00:00</published><updated>2023-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/tech/float-performance-comparation</id><content type="html" xml:base="https://gbcpp.github.io/tech/float-performance-comparation.html"><![CDATA[<h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
 
 <p>由于 float 在内存中的存储结构与 int 不同，需要存储指数和尾数，并且 cpu 是不支持直接对 float 进行运算的，需要将 float 各部分进行转换后计算，对结果再次进行反向操作进行存储，所以大部分情况下均不支持直接使用 float 进行运行，建议用 int 进行转换运行结果。</p>
