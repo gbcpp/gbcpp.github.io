@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android AEC 无效的解决方案 - Mr Chen</title>
+    <title>mediasoup 公网环境部署 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="Android AEC 无效的解决方案">
-    <meta name="keywords"  content="Audio, WebRTC, Android">
+    <meta name="description" content="mediasoup 公网环境部署">
+    <meta name="keywords"  content="开源, WebRTC, mediasoup">
     <!-- Open Graph -->
-    <meta property="og:title" content="Android AEC 无效的解决方案 - Mr Chen">
+    <meta property="og:title" content="mediasoup 公网环境部署 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/fix-aec-bug-on-android.html">
+    <meta property="og:url" content="https://gbcpp.github.io/meidasoup-demo-build.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/meidasoup-demo-build.html">
+    <meta property="og:previous_url" content="/c-algorithm-notes.html">
     
     
-    <meta property="og:next_url" content="/resolve_webrtc_video_blurry_frame_issue.html">
+    <meta property="og:next_url" content="/fix-aec-bug-on-android.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2019-01-23 00:00:00 +0000" />
+    <meta property="post-date" content="2019-04-01 00:00:00 +0000" />
     
     
     
@@ -162,15 +162,15 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Audio" class="post-tag">Audio</a>
+              <a href="/tags.html#%E5%BC%80%E6%BA%90" class="post-tag">开源</a>
             
               <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
             
-              <a href="/tags.html#Android" class="post-tag">Android</a>
+              <a href="/tags.html#mediasoup" class="post-tag">mediasoup</a>
             
           
         </div>
-        <h1>Android AEC 无效的解决方案</h1>
+        <h1>mediasoup 公网环境部署</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -178,13 +178,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="19-04-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="19-01-23">
+          <time class="post-meta-item" datetime="19-04-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -195,13 +195,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.4k  字
+              本文总共  4.6k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 5 分钟
+              阅读全文大约需要 14 分钟
             </span>
             
               <span class="post-meta-item">
@@ -218,6 +218,8 @@
     </header>
     <div class="post-content visible">
       
+      <h2 class="post-subtitle">源码编译部署 mediasoup，快速搭建实时音视频通话</h2>
+      
 
       
       
@@ -225,122 +227,245 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特殊机型下发服务，在 Android 端启动时查询其是否在此特殊名单中，是则强制为 16kHz 采样率，否则使用默认的 48/44.1 kHz 采样率。</p>
-
-<p>因为只有部分机型才会出现此类问题，并且会不断产生新的机型出现，如果在代码中写 HardCode，那么产品的发布将会很被动，因为随时可能会有新的问题机型产生，为此开发一套特殊机型下发的服务，在 APP 启动时向此服务发起请求，校验此机型是否需要配置为 16KHz，然后再启动 RTC 进行音视频通话。此服务通过 Go 进行开发。</p>
-
-<p>GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android</p>
+            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。</p>
 
 <!--more-->
 
-<h2 id="启动服务">启动服务</h2>
-
-<p>启动命令：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go run main.go <span class="nt">-addr</span><span class="o">=</span><span class="s2">"127.0.0.1:6688"</span> <span class="nt">-prefix</span><span class="o">=</span><span class="s2">"/v1/aecm/"</span> <span class="nt">-user</span><span class="o">=</span><span class="s2">"root"</span> <span class="nt">-password</span><span class="o">=</span><span class="s2">"123456"</span>
-</code></pre></div></div>
-
 <blockquote>
-  <p>实际部署后根据实际目标名称进行启动，但启动参数不变，可通过<code class="language-plaintext highlighter-rouge">-h</code>查看帮助。</p>
+  <p>以下操作均在 Ubuntu 18.04 Server 系统上操作。</p>
 </blockquote>
 
-<h2 id="android-端查询接口">Android 端查询接口</h2>
+<h1 id="准备云主机">准备云主机</h1>
 
-<p>API 查询接口提供两种，一是查询指定 <code class="language-plaintext highlighter-rouge">Model</code> 是否存在于此白名单列表中，二是查询所有的白名单列表；</p>
+<p>公网环境的搭建还是需要一台拥有公网 IP 的主机的，当然如果你能薅公司的羊毛就更好了 。。本人的是阿里云主机 Ubuntu 系统 16.04 upgrade to 18.04，双11 时买的最便宜的机型，同时安装 ssh、 git、nodejs、npm，开启远程登录。</p>
 
-<h3 id="1查询指定-model">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code>
-</h3>
+<h1 id="域名准备">域名准备</h1>
 
-<blockquote>
-  <p>这里及以后均假设 SEV_ADDR 即为 服务器地址。</p>
-</blockquote>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: OPTIONS
-
-Request Headers:
-model=xxx
-
-Result:
-200 ok
-</code></pre></div></div>
+<p>通过浏览器打开音视频设备因为有安全方面的限制，不能通过 IP 进行访问，必须通过 https://domain 的 url 打开，所以我们还需要准备一个域名并解析到我们自己的公网 IP 地址，域名也可以通过阿里云进行购买，因为不需要 seo，所以选一个最便宜的后缀即可，我选择了 <code class="language-plaintext highlighter-rouge">gobert.top</code>，第一年只有 9 元，后面还需要域名备案，否则域名将被重定向到指定地址，所以域名需要提前准备。</p>
 
 <blockquote>
-  <p>通过返回 http status 判断 xxx 是否在白名单中，200 为是，否则为 否。</p>
+  <p>首次域名备案相对来说比较麻烦，需要准备居住证（来沪外来人员）等证件，各种审核需要耗时两三天吧。</p>
 </blockquote>
 
-<h3 id="2查询所有白名单">2、查询所有白名单</h3>
+<h1 id="安装-mediasoup">安装 mediasoup</h1>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: QUERY
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>λ ssh gobert@47.100.110.xxx
+gobert@47.100.110.xxx<span class="s1">'s password:
+Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-38-generic x86_64)
 
-Result:
-200 ok
-Content type: text/json
-body: json string
-</code></pre></div></div>
-
-<blockquote>
-  <p>如果返回 200 ok，则说明查询成功，可通过 content body 的 json string 进行解析，格式如下：</p>
-</blockquote>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nl">"7"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:37"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="nl">"8"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gobert"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"postman_brand"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"insertTime"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-01-10 15:19:39"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redmi_note4"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"osVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Android 6.2"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"packageName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.org.xxx"</span><span class="p">,</span><span class="w">
-        </span><span class="nl">"sdkVersion"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.0.0"</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-</span><span class="p">}</span><span class="w">
+Last login: Mon Apr  1 17:28:34 2019 from 116.236.177.xxx
+$ mkdir develop
+$ cd develop
+$ git clone git@github.com:versatica/mediasoup-demo.git
 </span></code></pre></div></div>
 
-<h2 id="添加新机型">添加新机型</h2>
+<p>后续 npm 的安装需参照 <code class="language-plaintext highlighter-rouge">https://github.com/versatica/mediasoup-demo/</code> 文档进行。</p>
 
-<p>通过以下 API 即可添加</p>
+<h1 id="nginx-配置">nginx 配置</h1>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method: ADD
+<blockquote>
+  <p>这一步默认域名购买、解析、备案已完成。</p>
+</blockquote>
 
-Request Headers:
-osVersion=Android 6.2
-brand=postman_brand
-model=xxx
-sdkVersion=1.0.0
-packageName=com.org.xxx
-author=gobert
+<h2 id="在线安装-nginx">在线安装 nginx</h2>
 
-Result:
-200 ok
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>apt-get <span class="nb">install </span>nginx
 </code></pre></div></div>
 
-<h2 id="删除已有机型">删除已有机型</h2>
+<h2 id="部署-mediasoup-到-nginx">部署 mediasoup 到 nginx</h2>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Request Url:
-SEV_ADDR/v1/aecm
-Method:DELETE
+<blockquote>
+  <p>将 mediasoup 中的 server 目录拷贝到 nginx 根目录下。</p>
+</blockquote>
 
-Request Headers:
-model=xxx
-
-Result:
-200 ok
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /var/www/mediasoup
+<span class="nv">$ </span><span class="nb">sudo cp</span> <span class="nt">-r</span> medissoup-demo/server/ /var/www/mediasoup/
 </code></pre></div></div>
 
+<p>配置 nginx 解析到以上目录，编辑 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 配置文件，将 server 根路径下的 root 属性修改为 <code class="language-plaintext highlighter-rouge">/var/www/mediasoup/server/public;</code>,即：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c"># 以上省略</span>
+ <span class="c">#root /var/www/html;</span>
+ root /var/www/mediasoup/server/public<span class="p">;</span>
+
+ <span class="c"># Add index.php to the list if you are using PHP</span>
+ index index.html index.htm index.nginx-debian.html<span class="p">;</span>
+ <span class="c"># 以下省略</span>
+</code></pre></div></div>
+
+<h2 id="配置-https-服务">配置 https 服务</h2>
+
+<p>通过浏览器打开设备需要 https 安全 url，nginx 必须开启 https 服务，通过 letsencrypt 进行 https 的自动化配置，省去了自己很多的麻烦，不用再去申请证书、审核、验证部署等繁琐的操作了，通过 <code class="language-plaintext highlighter-rouge">https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx</code> 下的命令按步执行即可。</p>
+
+<p><img src="/images/letsencrypt.png" alt="rtc::Thread UML 类图"></p>
+
+<blockquote>
+  <p>letsencrpt 安装的 ssl 证书只有三个月的有效期，所以为了防止证书过期，建议添加系统定时任务，定期执行脚本命令更新证书：</p>
+</blockquote>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>su -
+<span class="nv">$ </span>certbot renew <span class="nt">--dry-run</span>
+</code></pre></div></div>
+
+<p>正常情况下，你的 nginx 已经开启了 https 服务, ssl 证书及秘钥存放位置记录在 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 配置文件中，打开 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 文件，发现 letsencrpty 自动在脚本末尾增加了一项 server 配置，将 <code class="language-plaintext highlighter-rouge">root</code> 路径配置为以上 <code class="language-plaintext highlighter-rouge">/var/www/mediasoup/server/public;</code> 目录，同时记录下其 ssl_certificate 目录，后面 nginx 配置中需要指定：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen <span class="o">[</span>::]:443 ssl <span class="nv">ipv6only</span><span class="o">=</span>on<span class="p">;</span> <span class="c"># managed by Certbot</span>
+listen 443 ssl<span class="p">;</span> <span class="c"># managed by Certbot</span>
+ssl_certificate /etc/letsencrypt/live/www.gobert.top/fullchain.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
+ssl_certificate_key /etc/letsencrypt/live/www.gobert.top/privkey.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
+include /etc/letsencrypt/options-ssl-nginx.conf<span class="p">;</span> <span class="c"># managed by Certbot</span>
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
+</code></pre></div></div>
+
+<h2 id="配置-nginx-开启-gzip">配置 nginx 开启 gzip</h2>
+
+<p>mediasoup 中 <code class="language-plaintext highlighter-rouge">mediasoup-demo-app.js</code> 有 12MB 大小，如果 server 带宽比较低的话，用户首次拉取会比较慢，由于 nginx 默认配置是不开启 gzip 压缩的，所以需要我们手动开启 gzip 压缩，修改 nginx 的配置文件（全站配置）<code class="language-plaintext highlighter-rouge">/etc/nginx/nginx.conf</code>，将以下内容的注释全部取消：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gzip on;
+
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_buffers 16 8k;
+gzip_http_version 1.1;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+</code></pre></div></div>
+
+<p>然后重启 nginx 服务即可：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> /etc/init.d/nginx reload
+</code></pre></div></div>
+
+<h2 id="配置-mediasoup-server">配置 mediasoup server</h2>
+
+<ul>
+  <li>配置自定义脚本：</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>copy config.example.js config.js
+</code></pre></div></div>
+
+<p>打开 config.js 文件，在 tls 路径中，将上面记录的 letsencrypt 证书路径拷贝到相应的 item 中，同时修改 <code class="language-plaintext highlighter-rouge">rtcAnnouncedIPv4</code> 为云主机公网 IP 地址，完整的 config.js 的文件为</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>module.exports =
+{
+        // Listening hostname for `gulp live|open`.
+        domain : 'localhost',
+        tls    :
+        {
+                cert : `/etc/letsencrypt/live/www.gobert.top/fullchain.pem`, // letsencrypt 证书
+                key  : `/etc/letsencrypt/live/www.gobert.top/privkey.pem`    // letsencrypt 秘钥
+        },
+        mediasoup :
+        {
+                // mediasoup Server settings.
+                logLevel : 'warn',
+                logTags  :
+                [
+                        'info',
+                        'ice',
+                        'dtls',
+                        'rtp',
+                        'srtp',
+                        'rtcp',
+                        // 'rbe',
+                        // 'rtx'
+                ],
+                numWorkers       : null, // Use number of CPUs.
+                rtcIPv4          : true,
+                rtcIPv6          : true,
+                rtcAnnouncedIPv4 : '47.100.110.192', // 云主机公网地址
+                rtcAnnouncedIPv6 : null,  // 根据需要，自主填写
+                rtcMinPort       : 40000, // udp 最小端口，需要云主机安全组中配置
+                rtcMaxPort       : 49999, // dup 最大端口，需要云主机安全组中配置
+                // mediasoup Room codecs.
+                mediaCodecs      :
+                [
+                        {
+                                kind       : 'audio',
+                                name       : 'opus',
+                                mimeType   : 'audio/opus',
+                                clockRate  : 48000,
+                                channels   : 2,
+                                parameters :
+                                {
+                                        useinbandfec : 1
+                                }
+                        },
+                        {
+                                kind       : 'video',
+                                name       : 'VP8',
+                                mimeType   : 'video/VP8',
+                                clockRate  : 90000,
+                                parameters :
+                                {
+                                        'x-google-start-bitrate': 1500
+                                }
+                        },
+                        {
+                                kind       : 'video',
+                                name       : 'h264',
+                                mimeType   : 'video/h264',
+                                clockRate  : 90000,
+                                parameters :
+                                {
+                                        'packetization-mode'      : 1,
+                                        'profile-level-id'        : '42e01f',
+                                        'level-asymmetry-allowed' : 1
+                                }
+                        }
+                ],
+                // mediasoup per Peer max sending bitrate (in bps).
+                maxBitrate : 500000
+        }
+};
+</code></pre></div></div>
+
+<ul>
+  <li>修改 Server 监听端口</li>
+</ul>
+
+<blockquote>
+  <p>此处修改 server 的监听端口其实没什么意义，可以忽略。</p>
+</blockquote>
+
+<p>编辑 <code class="language-plaintext highlighter-rouge">server.js</code> 配置文件，将默认端口 <code class="language-plaintext highlighter-rouge">httpsServer.listen(3443, '0.0.0.0', () =&gt;</code> 替换为 <code class="language-plaintext highlighter-rouge">httpsServer.listen(5678, '0.0.0.0', () =&gt;</code>。</p>
+
+<ul>
+  <li>配置 Client 访问 Server WSS 地址</li>
+</ul>
+
+<p>打开 ` public/mediasoup-demo-app.js<code class="language-plaintext highlighter-rouge"> 将 </code>getProtooUrl<code class="language-plaintext highlighter-rouge"> 方法中的 URL 地址端口改为自定义的 </code>5678` 端口：</p>
+
+<blockquote>
+  <p>如果上一步中没有修改 server 的监听端口的话，这一步也可忽略。</p>
+</blockquote>
+
+<pre><code class="language-node.js">function getProtooUrl(peerName, roomId, forceH264) {
+  var hostname = window.location.hostname;
+  var url = "wss://".concat(hostname, ":5678/?peerName=").concat(peerName, "&amp;roomId=").concat(roomId);
+  if (forceH264) url = "".concat(url, "&amp;forceH264=true");
+  return url;
+}
+</code></pre>
+
+<h2 id="启动-mediasoup-server">启动 mediasoup server</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cd</span> /var/www/mediasoup/server
+<span class="nv">$ </span><span class="nb">sudo </span><span class="nv">DEBUG</span><span class="o">=</span><span class="s2">"*mediasoup* *ERROR* *WARN*"</span> <span class="nv">INTERACTIVE</span><span class="o">=</span><span class="s2">"true"</span> node server.js
+</code></pre></div></div>
+
+<h2 id="重启-nginx">重启 nginx</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>nginx <span class="nt">-s</span> reload
+</code></pre></div></div>
+<h1 id="在线体验">在线体验</h1>
+
+<blockquote>
+  <p>此主机带宽比较低，初次打开比较慢，需耐心等待加载完成，后面缓冲后速度会变化，音视频延迟不受影响。</p>
+</blockquote>
+
+<p>在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 <code class="language-plaintext highlighter-rouge">https://www.gobert.top/?roomId=123456</code> 即可体验，RoomId 可自定义。</p>
 
             <div class="post-copyright">
               <p>
@@ -356,15 +481,15 @@ Result:
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 Android AEC 无效的解决方案 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/fix-aec-bug-on-android.html" class="cplink">https://gbcpp.github.io/notes/fix-aec-bug-on-android.html</a></p>
+              <p><span>本文标题：</span>《 mediasoup 公网环境部署 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/meidasoup-demo-build.html" class="cplink">https://gbcpp.github.io/meidasoup-demo-build.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('启动服务')">启动服务</a></li><li><a onclick="scrollToAdjust('android-端查询接口')">Android 端查询接口</a><ul><li><a onclick="scrollToAdjust('1、查询指定-<code-class="language-plaintext-highlighter-rouge">model</code>')">1、查询指定 <code class="language-plaintext highlighter-rouge">Model</code></a></li><li><a onclick="scrollToAdjust('2、查询所有白名单')">2、查询所有白名单</a></li></ul></li><li><a onclick="scrollToAdjust('添加新机型')">添加新机型</a></li><li><a onclick="scrollToAdjust('删除已有机型')">删除已有机型</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('准备云主机')">准备云主机</a></li><li><a onclick="scrollToAdjust('域名准备')">域名准备</a></li><li><a onclick="scrollToAdjust('安装-mediasoup')">安装 mediasoup</a></li><li><a onclick="scrollToAdjust('nginx-配置')">nginx 配置</a><ul><li><a onclick="scrollToAdjust('在线安装-nginx')">在线安装 nginx</a></li><li><a onclick="scrollToAdjust('部署-mediasoup-到-nginx')">部署 mediasoup 到 nginx</a></li><li><a onclick="scrollToAdjust('配置-https-服务')">配置 https 服务</a></li><li><a onclick="scrollToAdjust('配置-nginx-开启-gzip')">配置 nginx 开启 gzip</a></li><li><a onclick="scrollToAdjust('配置-mediasoup-server')">配置 mediasoup server</a></li><li><a onclick="scrollToAdjust('启动-mediasoup-server')">启动 mediasoup server</a></li><li><a onclick="scrollToAdjust('重启-nginx')">重启 nginx</a></li></ul></li><li><a onclick="scrollToAdjust('在线体验')">在线体验</a></li></ul>
         </div>
       </div>
       
@@ -419,10 +544,10 @@ Result:
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
+          <a href="/c-algorithm-notes.html" class="read-next-link" aria-label="C++算法大全"></a>
           <section>
-            <span>mediasoup 公网环境部署</span>
-            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
+            <span>C++算法大全</span>
+            <p>  以内内容为互联网收集，非原创。</p>
           </section>
           
       </div>
@@ -430,10 +555,10 @@ Result:
 
         
         <div class="read-next-item">
-          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
+          <a href="/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
             <section>
-              <span>解决 WebRTC 花屏问题记录</span>
-              <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
+              <span>Android AEC 无效的解决方案</span>
+              <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
             </section>
             
         </div>
@@ -449,7 +574,7 @@ Result:
   
   <script>
     var gitalk = new Gitalk({
-      id: '2019-01-23 00:00:00 +0000',
+      id: '2019-04-01 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -662,7 +787,7 @@ Result:
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-01-23-fix-aec-bug-on-android.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-04-01-meidasoup-demo-build.md")
           .then((response) => {
             return response.json();
           })

@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mediasoup 公网环境部署 - Mr Chen</title>
+    <title>BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="mediasoup 公网环境部署">
-    <meta name="keywords"  content="开源, WebRTC, mediasoup">
+    <meta name="description" content="BOOST 在 Windows 下通过 VS 进行编译">
+    <meta name="keywords"  content="BOOST">
     <!-- Open Graph -->
-    <meta property="og:title" content="mediasoup 公网环境部署 - Mr Chen">
+    <meta property="og:title" content="BOOST 在 Windows 下通过 VS 进行编译 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/meidasoup-demo-build.html">
+    <meta property="og:url" content="https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/learn/cplusplus-algorithm-notes.html">
+    <meta property="og:previous_url" content="/resolve_webrtc_video_blurry_frame_issue.html">
     
     
-    <meta property="og:next_url" content="/notes/fix-aec-bug-on-android.html">
+    <meta property="og:next_url" content="/cpp-log-library-spdlog.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2019-04-01 00:00:00 +0000" />
+    <meta property="post-date" content="2018-03-12 00:00:00 +0000" />
     
     
     
@@ -155,22 +155,18 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
       data-theme="default"
     >
       <div class="post-wrapper">
         <div class="post-tags">
           
             
-              <a href="/tags.html#%E5%BC%80%E6%BA%90" class="post-tag">开源</a>
-            
-              <a href="/tags.html#WebRTC" class="post-tag">WebRTC</a>
-            
-              <a href="/tags.html#mediasoup" class="post-tag">mediasoup</a>
+              <a href="/tags.html#BOOST" class="post-tag">BOOST</a>
             
           
         </div>
-        <h1>mediasoup 公网环境部署</h1>
+        <h1>BOOST 在 Windows 下通过 VS 进行编译</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -178,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="19-04-01">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="19-04-01">
+          <time class="post-meta-item" datetime="18-03-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -195,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  4.6k  字
+              本文总共  2.0k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 14 分钟
+              阅读全文大约需要 6 分钟
             </span>
             
               <span class="post-meta-item">
@@ -215,10 +211,11 @@
         </div>
       </div>
       
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/boost_logo.webp') center no-repeat; background-size: cover;"></div>
+      
     </header>
     <div class="post-content visible">
-      
-      <h2 class="post-subtitle">源码编译部署 mediasoup，快速搭建实时音视频通话</h2>
       
 
       
@@ -227,245 +224,72 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的 rtc 环境，用于自己练习 golang、rust 的开发、学习和测试，内网下搭建 mediasoup 比较简单，参照官网的文档一步步来很容易就能搞定，不过如果要在公网下搭建一套环境，相对来说略微麻烦些，需要云主机、nginx 配置、https 配置，通过这篇文章记录上述环境搭建的关键步骤。</p>
+            <h1 id="下载-boost-源码">下载 Boost 源码</h1>
 
 <!--more-->
 
-<blockquote>
-  <p>以下操作均在 Ubuntu 18.04 Server 系统上操作。</p>
-</blockquote>
+<p>从官方下载 Boost 源码，之前用的一直是 boost 1.58.0，今天去官方网站看到最新的已经是 boost 1.66.0，最新版本的下载地址是：<a href="https://akamai.bintray.com/59/596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628?__gda__=exp=1520835412~hmac=6d6c97450b9b0b9421f696c922c483f87493fe9a10890fc7235a1c30c120f8e1&amp;response-content-disposition=attachment%3Bfilename%3D%22boost_1_66_0.7z%22&amp;response-content-type=application%2Fx-7z-compressed&amp;requestInfo=U2FsdGVkX19TK62uO_jw5nC8JAtKkRu4cX28_lg3Z3y4xQkcbs9DqFSaTA0PDQKfCQ9Q94pRYGu60LzIyLyeN5mNvuokt1GI_MdVPpMBQLpNhTWhePsfBOrGtyhg6MOCF0JFr3mSugB0Sihk9fO5Wr1BR4MLQS9n78rtxF7JwNmR7sZ6on6X6jtu9UTYTMBy&amp;response-X-Checksum-Sha1=075d0b43980614054b1f1bafd189f863bba6600e&amp;response-X-Checksum-Sha2=596389389c005814ecb2a6b64c31dccd2c3e6fbc5a802b4dfada999ae5844628" rel="nofollow" target="_blank" class="extlinks">下载地址</a></p>
 
-<h1 id="准备云主机">准备云主机</h1>
+<p>建议使用迅雷进行下载，通过浏览器下的比较慢。
+下载后解压到自己的开源项目目录下，如：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code></p>
 
-<p>公网环境的搭建还是需要一台拥有公网 IP 的主机的，当然如果你能薅公司的羊毛就更好了 。。本人的是阿里云主机 Ubuntu 系统 16.04 upgrade to 18.04，双11 时买的最便宜的机型，同时安装 ssh、 git、nodejs、npm，开启远程登录。</p>
+<h1 id="windows-下通过-visual-studio-2015-编译">Windows 下通过 Visual Studio 2015 编译</h1>
 
-<h1 id="域名准备">域名准备</h1>
+<p>启动 VS2015 的 X86 本机工具命令提示符，即 <code class="language-plaintext highlighter-rouge">VS2015 x86 Native Tools Command Prompt</code> ，进入 boost 源码目录：<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>，然后执行以下命令：</p>
 
-<p>通过浏览器打开音视频设备因为有安全方面的限制，不能通过 IP 进行访问，必须通过 https://domain 的 url 打开，所以我们还需要准备一个域名并解析到我们自己的公网 IP 地址，域名也可以通过阿里云进行购买，因为不需要 seo，所以选一个最便宜的后缀即可，我选择了 <code class="language-plaintext highlighter-rouge">gobert.top</code>，第一年只有 9 元，后面还需要域名备案，否则域名将被重定向到指定地址，所以域名需要提前准备。</p>
-
-<blockquote>
-  <p>首次域名备案相对来说比较麻烦，需要准备居住证（来沪外来人员）等证件，各种审核需要耗时两三天吧。</p>
-</blockquote>
-
-<h1 id="安装-mediasoup">安装 mediasoup</h1>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>λ ssh gobert@47.100.110.xxx
-gobert@47.100.110.xxx<span class="s1">'s password:
-Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-38-generic x86_64)
-
-Last login: Mon Apr  1 17:28:34 2019 from 116.236.177.xxx
-$ mkdir develop
-$ cd develop
-$ git clone git@github.com:versatica/mediasoup-demo.git
-</span></code></pre></div></div>
-
-<p>后续 npm 的安装需参照 <code class="language-plaintext highlighter-rouge">https://github.com/versatica/mediasoup-demo/</code> 文档进行。</p>
-
-<h1 id="nginx-配置">nginx 配置</h1>
-
-<blockquote>
-  <p>这一步默认域名购买、解析、备案已完成。</p>
-</blockquote>
-
-<h2 id="在线安装-nginx">在线安装 nginx</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>apt-get <span class="nb">install </span>nginx
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    bootstrap.bat   //首先执行此命令生成 b2 编译工具
+    bjam stage --toolset=msvc-14.0 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14" link=static runtime-link=static runtime-link=static threading=multi debug release  
 </code></pre></div></div>
 
-<h2 id="部署-mediasoup-到-nginx">部署 mediasoup 到 nginx</h2>
-
-<blockquote>
-  <p>将 mediasoup 中的 server 目录拷贝到 nginx 根目录下。</p>
-</blockquote>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /var/www/mediasoup
-<span class="nv">$ </span><span class="nb">sudo cp</span> <span class="nt">-r</span> medissoup-demo/server/ /var/www/mediasoup/
+<p>以上命令生成 32bit 静态库；如果希望生成 64bit，则使用以下命令：</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bjam stage --toolset=msvc-14.0 architecture=x86 address-model=64 --without-graph --without-graph_parallel --stagedir="D:\boost\boost_1_63_0\bin\vc14-x64" link=static runtime-link=static runtime-link=static threading=multi debug release
 </code></pre></div></div>
 
-<p>配置 nginx 解析到以上目录，编辑 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 配置文件，将 server 根路径下的 root 属性修改为 <code class="language-plaintext highlighter-rouge">/var/www/mediasoup/server/public;</code>,即：</p>
+<h1 id="相关编译选项">相关编译选项</h1>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c"># 以上省略</span>
- <span class="c">#root /var/www/html;</span>
- root /var/www/mediasoup/server/public<span class="p">;</span>
-
- <span class="c"># Add index.php to the list if you are using PHP</span>
- index index.html index.htm index.nginx-debian.html<span class="p">;</span>
- <span class="c"># 以下省略</span>
-</code></pre></div></div>
-
-<h2 id="配置-https-服务">配置 https 服务</h2>
-
-<p>通过浏览器打开设备需要 https 安全 url，nginx 必须开启 https 服务，通过 letsencrypt 进行 https 的自动化配置，省去了自己很多的麻烦，不用再去申请证书、审核、验证部署等繁琐的操作了，通过 <code class="language-plaintext highlighter-rouge">https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx</code> 下的命令按步执行即可。</p>
-
-<p><img src="/images/letsencrypt.png" alt="rtc::Thread UML 类图"></p>
-
-<blockquote>
-  <p>letsencrpt 安装的 ssl 证书只有三个月的有效期，所以为了防止证书过期，建议添加系统定时任务，定期执行脚本命令更新证书：</p>
-</blockquote>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>su -
-<span class="nv">$ </span>certbot renew <span class="nt">--dry-run</span>
-</code></pre></div></div>
-
-<p>正常情况下，你的 nginx 已经开启了 https 服务, ssl 证书及秘钥存放位置记录在 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 配置文件中，打开 <code class="language-plaintext highlighter-rouge">/etc/nginx/sites-available/default</code> 文件，发现 letsencrpty 自动在脚本末尾增加了一项 server 配置，将 <code class="language-plaintext highlighter-rouge">root</code> 路径配置为以上 <code class="language-plaintext highlighter-rouge">/var/www/mediasoup/server/public;</code> 目录，同时记录下其 ssl_certificate 目录，后面 nginx 配置中需要指定：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen <span class="o">[</span>::]:443 ssl <span class="nv">ipv6only</span><span class="o">=</span>on<span class="p">;</span> <span class="c"># managed by Certbot</span>
-listen 443 ssl<span class="p">;</span> <span class="c"># managed by Certbot</span>
-ssl_certificate /etc/letsencrypt/live/www.gobert.top/fullchain.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
-ssl_certificate_key /etc/letsencrypt/live/www.gobert.top/privkey.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
-include /etc/letsencrypt/options-ssl-nginx.conf<span class="p">;</span> <span class="c"># managed by Certbot</span>
-ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem<span class="p">;</span> <span class="c"># managed by Certbot</span>
-</code></pre></div></div>
-
-<h2 id="配置-nginx-开启-gzip">配置 nginx 开启 gzip</h2>
-
-<p>mediasoup 中 <code class="language-plaintext highlighter-rouge">mediasoup-demo-app.js</code> 有 12MB 大小，如果 server 带宽比较低的话，用户首次拉取会比较慢，由于 nginx 默认配置是不开启 gzip 压缩的，所以需要我们手动开启 gzip 压缩，修改 nginx 的配置文件（全站配置）<code class="language-plaintext highlighter-rouge">/etc/nginx/nginx.conf</code>，将以下内容的注释全部取消：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gzip on;
-
-gzip_vary on;
-gzip_proxied any;
-gzip_comp_level 6;
-gzip_buffers 16 8k;
-gzip_http_version 1.1;
-gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-</code></pre></div></div>
-
-<p>然后重启 nginx 服务即可：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> /etc/init.d/nginx reload
-</code></pre></div></div>
-
-<h2 id="配置-mediasoup-server">配置 mediasoup server</h2>
-
+<p>下面详细解释一下每个参数的含义：</p>
 <ul>
-  <li>配置自定义脚本：</li>
+  <li>
+    <p>stage/install：
+stage表示只生成库（dll和lib），install还会生成包含头文件的include目录。本人推荐使用stage，因为install生成的这个include目录实际就是boost安装包解压缩后的boost目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0\boost</code>，只比include目录多几个非hpp文件，都很小），所以可以直接使用，而且不同的IDE都可以使用同一套头文件，这样既节省编译时间，也节省硬盘空间。</p>
+  </li>
+  <li>
+    <p>toolset：
+指定编译器，可选的如borland、gcc、msvc（VC6）、msvc-14.0（VS2015）等。</p>
+  </li>
+  <li>
+    <p>without/with：
+选择不编译/编译哪些库。因为python、mpi等库我都用不着，所以排除之。还有wave、graph、math、regex、test、program_options、serialization、signals这几个库编出的静态lib都非常大，所以不需要的也可以without掉。这可以根据各人需要进行选择，默认是全部编译。但是需要注意，如果选择编译python的话，是需要python语言支持的，应该到 python <a href="http://www.python.org/" rel="nofollow" target="_blank" class="extlinks">官方主页</a>下载安装。查看boost包含库的命令是bjam –show-libraries。</p>
+  </li>
+  <li>
+    <p>stagedir/prefix：
+stage时使用stagedir，install时使用prefix，表示编译生成文件的路径。推荐给不同的IDE指定不同的目录。</p>
+  </li>
+  <li>
+    <p>build-dir：编译生成的中间文件的路径。这个本人这里没用到，默认就在根目录（<code class="language-plaintext highlighter-rouge">E:\OpenSource\boost_1_66_0</code>）下，目录名为bin.v2，等编译完成后可将这个目录全部删除（没用了），所以不需要去设置。</p>
+  </li>
+  <li>
+    <p>link：
+生成动态链接库/静态链接库。生成动态链接库需使用shared方式，生成静态链接库需使用static方式。一般boost库可能都是以static方式编译，因为最终发布程序带着boost的dll感觉会比较累赘。</p>
+  </li>
+  <li>
+    <p>runtime-link：
+动态/静态链接C/C++运行时库。同样有shared和static两种方式，这样runtime-link和link一共可以产生4种组合方式，各人可以根据自己的需要选择编译。一般link只选static的话，只需要编译2种组合即可，即link=static runtime-link=shared和link=static runtime-link=static，本人一般就编这两种组合。</p>
+  </li>
+  <li>
+    <p>threading：
+单/多线程编译。一般都写多线程程序，当然要指定multi方式了；如果需要编写单线程程序，那么还需要编译单线程库，可以使用single方式。</p>
+  </li>
+  <li>
+    <p>debug/release：
+编译debug/release版本。一般都是程序的debug版本对应库的debug版本，所以两个都编译。</p>
+  </li>
+  <li>
+    <p>address-model=32/64 	
+寻址模式(生成32位还是64位库)</p>
+  </li>
 </ul>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>copy config.example.js config.js
-</code></pre></div></div>
-
-<p>打开 config.js 文件，在 tls 路径中，将上面记录的 letsencrypt 证书路径拷贝到相应的 item 中，同时修改 <code class="language-plaintext highlighter-rouge">rtcAnnouncedIPv4</code> 为云主机公网 IP 地址，完整的 config.js 的文件为</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>module.exports =
-{
-        // Listening hostname for `gulp live|open`.
-        domain : 'localhost',
-        tls    :
-        {
-                cert : `/etc/letsencrypt/live/www.gobert.top/fullchain.pem`, // letsencrypt 证书
-                key  : `/etc/letsencrypt/live/www.gobert.top/privkey.pem`    // letsencrypt 秘钥
-        },
-        mediasoup :
-        {
-                // mediasoup Server settings.
-                logLevel : 'warn',
-                logTags  :
-                [
-                        'info',
-                        'ice',
-                        'dtls',
-                        'rtp',
-                        'srtp',
-                        'rtcp',
-                        // 'rbe',
-                        // 'rtx'
-                ],
-                numWorkers       : null, // Use number of CPUs.
-                rtcIPv4          : true,
-                rtcIPv6          : true,
-                rtcAnnouncedIPv4 : '47.100.110.192', // 云主机公网地址
-                rtcAnnouncedIPv6 : null,  // 根据需要，自主填写
-                rtcMinPort       : 40000, // udp 最小端口，需要云主机安全组中配置
-                rtcMaxPort       : 49999, // dup 最大端口，需要云主机安全组中配置
-                // mediasoup Room codecs.
-                mediaCodecs      :
-                [
-                        {
-                                kind       : 'audio',
-                                name       : 'opus',
-                                mimeType   : 'audio/opus',
-                                clockRate  : 48000,
-                                channels   : 2,
-                                parameters :
-                                {
-                                        useinbandfec : 1
-                                }
-                        },
-                        {
-                                kind       : 'video',
-                                name       : 'VP8',
-                                mimeType   : 'video/VP8',
-                                clockRate  : 90000,
-                                parameters :
-                                {
-                                        'x-google-start-bitrate': 1500
-                                }
-                        },
-                        {
-                                kind       : 'video',
-                                name       : 'h264',
-                                mimeType   : 'video/h264',
-                                clockRate  : 90000,
-                                parameters :
-                                {
-                                        'packetization-mode'      : 1,
-                                        'profile-level-id'        : '42e01f',
-                                        'level-asymmetry-allowed' : 1
-                                }
-                        }
-                ],
-                // mediasoup per Peer max sending bitrate (in bps).
-                maxBitrate : 500000
-        }
-};
-</code></pre></div></div>
-
-<ul>
-  <li>修改 Server 监听端口</li>
-</ul>
-
-<blockquote>
-  <p>此处修改 server 的监听端口其实没什么意义，可以忽略。</p>
-</blockquote>
-
-<p>编辑 <code class="language-plaintext highlighter-rouge">server.js</code> 配置文件，将默认端口 <code class="language-plaintext highlighter-rouge">httpsServer.listen(3443, '0.0.0.0', () =&gt;</code> 替换为 <code class="language-plaintext highlighter-rouge">httpsServer.listen(5678, '0.0.0.0', () =&gt;</code>。</p>
-
-<ul>
-  <li>配置 Client 访问 Server WSS 地址</li>
-</ul>
-
-<p>打开 ` public/mediasoup-demo-app.js<code class="language-plaintext highlighter-rouge"> 将 </code>getProtooUrl<code class="language-plaintext highlighter-rouge"> 方法中的 URL 地址端口改为自定义的 </code>5678` 端口：</p>
-
-<blockquote>
-  <p>如果上一步中没有修改 server 的监听端口的话，这一步也可忽略。</p>
-</blockquote>
-
-<pre><code class="language-node.js">function getProtooUrl(peerName, roomId, forceH264) {
-  var hostname = window.location.hostname;
-  var url = "wss://".concat(hostname, ":5678/?peerName=").concat(peerName, "&amp;roomId=").concat(roomId);
-  if (forceH264) url = "".concat(url, "&amp;forceH264=true");
-  return url;
-}
-</code></pre>
-
-<h2 id="启动-mediasoup-server">启动 mediasoup server</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cd</span> /var/www/mediasoup/server
-<span class="nv">$ </span><span class="nb">sudo </span><span class="nv">DEBUG</span><span class="o">=</span><span class="s2">"*mediasoup* *ERROR* *WARN*"</span> <span class="nv">INTERACTIVE</span><span class="o">=</span><span class="s2">"true"</span> node server.js
-</code></pre></div></div>
-
-<h2 id="重启-nginx">重启 nginx</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>nginx <span class="nt">-s</span> reload
-</code></pre></div></div>
-<h1 id="在线体验">在线体验</h1>
-
-<blockquote>
-  <p>此主机带宽比较低，初次打开比较慢，需耐心等待加载完成，后面缓冲后速度会变化，音视频延迟不受影响。</p>
-</blockquote>
-
-<p>在两个终端浏览器（支持 Chrome、Firefox、Safari）中均打开 <code class="language-plaintext highlighter-rouge">https://www.gobert.top/?roomId=123456</code> 即可体验，RoomId 可自定义。</p>
 
             <div class="post-copyright">
               <p>
@@ -481,15 +305,15 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 mediasoup 公网环境部署 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/meidasoup-demo-build.html" class="cplink">https://gbcpp.github.io/notes/meidasoup-demo-build.html</a></p>
+              <p><span>本文标题：</span>《 BOOST 在 Windows 下通过 VS 进行编译 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html" class="cplink">https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('准备云主机')">准备云主机</a></li><li><a onclick="scrollToAdjust('域名准备')">域名准备</a></li><li><a onclick="scrollToAdjust('安装-mediasoup')">安装 mediasoup</a></li><li><a onclick="scrollToAdjust('nginx-配置')">nginx 配置</a><ul><li><a onclick="scrollToAdjust('在线安装-nginx')">在线安装 nginx</a></li><li><a onclick="scrollToAdjust('部署-mediasoup-到-nginx')">部署 mediasoup 到 nginx</a></li><li><a onclick="scrollToAdjust('配置-https-服务')">配置 https 服务</a></li><li><a onclick="scrollToAdjust('配置-nginx-开启-gzip')">配置 nginx 开启 gzip</a></li><li><a onclick="scrollToAdjust('配置-mediasoup-server')">配置 mediasoup server</a></li><li><a onclick="scrollToAdjust('启动-mediasoup-server')">启动 mediasoup server</a></li><li><a onclick="scrollToAdjust('重启-nginx')">重启 nginx</a></li></ul></li><li><a onclick="scrollToAdjust('在线体验')">在线体验</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('下载-boost-源码')">下载 Boost 源码</a></li><li><a onclick="scrollToAdjust('windows-下通过-visual-studio-2015-编译')">Windows 下通过 Visual Studio 2015 编译</a></li><li><a onclick="scrollToAdjust('相关编译选项')">相关编译选项</a></li></ul>
         </div>
       </div>
       
@@ -544,10 +368,10 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/learn/cplusplus-algorithm-notes.html" class="read-next-link" aria-label="C++ 常用算法"></a>
+          <a href="/resolve_webrtc_video_blurry_frame_issue.html" class="read-next-link" aria-label="解决 WebRTC 花屏问题记录"></a>
           <section>
-            <span>C++ 常用算法</span>
-            <p>  以内内容为互联网收集，非原创。</p>
+            <span>解决 WebRTC 花屏问题记录</span>
+            <p>  现象：WebRTC native 层经常打印 Failed to unprotect SRTP packet,...</p>
           </section>
           
       </div>
@@ -555,10 +379,10 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
 
         
         <div class="read-next-item">
-          <a href="/notes/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
+          <a href="/cpp-log-library-spdlog.html" class="read-next-link" aria-label="c++ 开源日志库 spdlog"></a>
             <section>
-              <span>Android AEC 无效的解决方案</span>
-              <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
+              <span>c++ 开源日志库 spdlog</span>
+              <p>C++日志组件 spdlog</p>
             </section>
             
         </div>
@@ -574,7 +398,7 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
   
   <script>
     var gitalk = new Gitalk({
-      id: '2019-04-01 00:00:00 +0000',
+      id: '2018-03-12 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -787,7 +611,7 @@ gzip_types text/plain text/css application/json application/javascript text/xml 
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-04-01-meidasoup-demo-build.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-12-build-boost-on-window-with-virtualstudio.md")
           .then((response) => {
             return response.json();
           })

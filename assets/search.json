@@ -18,18 +18,6 @@
   } ,
 
   {
-    "title"    : "NeoVim 安装配置记录",
-    "tags"     : "develop",
-    "url"      : "/notes/neovim.html"
-  } ,
-
-  {
-    "title"    : "Blog title",
-    "tags"     : "Life",
-    "url"      : "/learn/blog-templete.html"
-  } ,
-
-  {
     "title"    : "float 和 int 在 Linux 下的计算性能对比",
     "tags"     : "Linux float",
     "url"      : "/float-performance.html"
@@ -86,25 +74,25 @@
   {
     "title"    : "经典算法题",
     "tags"     : "算法 c++",
-    "url"      : "/learn/algorithm.html"
+    "url"      : "/algorithm.html"
   } ,
 
   {
-    "title"    : "C++ 常用算法",
+    "title"    : "C++算法大全",
     "tags"     : "algorithm",
-    "url"      : "/learn/cplusplus-algorithm-notes.html"
+    "url"      : "/c-algorithm-notes.html"
   } ,
 
   {
     "title"    : "mediasoup 公网环境部署",
     "tags"     : "开源 WebRTC mediasoup",
-    "url"      : "/notes/meidasoup-demo-build.html"
+    "url"      : "/meidasoup-demo-build.html"
   } ,
 
   {
     "title"    : "Android AEC 无效的解决方案",
     "tags"     : "Audio WebRTC Android",
-    "url"      : "/notes/fix-aec-bug-on-android.html"
+    "url"      : "/fix-aec-bug-on-android.html"
   } ,
 
   {
@@ -116,13 +104,13 @@
   {
     "title"    : "BOOST 在 Windows 下通过 VS 进行编译",
     "tags"     : "BOOST",
-    "url"      : "/notes/build-boost-on-window-with-virtualstudio.html"
+    "url"      : "/build-boost-on-window-with-virtualstudio.html"
   } ,
 
   {
     "title"    : "c++ 开源日志库 spdlog",
     "tags"     : "spdlog",
-    "url"      : "/notes/cpp-log-library-spdlog.html"
+    "url"      : "/cpp-log-library-spdlog.html"
   } ,
 
   {
