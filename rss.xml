@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 01 Jan 2025 04:43:17 +0000</pubDate>
-    <lastBuildDate>Wed, 01 Jan 2025 04:43:17 +0000</lastBuildDate>
+    <pubDate>Wed, 01 Jan 2025 04:58:05 +0000</pubDate>
+    <lastBuildDate>Wed, 01 Jan 2025 04:58:05 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -48,9 +48,9 @@ api-ms-win-crt-heap-l1-1-0.dll
 
 &lt;p&gt;关于 CRT 库的更多的介绍，请参考微软官方的文档：https://msdn.microsoft.com/zh-cn/library/abx4dbyh.aspx&lt;/p&gt;
 </description>
-        <pubDate>Wed, 01 Jan 2025 04:43:17 +0000</pubDate>
-        <link>https://gbcpp.github.io/2018-02-22-Win10-deply-XP-Server2003-application.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/2018-02-22-Win10-deply-XP-Server2003-application.html</guid>
+        <pubDate>Wed, 01 Jan 2025 04:58:05 +0000</pubDate>
+        <link>https://gbcpp.github.io/2018-02-22-Win10-deploy-XP-Server2003-application.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/2018-02-22-Win10-deploy-XP-Server2003-application.html</guid>
         
         
       </item>
