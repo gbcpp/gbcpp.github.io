@@ -1,0 +1,143 @@
+<p>在 Linux 平台下开发实时通话 SDK 其实是主要应用于未来的 IOT 行业，先基于 Ubuntu 作为开发平台，完成后再基于每个客户提供的其交叉编译工具链进行交叉编译以供用户使用。</p>
+
+<!--more-->
+
+<h2 id="基于-ubuntu-下载-webrtc">基于 Ubuntu 下载 webrtc</h2>
+
+<h3 id="自行下载编译">自行下载编译</h3>
+
+<p>如果是自己下载编译的话，可以参考官方教程，或者参考本人之前的一篇博客： https://www.jianshu.com/p/09f065f3feb0 ，其实 Ubuntu 下编译 webrtc 是比较简单的，只要可以翻墙，其它都只是时间问题了。</p>
+
+<h3 id="无法翻墙下载">无法翻墙下载</h3>
+
+<p>那么可以通过下载本人配置的一个 Docker 镜像进行进行编译： https://hub.docker.com/r/cgb0210/ubuntu_build ，由于 Docker 不适合作为开发环境，下载后，建议用户将 develop 目录下的文件拷贝到自己的开发环境中，并参考 https://www.jianshu.com/p/09f065f3feb0 配置相关环境变量，实现本地编译,过程主要包含 3 步：</p>
+
+<h3 id="配置-depot_tools-环境变量">配置 depot_tools 环境变量</h3>
+
+<p>将 <code class="language-plaintext highlighter-rouge">export PATH=$PATH:/home/gobert/develop/depot_tools</code> 添加到 <code class="language-plaintext highlighter-rouge">/etc/profile</code> 文件尾部；</p>
+
+<h3 id="安装-golang-并配置环境">安装 GoLang 并配置环境</h3>
+
+<h3 id="安装-linux-依赖包">安装 Linux 依赖包</h3>
+
+<p>执行 webrtc 目录下的 <code class="language-plaintext highlighter-rouge">/build/install-build-deps.sh</code> 脚本命令，如： <code class="language-plaintext highlighter-rouge">sudo sh build/install-build-deps.sh</code>；</p>
+
+<h2 id="编译-webrtc">编译 webrtc</h2>
+
+<p>默认情况下，Linux 下基于 ninja 编译的话，其编译器使用的是 clang，且其依赖的 stdc 标准库为其 ./buildtools/third_party/libc++ 内置的，所以如果外部想要基于 clang 编译的 libwebrtc.a 进行开发的话，上层依然需要使用 clang 做为编译器，且链接 webrtc 内部的 libc++ 标准库，否则将会产生各种 <code class="language-plaintext highlighter-rouge">error: undefined reference to symbol ...</code>，无法解决，虽然 clang 比 g++ 要优秀很多，但本人目前还是习惯使用 g++ 进行开发，所以需要指定 g++ 编译器，同时需要注意以下事项：</p>
+
+<h3 id="rtti-run-time-type-identification-运行时类型识别">RTTI （Run-Time Type Identification 运行时类型识别）</h3>
+
+<p>webrtc 内部各模块配置了不同的 rtti 属性，开、关各不相同，默认情况下，加载 libwebrtc.a 会产生 <code class="language-plaintext highlighter-rouge">undefined reference to </code>typeinfo for [classname]’<code class="language-plaintext highlighter-rouge"> 错误，为此我们可以在链接 libwebrtc.a 的根编译脚本文件中配置统一去除 rtti 属性，以解决此类问题，打开根目录下的 BUILD.gn 文件，在 </code>rtc_static_library(“webrtc”)<code class="language-plaintext highlighter-rouge"> 尾部添加 </code>cflags_cc = [” -fno-rtti” ]` 即可，如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if (!build_with_chromium) {
+# Target to build all the WebRTC production code.
+rtc_static_library("webrtc") {
+    
+    ...
+    
+    cflags_cc = [" -fno-rtti" ]
+    }
+}
+</code></pre></div></div>
+
+<p>这样便可以解决所有 undefined reference to <code class="language-plaintext highlighter-rouge">typeinfo for [classname]'</code> 类的错误。</p>
+
+<h3 id="找不到-builtin_audio_decoder_factory-模块的所有符号">找不到 builtin_audio_decoder_factory 模块的所有符号</h3>
+
+<p>这应该是 webrtc branch：68 版本的 bug，在各平台均会出现此类问题，原因在于其在编译脚本中漏写了 <code class="language-plaintext highlighter-rouge">builtin_audio_decoder_factory</code> 模块，加上即可，打开 <code class="language-plaintext highlighter-rouge">audio/BUILD.gn</code> 文件，在 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_encoder_factory",</code> 下面添加一行 <code class="language-plaintext highlighter-rouge">"../api/audio_codecs:builtin_audio_decoder_factory",</code> 即可。</p>
+
+<h3 id="编译">编译</h3>
+
+<p>编译命令如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gn gen -C out/linux/Release  --args="is_debug=false target_cpu=\"x64\" rtc_include_tests=false rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\" is_component_build=false is_clang=false treat_warnings_as_errors=false use_custom_libcxx=false strip_debug_info=true use_rtti=false"
+</code></pre></div></div>
+<p>其中 <code class="language-plaintext highlighter-rouge">rtc_include_tests=false</code> 为禁止编译单元测试程序，可大大节省编译时间；
+<code class="language-plaintext highlighter-rouge">rtc_use_h264=true rtc_initialize_ffmpeg=true ffmpeg_branding=\"Chrome\"</code> 为激活内部 H.264 编解码器。</p>
+
+<h2 id="demo-程序">Demo 程序</h2>
+
+<h3 id="编译测试程序加载并调用-webrtc-接口">编译测试程序加载并调用 webrtc 接口。</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp">
+</span>
+<span class="cp">#include</span> <span class="cpf">"api/jsep.h"</span><span class="cp">
+</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">webrtc</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+    <span class="n">SdpParseError</span> <span class="n">error</span><span class="p">;</span>
+    <span class="k">auto</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">CreateSessionDescription</span><span class="p">(</span><span class="s">"offer"</span><span class="p">,</span> <span class="s">"sdp"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ptr</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription return null, error str:%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">error</span><span class="p">.</span><span class="n">description</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"CreateSessionDescription success!</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="编写-cmakeliststxt-脚本文件">编写 CMakeLists.txt 脚本文件</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake_minimum_required(VERSION 3.5)
+project(demo)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE     TRUE)
+
+set(CMAKE_C_FLAGS               "${CMAKE_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS             "${CMAKE_CXX_FLAGS} -fno-exceptions -fPIC")
+set(CMAKE_SHARED_LINKER_FLAGS   "${CMAKE_SHARED_LINKER_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS      "${CMAKE_EXE_LINKER_FLAGS}")
+
+set(ARCH_PATH linux)
+set(WEBRTC_PATH "/home/gobert/develop/webrtc/src")
+set(WEBRTC_LIBRARY_PATH "/home/gobert/develop/webrtc/src/out/Linux/Release/obj")
+
+add_definitions(
+    "-DWEBRTC_POSIX"
+    "-DWEBRTC_LINUX"
+    "-DUSE_GLIB=1"
+)
+
+if (Linux)
+set(ARCH_PATH linux)
+elseif (Arm)
+set(ARCH_PATH arm)
+endif ()
+
+include_directories(
+    ${WEBRTC_PATH}
+    )
+
+set(SOURCE_FILES
+    main.cpp
+)
+
+link_directories(
+    ${link_directories}
+    ${WEBRTC_PATH}/out/Linux/Release/obj
+    /usr/lib/x86_64-linux-gnu/
+)
+
+link_libraries(
+    "${WEBRTC_LIBRARY_PATH}/libwebrtc.a"
+    )
+
+add_executable(demo ${SOURCE_FILES})
+
+TARGET_LINK_LIBRARIES(demo pthread stdc++)
+
+set_target_properties(demo PROPERTIES OUTPUT_NAME "demo")
+
+</code></pre></div></div>
+
+<h3 id="编译-1">编译</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake &amp;&amp; make
+</code></pre></div></div>

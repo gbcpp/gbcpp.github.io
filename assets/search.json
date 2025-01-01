@@ -102,9 +102,27 @@
   } ,
 
   {
+    "title"    : "Linux 基于 webrtc 进行流媒体开发",
+    "tags"     : "WebRTC OpenSource Linux",
+    "url"      : "/rtc/Linux-%E4%B8%8B%E5%BC%80%E5%8F%91%E5%9F%BA%E4%BA%8E-webrtc-%E7%9A%84%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91-SDK.html"
+  } ,
+
+  {
     "title"    : "Android AEC 无效的解决方案",
     "tags"     : "Audio WebRTC Android",
     "url"      : "/notes/fix-aec-bug-on-android.html"
+  } ,
+
+  {
+    "title"    : "WebRtc Windows develop patch 记录",
+    "tags"     : "RTC",
+    "url"      : "/rtc/WebRtc-Windows-develop-patch-%E8%AE%B0%E5%BD%95.html"
+  } ,
+
+  {
+    "title"    : "Linux 常用命令备忘录",
+    "tags"     : "Linux",
+    "url"      : "/notes/linux-common-comands-notes.html"
   } ,
 
   {
@@ -117,6 +135,12 @@
     "title"    : "BOOST 在 Windows 下通过 VS 进行编译",
     "tags"     : "BOOST",
     "url"      : "/notes/build-boost-on-window-with-virtualstudio.html"
+  } ,
+
+  {
+    "title"    : "janus 服务器搭建",
+    "tags"     : "Janus RTC opensource",
+    "url"      : "/learn/janus-server-setup.html"
   } ,
 
   {
