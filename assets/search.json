@@ -19,7 +19,7 @@
 
   {
     "title"    : "基于 HTTP/3 的 WebTransport ",
-    "tags"     : "Transport Protocol",
+    "tags"     : "Protocol",
     "url"      : "/transport/WebTransport.html"
   } ,
 
@@ -73,8 +73,8 @@
 
   {
     "title"    : "RtcDataChannel(sctp) protocol optimize",
-    "tags"     : "协议",
-    "url"      : "/sctp-optimize.html"
+    "tags"     : "Protocol",
+    "url"      : "/protocol/sctp-optimize.html"
   } ,
 
   {
