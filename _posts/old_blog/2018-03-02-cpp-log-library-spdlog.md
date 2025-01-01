@@ -1,11 +1,13 @@
 ---
 layout: post
-title: c++ 开源日志库 spdlog
-date: 2018-03-02 00:04:36
+title: 'c++ 开源日志库 spdlog'
+subtitle: 
+date: 2018-01-01
 author: Mr Chen
-# cover: '/assets/img/boost_logo.webp'
-tags:
- - spdlog
+#cover: '/assets/img/shan.jpg'
+categories: notes
+tags: 
+- spdlog
 ---
 
 

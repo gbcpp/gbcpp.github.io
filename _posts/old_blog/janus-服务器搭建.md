@@ -1,11 +1,14 @@
 ---
 title: janus 服务器搭建
-categories: RTC
-abbrlink: 1195716763
 date: 2018-01-28 23:40:40
+categories: learn
 tags:
+- Janus
+- RTC
+- opensource
 ---
-－－Ubuntu 下 Janus Server 搭建笔记
+
+> Ubuntu 下 Janus Server 搭建笔记
 
 
 # 一 、简介
@@ -18,7 +21,7 @@ tags:
 
 效果图如下：
 
-![](/images/Janus服务器搭建/brower-android-test.png)
+![](/images/old_blog/Janus服务器搭建/brower-android-test.png)
 
 
 Janus 官网：https://janus.conf.meetecho.com/index.html
@@ -264,5 +267,5 @@ Janus Server 默认会开启两个视频房间：1234 和 5678，分别使用 VP
 
 效果图：
 
-![](/images/Janus服务器搭建/brower-android-test.png)
+![](/images/old_blog/Janus服务器搭建/brower-android-test.png)
 

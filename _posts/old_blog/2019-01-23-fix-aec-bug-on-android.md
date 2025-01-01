@@ -6,6 +6,7 @@ author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
+categories: notes
 tags: 
 - Audio
 - WebRTC
@@ -29,7 +30,7 @@ GitHub 地址为 ：https://github.com/zzlc/rtc-aecm-android
 go run main.go -addr="127.0.0.1:6688" -prefix="/v1/aecm/" -user="root" -password="123456"
 ~~~
 
-> 实际部署后根据实际目标名称进行启动，但启动参数不变，可通过 -h 查看帮助。
+> 实际部署后根据实际目标名称进行启动，但启动参数不变，可通过`-h`查看帮助。
 
 ## Android 端查询接口
 

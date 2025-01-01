@@ -6,6 +6,7 @@ author: Mr Chen
 cover: '/assets/img/boost_logo.webp'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
+categories: notes
 tags: 
 - BOOST
 ---

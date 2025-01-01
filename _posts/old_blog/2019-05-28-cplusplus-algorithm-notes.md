@@ -1,15 +1,15 @@
 ---
 layout: post
-title: C++算法大全
+title: C++ 常用算法
 date: 2019-05-28
 author: Mr Chen
 # cover: '/assets/assets/img/shan.jpg'
 #cover_author: 'rogov'
 #cover_author_link: 'https://unsplash.com/@rogovca'
+categories: learn
 tags: 
 - algorithm
 ---
-
 
 
 > 以内内容为互联网收集，非原创。
