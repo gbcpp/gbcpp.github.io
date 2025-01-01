@@ -5,6 +5,7 @@ description: What can i do, what shoud i do
 permalink: /index.html
 langs: ["zh-Hans", "en"]
 lang: "zh-Hans"
+cover: /assets/img/benpao2.jpg
 ---
 
 # Mr Chen
