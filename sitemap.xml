@@ -13,6 +13,10 @@
 <lastmod>2017-07-30T00:00:00+00:00</lastmod>
 </url>
 <url>
+<loc>https://gbcpp.github.io/notes/cpp-log-library-spdlog.html</loc>
+<lastmod>2018-01-01T00:00:00+00:00</lastmod>
+</url>
+<url>
 <loc>https://gbcpp.github.io/build-boost-on-window-with-virtualstudio.html</loc>
 <lastmod>2018-03-12T00:00:00+00:00</lastmod>
 </url>
@@ -93,10 +97,6 @@
 <lastmod>2024-06-11T00:00:00+00:00</lastmod>
 </url>
 <url>
-<loc>https://gbcpp.github.io/2018-03-02-cpp-log-library-spdlog.html</loc>
-<lastmod>2025-01-01T03:08:37+00:00</lastmod>
-</url>
-<url>
 <loc>https://gbcpp.github.io/archives.html</loc>
 </url>
 <url>
@@ -137,6 +137,6 @@
 </url>
 <url>
 <loc>https://gbcpp.github.io/assets/books/PlantUML_Language_Reference_Guide_zh.pdf</loc>
-<lastmod>2025-01-01T03:08:19+00:00</lastmod>
+<lastmod>2025-01-01T03:08:57+00:00</lastmod>
 </url>
 </urlset>

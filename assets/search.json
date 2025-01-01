@@ -1,11 +1,5 @@
 [
   {
-    "title"    : "",
-    "tags"     : "",
-    "url"      : "/2018-03-02-cpp-log-library-spdlog.html"
-  } ,
-
-  {
     "title"    : "C++ 程序输出当前堆栈",
     "tags"     : "C++",
     "url"      : "/print_stacktrace.html"
@@ -123,6 +117,12 @@
     "title"    : "BOOST 在 Windows 下通过 VS 进行编译",
     "tags"     : "BOOST",
     "url"      : "/build-boost-on-window-with-virtualstudio.html"
+  } ,
+
+  {
+    "title"    : "c++ 开源日志库 spdlog",
+    "tags"     : "spdlog",
+    "url"      : "/notes/cpp-log-library-spdlog.html"
   } ,
 
   {
