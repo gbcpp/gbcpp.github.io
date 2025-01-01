@@ -3,6 +3,7 @@ layout: page
 home-title: Welcome to Mr Chen's blog!
 description: Writing, writing, writing ...
 permalink: /tos.html
+cover: /assets/img/shan.png
 ---
 
 # 本站使用条款
