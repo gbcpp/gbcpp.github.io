@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRtc Windows develop patch 记录 - Mr Chen</title>
+    <title>webrtc on linux alsa audio device blocking - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="WebRtc Windows develop patch 记录">
+    <meta name="description" content="webrtc on linux alsa audio device blocking">
     <meta name="keywords"  content="RTC">
     <!-- Open Graph -->
-    <meta property="og:title" content="WebRtc Windows develop patch 记录 - Mr Chen">
+    <meta property="og:title" content="webrtc on linux alsa audio device blocking - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/rtc/WebRtc-Windows-develop-patch-%E8%AE%B0%E5%BD%95.html">
+    <meta property="og:url" content="https://gbcpp.github.io/rtc/webrtc-on-linux-alsa-audio-device-blocking.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/fix-aec-bug-on-android.html">
+    <meta property="og:previous_url" content="/rtc/webrtc-sender-bugs.html">
     
     
-    <meta property="og:next_url" content="/notes/linux-common-comands-notes.html">
+    <meta property="og:next_url" content="/notes/meidasoup-demo-build.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2018-09-12 06:13:22 +0000" />
+    <meta property="post-date" content="2019-04-16 11:56:05 +0000" />
     
     
     
@@ -155,7 +155,7 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
       data-theme="default"
     >
       <div class="post-wrapper">
@@ -166,7 +166,7 @@
             
           
         </div>
-        <h1>WebRtc Windows develop patch 记录</h1>
+        <h1>webrtc on linux alsa audio device blocking</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="18-09-12">
+          <time class="post-meta-item" datetime="19-04-16">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="18-09-12">
+          <time class="post-meta-item" datetime="19-04-16">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  712  字
+              本文总共  1.3k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 3 分钟
+              阅读全文大约需要 4 分钟
             </span>
             
               <span class="post-meta-item">
@@ -211,9 +211,6 @@
         </div>
       </div>
       
-      <div class="filter"></div>
-        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
-      
     </header>
     <div class="post-content visible">
       
@@ -224,37 +221,56 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="编译">编译</h1>
-
-<h2 id="1webrtc-源码升级-m63-m68">1、WebRtc 源码升级 m63-&gt;m68</h2>
-
-<p>升级过程中主要遇到两种编译问题：一是 webrtc 本身在同步、编译过程中有问题，另外就是在使用 <code class="language-plaintext highlighter-rouge">webrtc.lib</code> 时有报错；</p>
-<ul>
-  <li>gclient sync  一直报：下载失败，或其他失败</li>
-</ul>
+            <p>基于 webrtc 开发嵌入式 linux 实时音视频，其中音频 alsa 模块存在一个不小的 Bug，在较多的声卡上存在播放失败并阻塞的严重问题，问题如下：
+存在大概率的声卡打开失败，即 <code class="language-plaintext highlighter-rouge">snd_pcm_prepare</code> 失败的概率，在 源码中 webrtc 会尝试通过 <code class="language-plaintext highlighter-rouge">ErrorRecovery</code> 恢复声卡至正确的状态，但是执行到 <code class="language-plaintext highlighter-rouge">snd_pcm_recover</code> 输出 <code class="language-plaintext highlighter-rouge">underrun occurred</code> 错误信息后便阻塞了。</p>
 
 <!--more-->
 
+<p>原因在于 <code class="language-plaintext highlighter-rouge">snd_pcm_recover</code> 源码中会调动 <code class="language-plaintext highlighter-rouge">snd_pcm_prepare</code> 方法尝试恢复声卡状态，但是 <code class="language-plaintext highlighter-rouge">snd_pcm_prepare</code> 会首先获取 <code class="language-plaintext highlighter-rouge">snd_pcm_t</code> 中的线程锁 <code class="language-plaintext highlighter-rouge">pthread_mutex_t</code>，而 webrtc 在 <code class="language-plaintext highlighter-rouge">AudioDeviceLinuxALSA::StartPlayout()</code> 方法中是先启动播放线程，然后再调用 <code class="language-plaintext highlighter-rouge">snd_pcm_prepare</code> 准备好声卡设备，导致线程有一定概率启动速度早于父线程中对 <code class="language-plaintext highlighter-rouge">snd_pcm_prepare</code> 的调用，最终播放线程中在执行 <code class="language-plaintext highlighter-rouge">snd_pcm_avail_update</code> 失败，触发 <code class="language-plaintext highlighter-rouge">ErrorRecovery</code> 方法，内部有线程锁，导致线程死锁，整个 APP Blocking；</p>
+
+<p>修复方式比较简单，修改 <code class="language-plaintext highlighter-rouge">audio_device_alsa_linux.cc</code> 文件中的 <code class="language-plaintext highlighter-rouge">StartPlayout</code> 方法如下：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int32_t</span> <span class="n">AudioDeviceLinuxALSA</span><span class="o">::</span><span class="n">StartPlayout</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_playIsInitialized</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">_playing</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">_playing</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+  <span class="n">_playoutFramesLeft</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_playoutBuffer</span><span class="p">)</span>
+    <span class="n">_playoutBuffer</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">int8_t</span><span class="p">[</span><span class="n">_playoutBufferSizeIn10MS</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">_playoutBuffer</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">RTC_LOG</span><span class="p">(</span><span class="n">LS_ERROR</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">"failed to alloc playout buf"</span><span class="p">;</span>
+    <span class="n">_playing</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">int</span> <span class="n">errVal</span> <span class="o">=</span> <span class="n">LATE</span><span class="p">(</span><span class="n">snd_pcm_prepare</span><span class="p">)(</span><span class="n">_handlePlayout</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">errVal</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">RTC_LOG</span><span class="p">(</span><span class="n">LS_ERROR</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">"playout snd_pcm_prepare failed ("</span>
+                      <span class="o">&lt;&lt;</span> <span class="n">LATE</span><span class="p">(</span><span class="n">snd_strerror</span><span class="p">)(</span><span class="n">errVal</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">")</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+    <span class="c1">// just log error</span>
+    <span class="c1">// if snd_pcm_open fails will return -1</span>
+  <span class="p">}</span>
+  <span class="c1">// 将线程的启动放到 snd_pcm_prepare 之后再启动</span>
+  <span class="c1">// PLAYOUT</span>
+  <span class="n">_ptrThreadPlay</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">rtc</span><span class="o">::</span><span class="n">PlatformThread</span><span class="p">(</span>
+      <span class="n">PlayThreadFunc</span><span class="p">,</span> <span class="k">this</span><span class="p">,</span> <span class="s">"webrtc_audio_module_play_thread"</span><span class="p">));</span>
+  <span class="n">_ptrThreadPlay</span><span class="o">-&gt;</span><span class="n">Start</span><span class="p">();</span>
+  <span class="n">_ptrThreadPlay</span><span class="o">-&gt;</span><span class="n">SetPriority</span><span class="p">(</span><span class="n">rtc</span><span class="o">::</span><span class="n">kRealtimePriority</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
 <blockquote>
-  <p>这是因为 python 的缓冲中还留有部分旧版本的下载地址信息，导致下载失败，或者下载后版本不对应，删除当前用户目录下的 <code class="language-plaintext highlighter-rouge">.vpython_cipd_cache</code> 和 <code class="language-plaintext highlighter-rouge">.vpython-root</code>，然后再执行 <code class="language-plaintext highlighter-rouge">gclient sync </code> 即可;</p>
+  <p><strong>StartRecording 最好也调整下调用顺序。</strong></p>
 </blockquote>
-
-<ul>
-  <li>SDK 编译链接时报无 <code class="language-plaintext highlighter-rouge">builtin_audio_decoder_factory</code> 相关符号</li>
-</ul>
-
-<blockquote>
-  <p>目前出现此问题的原因未知，不过 builtin_audio_decoder_factory 符号已编译，但 audio.lib（SDK 依赖 webrtc.lib, webrtc.lib 依赖 audio.lib）确没有把 builtin_audio_decoder_factory 符号包含进去，通过修改 <code class="language-plaintext highlighter-rouge">audio/BUILD.gn</code> 脚本，在其 line：58 添加一行依赖即可：<code class="language-plaintext highlighter-rouge">../api/audio_codecs:builtin_audio_decoder_factory</code></p>
-</blockquote>
-
-<h1 id="webrtc-内部-bug">WebRtc 内部 Bug</h1>
-
-<h2 id="adm-创建失败导致-crash">Adm 创建失败，导致 crash</h2>
-
-<blockquote>
-  <p>由于 webrtc 内部会对所有设备进行一下测试，有的设备可能测试是失败（但还是可以正常采集），测试失败的话，webrtc  默认会返回 false，导致创建的 adm 为 null，而其内部却没有对这种情况做兼容，导致 crash，修复方法：在 <code class="language-plaintext highlighter-rouge">modules/audio_device/win/audio_device_core_win.cc</code> 的 line：352 添加一行：<code class="language-plaintext highlighter-rouge">ok = 0;</code> ,即忽略测试失败的情况；</p>
-</blockquote>
-
 
             <div class="post-copyright">
               <p>
@@ -270,15 +286,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 WebRtc Windows develop patch 记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/WebRtc-Windows-develop-patch-%E8%AE%B0%E5%BD%95.html" class="cplink">https://gbcpp.github.io/rtc/WebRtc-Windows-develop-patch-%E8%AE%B0%E5%BD%95.html</a></p>
+              <p><span>本文标题：</span>《 webrtc on linux alsa audio device blocking 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/webrtc-on-linux-alsa-audio-device-blocking.html" class="cplink">https://gbcpp.github.io/rtc/webrtc-on-linux-alsa-audio-device-blocking.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('编译')">编译</a><ul><li><a onclick="scrollToAdjust('1、webrtc-源码升级-m63-&gt;m68')">1、WebRtc 源码升级 m63-&gt;m68</a></li></ul></li><li><a onclick="scrollToAdjust('webrtc-内部-bug')">WebRtc 内部 Bug</a><ul><li><a onclick="scrollToAdjust('adm-创建失败，导致-crash')">Adm 创建失败，导致 crash</a></li></ul></li></ul>
+          
         </div>
       </div>
       
@@ -333,10 +349,10 @@
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/fix-aec-bug-on-android.html" class="read-next-link" aria-label="Android AEC 无效的解决方案"></a>
+          <a href="/rtc/webrtc-sender-bugs.html" class="read-next-link" aria-label="WebRTC 发送端无法获取丢包率的解决办法，以及如何获取 rtt"></a>
           <section>
-            <span>Android AEC 无效的解决方案</span>
-            <p>Android 端回声消除模块在某些机型上面需要使用 16kHz 的采样率输入，否则将会产生回声问题，为此设计此特...</p>
+            <span>WebRTC 发送端无法获取丢包率的解决办法，以及如何获取 rtt</span>
+            <p>WebRTC 自 M68 版本推出新的重载方法 GetStats 以后，使用新的接口便再也获取不到发送端的丢包率了...</p>
           </section>
           
       </div>
@@ -344,14 +360,11 @@
 
         
         <div class="read-next-item">
-          <a href="/notes/linux-common-comands-notes.html" class="read-next-link" aria-label="Linux 常用命令备忘录"></a>
+          <a href="/notes/meidasoup-demo-build.html" class="read-next-link" aria-label="mediasoup 公网环境部署"></a>
             <section>
-              <span>Linux 常用命令备忘录</span>
-              <p>  记录 Linux 常用命令</p>
+              <span>mediasoup 公网环境部署</span>
+              <p>最近以来一直基于 mediasoup 开发 rtc 相关产品，一直想基于 mediasoup 搭建自己的一套基础的...</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -366,7 +379,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2018-09-12 06:13:22 +0000',
+      id: '2019-04-16 11:56:05 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -579,7 +592,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-09-12-WebRtc Windows develop patch 记录.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2019-04-16-webrtc-on-linux-alsa-audio-device-blocking.md")
           .then((response) => {
             return response.json();
           })

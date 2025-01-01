@@ -96,6 +96,18 @@
   } ,
 
   {
+    "title"    : "WebRTC 发送端无法获取丢包率的解决办法，以及如何获取 rtt",
+    "tags"     : "RTC",
+    "url"      : "/rtc/webrtc-sender-bugs.html"
+  } ,
+
+  {
+    "title"    : "webrtc on linux alsa audio device blocking",
+    "tags"     : "RTC",
+    "url"      : "/rtc/webrtc-on-linux-alsa-audio-device-blocking.html"
+  } ,
+
+  {
     "title"    : "mediasoup 公网环境部署",
     "tags"     : "开源 WebRTC mediasoup",
     "url"      : "/notes/meidasoup-demo-build.html"
@@ -116,7 +128,13 @@
   {
     "title"    : "WebRtc Windows develop patch 记录",
     "tags"     : "RTC",
-    "url"      : "/rtc/WebRtc-Windows-develop-patch-%E8%AE%B0%E5%BD%95.html"
+    "url"      : "/rtc/WebRtc-Windows-develop-patch.html"
+  } ,
+
+  {
+    "title"    : "WebRTC 源码阅读之 rtc::Thread",
+    "tags"     : "RTC",
+    "url"      : "/rtc/WebRtc-rtc-Thread.html"
   } ,
 
   {

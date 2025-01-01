@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC 源码阅读之 rtc::Thread - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="WebRTC 源码阅读之 rtc::Thread">
+    <meta name="keywords"  content="RTC">
+    <!-- Open Graph -->
+    <meta property="og:title" content="WebRTC 源码阅读之 rtc::Thread - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/rtc/WebRtc-rtc-Thread.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/rtc/WebRtc-Windows-develop-patch.html">
+    
+    
+    <meta property="og:next_url" content="/notes/linux-common-comands-notes.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2018-03-30 06:13:22 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#RTC" class="post-tag">RTC</a>
+            
+          
+        </div>
+        <h1>WebRTC 源码阅读之 rtc::Thread</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="18-03-30">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="18-03-30">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  6.2k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 18 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <blockquote>
+  <p><code class="language-plaintext highlighter-rouge">rtc::Thread</code> 为 WebRTC内部实现的线程类，在 WebRTC中有广泛的应用，WebRTC内部 network thread、 worker thread、signal thread 等均要求为此线程类实例；</p>
+
+  <p>为了线程安全，在某些功能模块的使用上，有要求其必需在指定的线程中才能调用的基本要求，比如音频模块：ADM 的创建必须要在 WebRTC 的 worker thread 中进行。</p>
+</blockquote>
+
+<!--more-->
+
+<h2 id="接口介绍">接口介绍</h2>
+
+<p><code class="language-plaintext highlighter-rouge">rtc::Thread</code> 继承自消息队列<code class="language-plaintext highlighter-rouge">rtc::MessageQueue</code> ，内部提供了丰富的创建、管理接口，其借助于 <code class="language-plaintext highlighter-rouge">线程局部存储/线程局部静态变量</code> 实现线程的安全调用，以及是否是当前线程的有效判断。
+<img src="/images/old_blog/%E7%BA%BF%E7%A8%8B.png" alt="rtc::Thread UML 类图"></p>
+
+<h2 id="rtc_disallow_copy_and_assign">RTC_DISALLOW_COPY_AND_ASSIGN</h2>
+
+<p><code class="language-plaintext highlighter-rouge">RTC_DISALLOW_COPY_AND_ASSIGN</code> 和 <code class="language-plaintext highlighter-rouge">RTC_DISALLOW_ASSIGN</code> 配合使用，通过禁用类的拷贝构造函数 和 <code class="language-plaintext highlighter-rouge">=</code> 操作符，提高代码的安全性。</p>
+
+<h2 id="rtcthread-成员">rtc::Thread 成员</h2>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 继承自此类的子类，必须在其析构中主动调用 Stop 方法</span>
+<span class="k">class</span> <span class="nc">RTC_LOCKABLE</span> <span class="n">Thread</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MessageQueue</span> <span class="p">{</span>
+ <span class="nl">public:</span>
+  <span class="c1">// 已弃用的默认构造函数，不要使用，应该使用下面的静态方法进行创建类实例</span>
+  <span class="c1">// 建议在开发过程中使用 CreateWithSocketServer 创建</span>
+  <span class="n">Thread</span><span class="p">();</span>
+
+  <span class="k">explicit</span> <span class="n">Thread</span><span class="p">(</span><span class="n">SocketServer</span><span class="o">*</span> <span class="n">ss</span><span class="p">);</span>
+  <span class="k">explicit</span> <span class="n">Thread</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">SocketServer</span><span class="o">&gt;</span> <span class="n">ss</span><span class="p">);</span>
+
+  <span class="c1">// 所有的子类均必须保证在其析构函数中或者之前明确调用 Stop() 方法</span>
+  <span class="c1">// 这样做是为了避免 Thread::PreRun 调用 Run() 方法时，析构函数对虚函数表的修改</span>
+  <span class="o">~</span><span class="n">Thread</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+
+  <span class="c1">// rtc::Thread 提供的创建类实例的静态方法</span>
+  <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Thread</span><span class="o">&gt;</span> <span class="n">CreateWithSocketServer</span><span class="p">();</span>
+  <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Thread</span><span class="o">&gt;</span> <span class="n">Create</span><span class="p">();</span>
+  
+  <span class="c1">// 返回当前线程的实例指针</span>
+  <span class="k">static</span> <span class="n">Thread</span><span class="o">*</span> <span class="n">Current</span><span class="p">();</span>
+
+  <span class="c1">// 单实例类，在 Thread 内部作为一个友元类，辅助 Thread 用于避免在指定的作用域中同步调用 Invoke 方法</span>
+  <span class="c1">// 如果发生了同步方法的调用，则会触发一个断言</span>
+  <span class="k">class</span> <span class="nc">ScopedDisallowBlockingCalls</span> <span class="p">{</span>
+   <span class="nl">public:</span>
+    <span class="n">ScopedDisallowBlockingCalls</span><span class="p">();</span>
+    <span class="o">~</span><span class="n">ScopedDisallowBlockingCalls</span><span class="p">();</span>
+   <span class="nl">private:</span>
+    <span class="n">Thread</span><span class="o">*</span> <span class="k">const</span> <span class="n">thread_</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">bool</span> <span class="n">previous_state_</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c1">// 判断调用者所在线程是否处于本线程实例中</span>
+  <span class="kt">bool</span> <span class="n">IsCurrent</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+
+  <span class="c1">// 将线程睡眠指定的毫秒数，默认返回 true，除非被 POSIX 发送的信号终止，它才会返回 false</span>
+  <span class="k">static</span> <span class="kt">bool</span> <span class="nf">SleepMs</span><span class="p">(</span><span class="kt">int</span> <span class="n">millis</span><span class="p">);</span>
+
+  <span class="c1">// 设置线程名字，它必须在 调用 Start() 之前调用，这个方法是为了方便调试时查看</span>
+  <span class="c1">// 如果 @param obj 为空，它将追加到 @param name 后面</span>
+  <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">name</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">name_</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">bool</span> <span class="nf">SetName</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&amp;</span> <span class="n">name</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span><span class="o">*</span> <span class="n">obj</span><span class="p">);</span>
+
+  <span class="c1">// 开始执行此线程，如果 runnable 不为空，则运行其内部的 thread，否则启动本线程</span>
+  <span class="c1">// 一般传入 nullptr，即表示启动线程实例本身</span>
+  <span class="kt">bool</span> <span class="nf">Start</span><span class="p">(</span><span class="n">Runnable</span><span class="o">*</span> <span class="n">runnable</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">);</span>
+
+  <span class="c1">// 通知线程结束，并阻塞等待；如果调用继承的 Quit 方法，则只会结束消息队列循环，而不会结束线程</span>
+  <span class="c1">// 注意：一定不要在线程内部调用此方法    </span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="nf">Stop</span><span class="p">();</span>
+
+  <span class="c1">// 默认情况下，将调用 ProcessMessages(kForever),如果要做其它工作，则需要重写 Run()</span>
+  <span class="c1">// 如果需要接受或者处理消息，则需要自己主动调用 ProcessMessages 方法</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="nf">Run</span><span class="p">();</span>
+
+  <span class="c1">// 向消息队列发消息，并阻塞等待其执行完毕</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="nf">Send</span><span class="p">(</span><span class="k">const</span> <span class="n">Location</span><span class="o">&amp;</span> <span class="n">posted_from</span><span class="p">,</span>
+                    <span class="n">MessageHandler</span><span class="o">*</span> <span class="n">phandler</span><span class="p">,</span>
+                    <span class="kt">uint32_t</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="n">MessageData</span><span class="o">*</span> <span class="n">pdata</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">);</span>
+
+  <span class="c1">// 在其它线程保证某方法被此线程调用，相当于消息的异步通知，即 POST</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">class</span> <span class="nc">ReturnT</span><span class="p">,</span> <span class="k">class</span> <span class="nc">FunctorT</span><span class="p">&gt;</span>
+  <span class="n">ReturnT</span> <span class="nf">Invoke</span><span class="p">(</span><span class="k">const</span> <span class="n">Location</span><span class="o">&amp;</span> <span class="n">posted_from</span><span class="p">,</span> <span class="k">const</span> <span class="n">FunctorT</span><span class="o">&amp;</span> <span class="n">functor</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">FunctorMessageHandler</span><span class="o">&lt;</span><span class="n">ReturnT</span><span class="p">,</span> <span class="n">FunctorT</span><span class="o">&gt;</span> <span class="n">handler</span><span class="p">(</span><span class="n">functor</span><span class="p">);</span>
+    <span class="n">InvokeInternal</span><span class="p">(</span><span class="n">posted_from</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">handler</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">handler</span><span class="p">.</span><span class="n">MoveResult</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="c1">// 继承与 MessageQueue</span>
+  <span class="kt">void</span> <span class="n">Clear</span><span class="p">(</span><span class="n">MessageHandler</span><span class="o">*</span> <span class="n">phandler</span><span class="p">,</span>
+             <span class="kt">uint32_t</span> <span class="n">id</span> <span class="o">=</span> <span class="n">MQID_ANY</span><span class="p">,</span>
+             <span class="n">MessageList</span><span class="o">*</span> <span class="n">removed</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="n">ReceiveSends</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+
+  <span class="c1">// ProcessMessages will process I/O and dispatch messages until:</span>
+  <span class="c1">//  1) cms milliseconds have elapsed (returns true)</span>
+  <span class="c1">//  2) Stop() is called (returns false)</span>
+  <span class="kt">bool</span> <span class="nf">ProcessMessages</span><span class="p">(</span><span class="kt">int</span> <span class="n">cms</span><span class="p">);</span>
+
+  <span class="c1">// 判断此线程是否是我们自己通过标准的构造函数进行创建的，如果是就返回 true</span>
+  <span class="c1">// 如果是通过 ThreadManager::WrapCurrentThread() 创建的则返回 false</span>
+  <span class="c1">// 不能对 IsOwned 返回 false 线程对象调用 Start</span>
+  <span class="kt">bool</span> <span class="nf">IsOwned</span><span class="p">();</span>
+
+  <span class="c1">// 获取平台相关的线程句柄和 Id</span>
+<span class="cp">#if defined(WEBRTC_WIN)
+</span>  <span class="n">HANDLE</span> <span class="n">GetHandle</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">thread_</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">DWORD</span> <span class="n">GetId</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">thread_id_</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="cp">#elif defined(WEBRTC_POSIX)
+</span>  <span class="n">pthread_t</span> <span class="nf">GetPThread</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">thread_</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="cp">#endif
+</span>
+  <span class="c1">// Expose private method running() for tests.</span>
+  <span class="c1">//</span>
+  <span class="c1">// DANGER: this is a terrible public API.  Most callers that might want to</span>
+  <span class="c1">// call this likely do not have enough control/knowledge of the Thread in</span>
+  <span class="c1">// question to guarantee that the returned value remains true for the duration</span>
+  <span class="c1">// of whatever code is conditionally executing because of the return value!</span>
+  <span class="kt">bool</span> <span class="nf">RunningForTest</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">running</span><span class="p">();</span> <span class="p">}</span>
+
+  <span class="c1">// Sets the per-thread allow-blocking-calls flag and returns the previous</span>
+  <span class="c1">// value. Must be called on this thread.</span>
+  <span class="kt">bool</span> <span class="nf">SetAllowBlockingCalls</span><span class="p">(</span><span class="kt">bool</span> <span class="n">allow</span><span class="p">);</span>
+
+  <span class="c1">// These functions are public to avoid injecting test hooks. Don't call them</span>
+  <span class="c1">// outside of tests.</span>
+  <span class="c1">// This method should be called when thread is created using non standard</span>
+  <span class="c1">// method, like derived implementation of rtc::Thread and it can not be</span>
+  <span class="c1">// started by calling Start(). This will set started flag to true and</span>
+  <span class="c1">// owned to false. This must be called from the current thread.</span>
+  <span class="kt">bool</span> <span class="nf">WrapCurrent</span><span class="p">();</span>
+  <span class="kt">void</span> <span class="nf">UnwrapCurrent</span><span class="p">();</span>
+
+ <span class="k">protected</span><span class="o">:</span>
+  <span class="c1">// Same as WrapCurrent except that it never fails as it does not try to</span>
+  <span class="c1">// acquire the synchronization access of the thread. The caller should never</span>
+  <span class="c1">// call Stop() or Join() on this thread.</span>
+  <span class="kt">void</span> <span class="nf">SafeWrapCurrent</span><span class="p">();</span>
+
+  <span class="c1">// Blocks the calling thread until this thread has terminated.</span>
+  <span class="kt">void</span> <span class="nf">Join</span><span class="p">();</span>
+
+  <span class="k">static</span> <span class="kt">void</span> <span class="nf">AssertBlockingIsAllowedOnCurrentThread</span><span class="p">();</span>
+
+  <span class="k">friend</span> <span class="k">class</span> <span class="nc">ScopedDisallowBlockingCalls</span><span class="p">;</span>
+
+ <span class="k">private</span><span class="o">:</span>
+  <span class="k">struct</span> <span class="nc">ThreadInit</span> <span class="p">{</span>
+    <span class="n">Thread</span><span class="o">*</span> <span class="kr">thread</span><span class="p">;</span>
+    <span class="n">Runnable</span><span class="o">*</span> <span class="n">runnable</span><span class="p">;</span>
+  <span class="p">};</span>
+
+<span class="cp">#if defined(WEBRTC_WIN)
+</span>  <span class="k">static</span> <span class="n">DWORD</span> <span class="n">WINAPI</span> <span class="nf">PreRun</span><span class="p">(</span><span class="n">LPVOID</span> <span class="n">context</span><span class="p">);</span>
+<span class="cp">#else
+</span>  <span class="k">static</span> <span class="kt">void</span> <span class="o">*</span><span class="nf">PreRun</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">pv</span><span class="p">);</span>
+<span class="cp">#endif
+</span>
+  <span class="c1">// ThreadManager calls this instead WrapCurrent() because</span>
+  <span class="c1">// ThreadManager::Instance() cannot be used while ThreadManager is</span>
+  <span class="c1">// being created.</span>
+  <span class="c1">// The method tries to get synchronization rights of the thread on Windows if</span>
+  <span class="c1">// |need_synchronize_access| is true.</span>
+  <span class="kt">bool</span> <span class="nf">WrapCurrentWithThreadManager</span><span class="p">(</span><span class="n">ThreadManager</span><span class="o">*</span> <span class="n">thread_manager</span><span class="p">,</span>
+                                    <span class="kt">bool</span> <span class="n">need_synchronize_access</span><span class="p">);</span>
+
+  <span class="c1">// Return true if the thread was started and hasn't yet stopped.</span>
+  <span class="kt">bool</span> <span class="nf">running</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">running_</span><span class="p">.</span><span class="n">Wait</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="p">}</span>
+
+  <span class="c1">// Processes received "Send" requests. If |source| is not null, only requests</span>
+  <span class="c1">// from |source| are processed, otherwise, all requests are processed.</span>
+  <span class="kt">void</span> <span class="nf">ReceiveSendsFromThread</span><span class="p">(</span><span class="k">const</span> <span class="n">Thread</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+
+  <span class="c1">// If |source| is not null, pops the first "Send" message from |source| in</span>
+  <span class="c1">// |sendlist_|, otherwise, pops the first "Send" message of |sendlist_|.</span>
+  <span class="c1">// The caller must lock |crit_| before calling.</span>
+  <span class="c1">// Returns true if there is such a message.</span>
+  <span class="kt">bool</span> <span class="nf">PopSendMessageFromThread</span><span class="p">(</span><span class="k">const</span> <span class="n">Thread</span><span class="o">*</span> <span class="n">source</span><span class="p">,</span> <span class="n">_SendMessage</span><span class="o">*</span> <span class="n">msg</span><span class="p">);</span>
+
+  <span class="kt">void</span> <span class="nf">InvokeInternal</span><span class="p">(</span><span class="k">const</span> <span class="n">Location</span><span class="o">&amp;</span> <span class="n">posted_from</span><span class="p">,</span> <span class="n">MessageHandler</span><span class="o">*</span> <span class="n">handler</span><span class="p">);</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="n">_SendMessage</span><span class="o">&gt;</span> <span class="n">sendlist_</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">name_</span><span class="p">;</span>
+  <span class="n">Event</span> <span class="n">running_</span><span class="p">;</span>  <span class="c1">// Signalled means running.</span>
+
+<span class="cp">#if defined(WEBRTC_POSIX)
+</span>  <span class="n">pthread_t</span> <span class="n">thread_</span><span class="p">;</span>
+<span class="cp">#endif
+</span>
+<span class="cp">#if defined(WEBRTC_WIN)
+</span>  <span class="n">HANDLE</span> <span class="n">thread_</span><span class="p">;</span>
+  <span class="n">DWORD</span> <span class="n">thread_id_</span><span class="p">;</span>
+<span class="cp">#endif
+</span>
+  <span class="kt">bool</span> <span class="n">owned_</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">blocking_calls_allowed_</span><span class="p">;</span>  <span class="c1">// By default set to |true|.</span>
+
+  <span class="k">friend</span> <span class="k">class</span> <span class="nc">ThreadManager</span><span class="p">;</span>
+
+  <span class="n">RTC_DISALLOW_COPY_AND_ASSIGN</span><span class="p">(</span><span class="n">Thread</span><span class="p">);</span>  <span class="c1">// 禁用拷贝构造和操作运算符 =</span>
+<span class="p">};</span>
+</code></pre></div></div>
+<h2 id="应用示例">应用示例</h2>
+
+<ul>
+  <li>创建实例</li>
+</ul>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">rtc</span><span class="o">::</span><span class="n">Thread</span><span class="o">&gt;</span> <span class="n">_worker_thread_ptr</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">rtc</span><span class="o">::</span><span class="n">Thread</span><span class="o">::</span><span class="n">CreateWithSocketServer</span><span class="p">()));</span>
+<span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">rtc</span><span class="o">::</span><span class="n">Thread</span><span class="o">&gt;</span> <span class="n">_signal_thread_ptr</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">rtc</span><span class="o">::</span><span class="n">Thread</span><span class="o">::</span><span class="n">CreateWithSocketServer</span><span class="p">()));</span>
+<span class="n">_worker_thread_ptr</span><span class="o">-&gt;</span><span class="n">Start</span><span class="p">();</span>
+<span class="n">_signal_thread_ptr</span><span class="o">-&gt;</span><span class="n">Start</span><span class="p">();</span>
+<span class="p">......</span>
+<span class="n">_worker_thread_ptr</span><span class="o">-&gt;</span><span class="n">Stop</span><span class="p">();</span>
+<span class="n">_signal_thread_ptr</span><span class="o">-&gt;</span><span class="n">Stop</span><span class="p">();</span>
+</code></pre></div></div>
+
+<ul>
+  <li>创建音频模块 ADM</li>
+</ul>
+
+<pre><code class="language-C++">rtc::scoped_refptr&lt;webrtc::AudioDeviceModule&gt; _adm_ptr =
+    _worker_thread_ptr-&gt;Invoke&lt;rtc::scoped_refptr&lt;webrtc::AudioDeviceModule&gt;&gt;(RTC_FROM_HERE, [] {
+        //create adm
+        return webrtc::AudioDeviceModule::Create(0,
+            webrtc::AudioDeviceModule::AudioLayer::kWindowsCoreAudio);
+ 	});
+</code></pre>
+
+<ul>
+  <li>创建 PC 工厂类</li>
+</ul>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rtc</span><span class="o">::</span><span class="n">scoped_refptr</span><span class="o">&lt;</span><span class="n">webrtc</span><span class="o">::</span><span class="n">PeerConnectionFactoryInterface</span><span class="o">&gt;</span> <span class="n">_peerconn_factory_ptr</span> <span class="o">=</span> 		<span class="n">webrtc</span><span class="o">::</span><span class="n">CreatePeerConnectionFactory</span><span class="p">(</span>
+        <span class="n">_worker_thread_ptr</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">_worker_thread_ptr</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">_signal_thread_ptr</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">_adm_ptr</span><span class="p">,</span> <span class="nb">nullptr</span><span class="p">,</span> <span class="nb">nullptr</span><span class="p">);</span>
+</code></pre></div></div>
+
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 WebRTC 源码阅读之 rtc::Thread 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/rtc/WebRtc-rtc-Thread.html" class="cplink">https://gbcpp.github.io/rtc/WebRtc-rtc-Thread.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('接口介绍')">接口介绍</a></li><li><a onclick="scrollToAdjust('rtc_disallow_copy_and_assign')">RTC_DISALLOW_COPY_AND_ASSIGN</a></li><li><a onclick="scrollToAdjust('rtc::thread-成员')">rtc::Thread 成员</a></li><li><a onclick="scrollToAdjust('应用示例')">应用示例</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/rtc/WebRtc-Windows-develop-patch.html" class="read-next-link" aria-label="WebRtc Windows develop patch 记录"></a>
+          <section>
+            <span>WebRtc Windows develop patch 记录</span>
+            <p>编译</p>
+          </section>
+          
+          <div class="filter"></div>
+          <img src="/assets/img/shan.jpg" alt="">
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/notes/linux-common-comands-notes.html" class="read-next-link" aria-label="Linux 常用命令备忘录"></a>
+            <section>
+              <span>Linux 常用命令备忘录</span>
+              <p>  记录 Linux 常用命令</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2018-03-30 06:13:22 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2025
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-03-30-WebRtc-rtc-Thread.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
