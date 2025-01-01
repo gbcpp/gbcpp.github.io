@@ -8,13 +8,13 @@
   {
     "title"    : "温故而知新之-C++",
     "tags"     : "C++",
-    "url"      : "/learning-cpp-notes.html"
+    "url"      : "/notes/learning-cpp-notes.html"
   } ,
 
   {
     "title"    : "面向学习的三种人",
     "tags"     : "Life",
-    "url"      : "/learning-oriented.html"
+    "url"      : "/notes/learning-oriented.html"
   } ,
 
   {
@@ -38,7 +38,7 @@
   {
     "title"    : "float 和 int 在 Linux 下的计算性能对比",
     "tags"     : "Linux float",
-    "url"      : "/float-performance.html"
+    "url"      : "/notes/float-performance.html"
   } ,
 
   {
@@ -50,19 +50,19 @@
   {
     "title"    : "获取不同 Clock Id 在不同 Linux Kernel 下的精度",
     "tags"     : "Linux C++",
-    "url"      : "/measure-clock-resolution.html"
+    "url"      : "/notes/measure-clock-resolution.html"
   } ,
 
   {
     "title"    : "PlantUML-Language Pdf",
     "tags"     : "GitPages blog",
-    "url"      : "/PlantUML-Language-book.html"
+    "url"      : "/notes/PlantUML-Language-book.html"
   } ,
 
   {
     "title"    : "GitHub Pages 博客搭建记录",
     "tags"     : "GitPages blog",
-    "url"      : "/blog-building-notes.html"
+    "url"      : "/notes/blog-building-notes.html"
   } ,
 
   {
@@ -206,6 +206,6 @@
   {
     "title"    : "Hello Jekyll",
     "tags"     : "jekyll",
-    "url"      : "/hello-jekyll.html"
+    "url"      : "/notes/hello-jekyll.html"
   } 
 ]

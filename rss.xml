@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 01 Jan 2025 09:40:52 +0000</pubDate>
-    <lastBuildDate>Wed, 01 Jan 2025 09:40:52 +0000</lastBuildDate>
+    <pubDate>Wed, 01 Jan 2025 09:44:36 +0000</pubDate>
+    <lastBuildDate>Wed, 01 Jan 2025 09:44:36 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -154,11 +154,13 @@
 &lt;p&gt;总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。&lt;/p&gt;
 </description>
         <pubDate>Fri, 12 Apr 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/learning-cpp-notes.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/learning-cpp-notes.html</guid>
+        <link>https://gbcpp.github.io/notes/learning-cpp-notes.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/learning-cpp-notes.html</guid>
         
         <category>C++</category>
         
+        
+        <category>Notes</category>
         
       </item>
     
@@ -185,11 +187,13 @@
 
 </description>
         <pubDate>Tue, 02 Apr 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/learning-oriented.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/learning-oriented.html</guid>
+        <link>https://gbcpp.github.io/notes/learning-oriented.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/learning-oriented.html</guid>
         
         <category>Life</category>
         
+        
+        <category>Notes</category>
         
       </item>
     
@@ -588,13 +592,15 @@ Float / Int radio: 62
 &lt;p&gt;以上仅供参考！！&lt;/p&gt;
 </description>
         <pubDate>Mon, 30 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/float-performance.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/float-performance.html</guid>
+        <link>https://gbcpp.github.io/notes/float-performance.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/float-performance.html</guid>
         
         <category>Linux</category>
         
         <category>float</category>
         
+        
+        <category>Notes</category>
         
       </item>
     
@@ -697,13 +703,15 @@ Float / Int radio: 62
         <description>
 </description>
         <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/measure-clock-resolution.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/measure-clock-resolution.html</guid>
+        <link>https://gbcpp.github.io/notes/measure-clock-resolution.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/measure-clock-resolution.html</guid>
         
         <category>Linux</category>
         
         <category>C++</category>
         
+        
+        <category>Notes</category>
         
       </item>
     
@@ -715,13 +723,15 @@ Float / Int radio: 62
 
 </description>
         <pubDate>Sat, 07 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/PlantUML-Language-book.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/PlantUML-Language-book.html</guid>
+        <link>https://gbcpp.github.io/notes/PlantUML-Language-book.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/PlantUML-Language-book.html</guid>
         
         <category>GitPages</category>
         
         <category>blog</category>
         
+        
+        <category>Notes</category>
         
       </item>
     

@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages 博客搭建记录 - Mr Chen</title>
+    <title>温故而知新之-C++ - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="GitHub Pages 博客搭建记录">
-    <meta name="keywords"  content="GitPages, blog">
+    <meta name="description" content="温故而知新之-C++">
+    <meta name="keywords"  content="C++">
     <!-- Open Graph -->
-    <meta property="og:title" content="GitHub Pages 博客搭建记录 - Mr Chen">
+    <meta property="og:title" content="温故而知新之-C++ - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/blog-building-notes.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/learning-cpp-notes.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/PlantUML-Language-book.html">
+    <meta property="og:previous_url" content="/print_stacktrace.html">
     
     
-    <meta property="og:next_url" content="/service-bind-cpu.html">
+    <meta property="og:next_url" content="/notes/learning-oriented.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2023-10-07 00:00:00 +0000" />
+    <meta property="post-date" content="2024-04-12 00:00:00 +0000" />
     
     
     
@@ -162,13 +162,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#GitPages" class="post-tag">GitPages</a>
-            
-              <a href="/tags.html#blog" class="post-tag">blog</a>
+              <a href="/tags.html#C++" class="post-tag">C++</a>
             
           
         </div>
-        <h1>GitHub Pages 博客搭建记录</h1>
+        <h1>温故而知新之-C++</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -176,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="23-10-07">
+          <time class="post-meta-item" datetime="24-04-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="23-10-07">
+          <time class="post-meta-item" datetime="24-04-12">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -193,13 +191,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  3.5k  字
+              本文总共  1.2k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 10 分钟
+              阅读全文大约需要 4 分钟
             </span>
             
               <span class="post-meta-item">
@@ -214,12 +212,12 @@
       </div>
       
       <div class="filter"></div>
-        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+        <div class="post-cover" style="background: url('/assets/img/benpao2.jpg') center no-repeat; background-size: cover;"></div>
       
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">重启 GitHub Pages 博客建设</h2>
+      <h2 class="post-subtitle">C++ 查漏补缺</h2>
       
 
       
@@ -228,117 +226,52 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="渊源">渊源</h1>
+            <h2 id="指针的退化及如何避免">指针的退化及如何避免</h2>
 
-<p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
+<p>在C++中，”指针退化”是指当数组作为函数参数传递时，它会”退化”为指向第一个元素的指针。这是因为在C++中，数组并不知道它们自己的大小，所以当你把一个数组作为参数传递给一个函数时，函数并不知道这个数组的大小，只知道它的起始地址。</p>
 
-<h1 id="博客构建框架">博客构建框架</h1>
+<p>例如，假设你有一个函数<code class="language-plaintext highlighter-rouge">void foo(int arr[])</code>，当你传递一个数组给这个函数时，例如<code class="language-plaintext highlighter-rouge">int arr[10]; foo(arr);</code>，函数<code class="language-plaintext highlighter-rouge">foo</code>实际上看到的是一个指向<code class="language-plaintext highlighter-rouge">arr</code>的第一个元素的指针，而不是整个数组。</p>
 
-<p>  搭建个人博客，大部分人都是通过 GitHub 的 Pages 进行白嫖，但是已有的主题都不是非常完美，对于一个从事非前端开发的人来说，优化调整博客主题到自己满意的程度是非常难的，长时间搞不到自己满意的程度，结局大概率都是废弃。
-在看到这篇基于<a href="https://blog.lui8.cn/tech/new-theme-h2o-ac.html" rel="nofollow" target="_blank" class="extlinks">H2O-ac 主题</a> 搭建的的博客后，我决定就是它了，瞬间重拾搭建个人博客的兴趣。</p>
+<p>要防止指针退化，有几种方法：</p>
 
-<p>  早些时候，我使用的 GitHub blog 是通过 <code class="language-plaintext highlighter-rouge">Hexo</code> 构建的，<code class="language-plaintext highlighter-rouge">Hexo</code> 是基于 <code class="language-plaintext highlighter-rouge">Node.js</code> 驱动的，而上述博客是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 构建，该框架基于 <code class="language-plaintext highlighter-rouge">Ruby</code> 驱动，它们都是开源的，通过 GitHub 的 star 和 fork 数量，可以看到 <code class="language-plaintext highlighter-rouge">Jekyll</code> 的热度要高于 <code class="language-plaintext highlighter-rouge">Hexo</code>，但是不知道当时自己怎么没有注意到这一点，可能是因为当时是摸着别人过的河，没有了自己的思考。</p>
+<ol>
+  <li>
+    <p>使用标准库容器，如<code class="language-plaintext highlighter-rouge">std::vector</code>或<code class="language-plaintext highlighter-rouge">std::array</code>。这些容器知道它们自己的大小，因此不会发生指针退化。例如： <code class="language-plaintext highlighter-rouge">void foo(std::vector&lt;int&gt;&amp; arr)</code>。</p>
+  </li>
+  <li>
+    <p>使用模板函数，使函数可以接受数组的引用，并且能够保留数组的大小信息。例如： <code class="language-plaintext highlighter-rouge">template&lt;size_t N&gt; void foo(int (&amp;arr)[N])</code>。</p>
+  </li>
+  <li>
+    <p>传递数组的大小作为另一个参数。例如： <code class="language-plaintext highlighter-rouge">void foo(int* arr, size_t size)</code>。这样，即使数组退化为指针，函数仍然可以知道数组的大小。</p>
+  </li>
+</ol>
 
-<p>  由于该主题是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 框架构建的，所以我们就此切换到 <code class="language-plaintext highlighter-rouge">Jekyll</code>，主题就用 <code class="language-plaintext highlighter-rouge">H2O-ac</code>。</p>
+<h2 id="引用与指针的区别">引用与指针的区别</h2>
 
-<h1 id="初始化">初始化</h1>
+<p>在C++中，指针和引用都可以用于间接引用其他对象。然而，它们在语法和行为上有一些关键的不同：</p>
 
-<p>  首先创建一个自己的专门用户博客的 public 仓库，这里建议直接从 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 主题作者的 repo <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" rel="nofollow" target="_blank" class="extlinks">jekyll-theme-H2O-ac</a> 中 fork，在命名新的 repo 时，一定要命名自己的 GitHub <code class="language-plaintext highlighter-rouge">name</code> + ‘.github.io’，比如我自己的：gbcpp.github.io，其中 <code class="language-plaintext highlighter-rouge">gbcpp</code> 便是我的 GitHub name，这样做也是官方建议的，同时 Fork 过去的 repo 才可以直接 Publish，而不用做其它任何链接失效之类的修复，而我因为当初好几年没有再折腾过 GitHub 的博客，早已经忘记了这一点，起了个非此模板的名字：<code class="language-plaintext highlighter-rouge">blog</code>、 <code class="language-plaintext highlighter-rouge">webindex</code> 等，部署上的博客有好几处都是无效的链接，需要自行查找并修改，同时博客的 Url 中也要增加子路径。</p>
+<ol>
+  <li>
+    <p>初始化：引用在创建时需要初始化，并且一旦初始化后就不能改变引用的目标，也就是说它始终引用最初赋给它的对象。而指针可以在任何时间指向任何对象或者NULL。</p>
+  </li>
+  <li>
+    <p>空值：指针可以为NULL，表示它不指向任何对象。而引用必须始终引用一个有效的对象，不能有NULL引用。</p>
+  </li>
+  <li>
+    <p>间接访问：使用指针时，需要使用解引用运算符(*)来访问它指向的对象，而引用则可以像普通变量那样直接使用。</p>
+  </li>
+  <li>
+    <p>支持的操作：指针支持更多的操作，例如指针算术（即增加或减少指针的值，以指向内存中的不同位置）。引用则不能进行这种操作。</p>
+  </li>
+  <li>
+    <p>内存占用：引用实际上并不占用任何内存，它只是一个别名。而指针是一个实际的变量，它占用内存空间并存储一个地址值。</p>
+    <blockquote>
+      <p>但引用在程序中并不是不占用任何字节，引用本质上就是一个常量指针（constant pointer）。它在内存中占据的空间和指针一样，通常是 4 字节（在 32 位系统）或 8 字节（在 64 位系统）。然而，引用本身并不存储任何值，它只是一个别名，代表它引用的对象。在某些优化的情况下，如果引用没有被用作一个对象的别名（也就是说，它被直接用于访问该对象），编译器可能会优化掉引用，使其不占用任何内存空间。但是，这种优化并不是在所有情况下都会发生。所以，说引用不占用内存空间并不完全准确，实际情况取决于编译器的优化和引用的使用方式。</p>
+    </blockquote>
+  </li>
+</ol>
 
-<p>Fork 后，在该 repo 的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，找到 <code class="language-plaintext highlighter-rouge">Pages</code>，在 <code class="language-plaintext highlighter-rouge">Build and deployment</code> 中选择 <code class="language-plaintext highlighter-rouge">master</code> 分支进行发布，目录就选择 <code class="language-plaintext highlighter-rouge">/(root)</code>, Save 后等待约 3 分钟，即可通过 <code class="language-plaintext highlighter-rouge">xxx.github.io</code> 进行访问。</p>
-
-<p><img src="/assets/img/github_settings.png" alt=""></p>
-
-<h1 id="个人信息调整">个人信息调整</h1>
-
-<p>虽然经过上述的简单操作，已经能够访问到自己新搭建的博客，但是还有一些个人信息需要调整，在 <code class="language-plaintext highlighter-rouge">.github/workflow</code> 中，每次提交，均会触发 GitHub Actions Workflow，重新执行 Jekyll build &amp; deploy CI 操作，所以我们要为自己的 repo 增加一个 <code class="language-plaintext highlighter-rouge">GITHUB_TOKEN</code>，否则每次 CI 均会报错。如下图所示：</p>
-
-<p><img src="/assets/img/github_token.png" alt="GitHub Token"></p>
-
-<p>GitHub 的 CI 每次构建完成后会将生成的 <code class="language-plaintext highlighter-rouge">_site</code> 目录 Push 到 <a href="https://jupyterbook.org/en/stable/publish/gh-pages.html" rel="nofollow" target="_blank" class="extlinks"><code class="language-plaintext highlighter-rouge">gh-pages</code></a> 分支。</p>
-
-<p>在该作者的 repo 中，添加的 GitHub workflow 不止 <code class="language-plaintext highlighter-rouge">GitHub</code> 一个，还有亚马逊等其它家，用于网站加速，不过，我个人并没有使用这种多个 workflow 的方式，我删除了除了 ‘jekyll.yml’ 以外所有的 workflow，网站加速请继续往下看。</p>
-
-<h1 id="部署-cdn">部署 CDN</h1>
-
-<p>博客初步建立后，直接访问是非常慢的，没有任何的 CDN 托管加速，而 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 的作者开通了多家国内外 CDN 厂家的托管，访问速度要比直接 xxx.github.io 快很多。</p>
-
-<p>这里我选择了提供全球节点的 <code class="language-plaintext highlighter-rouge">Cloudflare</code> <a href="https://dash.cloudflare.com/" rel="nofollow" target="_blank" class="extlinks">官网</a> 进行托管，主要是因为它对于个人站点是完全免费的，并且操作简单，易上手。</p>
-
-<h2 id="cloudflare-新建-pages">Cloudflare 新建 Pages</h2>
-
-<p>注册并登陆 Cloudflare，进入到个人 <code class="language-plaintext highlighter-rouge">账户主页</code>，进入 <code class="language-plaintext highlighter-rouge">Worker 和 Pages</code>，选择 <code class="language-plaintext highlighter-rouge">Pages</code> 选项，<strong>注意</strong>我们这里选择 <code class="language-plaintext highlighter-rouge">连接到 Git</code>，选择自己的仓库和分支，自动部署即可，如下图：</p>
-
-<p><a href="/assets/img/Cloudflare_GitPages.png"></a></p>
-
-<p>由于我们仅使用了 <code class="language-plaintext highlighter-rouge">jekyll.yml</code> 一个 GitHub Action，该 CI 完成后，会将 <code class="language-plaintext highlighter-rouge">_site</code> 目录自动 push 到 <code class="language-plaintext highlighter-rouge">gp-pages</code> 分支，所以在 <code class="language-plaintext highlighter-rouge">Cloudflare</code> 的 <code class="language-plaintext highlighter-rouge">Pages</code> 配置中，我们选择 <strong>分支</strong> 为 <code class="language-plaintext highlighter-rouge">gh-pages</code>，同时不要添加任何的构建框架和执行命令，只要选择自动选择更新即可。添加完成后的配置如下，可做参考：
-<a href="/assets/img/Cloudflare_GitPages2.png"></a></p>
-
-<h2 id="自定义域名">自定义域名</h2>
-
-<p>上述部署完成，可以生成自己博客在 Cloudflare 的域名，比如：xxx-github-io.pages.dev，执行以下步骤将 xxx.github.io 重定向到 xxx-github-io.pages.dev。</p>
-
-<h3 id="cname">CNAME</h3>
-<p>Custom domain 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 
-博客仓库中新建 <code class="language-plaintext highlighter-rouge">CNAME</code> 文件，填充 Cloudflare 生成的 ‘xxx-github-io.pages.dev’ 域名，并提交。</p>
-
-<h3 id="pages-自定义域名配置">Pages 自定义域名配置</h3>
-
-<p>回到 GitHub 博客仓库的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，在 <code class="language-plaintext highlighter-rouge">Pages</code> 子页面的 <code class="language-plaintext highlighter-rouge">Custom domain</code> 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 保存。以后每次访问自己的 xxx.github.io 便会自动跳转到 xxx-github-io.pages.dev。</p>
-
-<p>当然这样的白嫖效果也就一般般，访问速度并不能完全达到国内建站的速度。</p>
-
-<h1 id="绊脚石">绊脚石</h1>
-
-<h2 id="jekyll-安装">Jekyll 安装</h2>
-
-<p>本人的环境是在 WSL2 下的 Ubuntu Linux 安装的，发现 Jekyll 官方提供的 Installing docs 在 Ubuntu 18.04 及以下由于版本兼容问题已经无法正常的安装了，在 Ubuntu 20.04 中较为顺利，依次执行以下命令不太会遇到太多的问题：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="nt">-y</span>
-<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span>  ruby-full build-essential zlib1g-dev
-<span class="nb">echo</span> <span class="s1">'# Install Ruby Gems to ~/gems'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">echo</span> <span class="s1">'export GEM_HOME="$HOME/gems"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">echo</span> <span class="s1">'export PATH="$HOME/gems/bin:$PATH"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">source</span> ~/.bashrc
-
-<span class="c"># 这里 proxychains 为本人配置的 代理，否则容易出现下载失败</span>
-<span class="nb">sudo </span>proxychains gem <span class="nb">install </span>jekyll bundler
-<span class="nb">sudo </span>proxychains bundle <span class="nb">install</span>
-</code></pre></div></div>
-
-<h2 id="h2o-ac-blog-页面异常">H2O-ac Blog 页面异常</h2>
-
-<p>基于作者的最新版本 <code class="language-plaintext highlighter-rouge">master</code> 或者 <code class="language-plaintext highlighter-rouge">tag: v1.2.1</code>，在 <code class="language-plaintext highlighter-rouge">Blog</code> 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者, <a href="https://github.com/zhonger/jekyll-theme-H2O-ac/issues/13" rel="nofollow" target="_blank" class="extlinks">ISSUE</a>，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 升级到 <code class="language-plaintext highlighter-rouge">v1.1.7</code> 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 版本。</p>
-
-<p><a href="/assets/img/jekyll_blog_bug.png"></a></p>
-
-<h2 id="cloudflare-部署报错">Cloudflare 部署报错</h2>
-
-<p>当 Blog 中存在文件 size ~&gt; 25MB 时，Cloudflare 会报错而终止部署，对此需要删除 repo 中所有 size 过大的文件（一般是图片），根据报错，通过以下命令查找并删除所有相关文件的历史记录。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 其中 assets/img/shan.png 为要删除的文件</span>
-git filter-branch <span class="nt">--force</span> <span class="nt">--index-filter</span> <span class="s1">'git rm --cached --ignore-unmatch assets/img/shan.png'</span> <span class="nt">--prune-empty</span> <span class="nt">--tag-name-filter</span> <span class="nb">cat</span> <span class="nt">--</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>排查结束后，会显示涉及到该文件的分支列表，如下：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ref <span class="s1">'refs/heads/gh-pages'</span> was rewritten
-Ref <span class="s1">'refs/heads/master'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/master'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/dev'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/gh-pages'</span> was rewritten
-WARNING: Ref <span class="s1">'refs/remotes/origin/master'</span> is unchanged
-</code></pre></div></div>
-
-<p>将 <code class="language-plaintext highlighter-rouge">rewritten</code> 的本地分支 push 到 GitHub，然后在 Cloudflare 上重新部署。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout master
-git push <span class="nt">-f</span> origin master
-
-git checkout gh-pages
-git push <span class="nt">-f</span> origin gh-pages
-</code></pre></div></div>
-
+<p>总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。</p>
 
             <div class="post-copyright">
               <p>
@@ -354,15 +287,15 @@ git push <span class="nt">-f</span> origin gh-pages
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 GitHub Pages 博客搭建记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/blog-building-notes.html" class="cplink">https://gbcpp.github.io/blog-building-notes.html</a></p>
+              <p><span>本文标题：</span>《 温故而知新之-C++ 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/learning-cpp-notes.html" class="cplink">https://gbcpp.github.io/notes/learning-cpp-notes.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('渊源')">渊源</a></li><li><a onclick="scrollToAdjust('博客构建框架')">博客构建框架</a></li><li><a onclick="scrollToAdjust('初始化')">初始化</a></li><li><a onclick="scrollToAdjust('个人信息调整')">个人信息调整</a></li><li><a onclick="scrollToAdjust('部署-cdn')">部署 CDN</a><ul><li><a onclick="scrollToAdjust('cloudflare-新建-pages')">Cloudflare 新建 Pages</a></li><li><a onclick="scrollToAdjust('自定义域名')">自定义域名</a><ul><li><a onclick="scrollToAdjust('cname')">CNAME</a></li><li><a onclick="scrollToAdjust('pages-自定义域名配置')">Pages 自定义域名配置</a></li></ul></li></ul></li><li><a onclick="scrollToAdjust('绊脚石')">绊脚石</a><ul><li><a onclick="scrollToAdjust('jekyll-安装')">Jekyll 安装</a></li><li><a onclick="scrollToAdjust('h2o-ac-blog-页面异常')">H2O-ac Blog 页面异常</a></li><li><a onclick="scrollToAdjust('cloudflare-部署报错')">Cloudflare 部署报错</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('指针的退化及如何避免')">指针的退化及如何避免</a></li><li><a onclick="scrollToAdjust('引用与指针的区别')">引用与指针的区别</a></li></ul>
         </div>
       </div>
       
@@ -417,10 +350,10 @@ git push <span class="nt">-f</span> origin gh-pages
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/PlantUML-Language-book.html" class="read-next-link" aria-label="PlantUML-Language Pdf"></a>
+          <a href="/print_stacktrace.html" class="read-next-link" aria-label="C++ 程序输出当前堆栈"></a>
           <section>
-            <span>PlantUML-Language Pdf</span>
-            <p>PlantUML 语法字典</p>
+            <span>C++ 程序输出当前堆栈</span>
+            <p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。互联网中找到的，使用均有内存问题，以下是修...</p>
           </section>
           
       </div>
@@ -428,11 +361,14 @@ git push <span class="nt">-f</span> origin gh-pages
 
         
         <div class="read-next-item">
-          <a href="/service-bind-cpu.html" class="read-next-link" aria-label="后台服务绑定 CPU 核"></a>
+          <a href="/notes/learning-oriented.html" class="read-next-link" aria-label="面向学习的三种人"></a>
             <section>
-              <span>后台服务绑定 CPU 核</span>
-              <p>  一个 Prod 用的服务启动升级脚本，检查了 CPU 核心数，并按照指定顺序绑定 CPU 核心，以提升性能。</p>
+              <span>面向学习的三种人</span>
+              <p>  人们对学习的态度分为三种类型：犯人、过客和探索者</p>
             </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -447,7 +383,7 @@ git push <span class="nt">-f</span> origin gh-pages
   
   <script>
     var gitalk = new Gitalk({
-      id: '2023-10-07 00:00:00 +0000',
+      id: '2024-04-12 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -660,7 +596,7 @@ git push <span class="nt">-f</span> origin gh-pages
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2023-10-07-blog-building-notes.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2024-04-12-learning-cpp-notes.md")
           .then((response) => {
             return response.json();
           })
