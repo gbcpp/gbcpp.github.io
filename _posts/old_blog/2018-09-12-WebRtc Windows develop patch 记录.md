@@ -1,9 +1,12 @@
 ---
+layout: post
 title: WebRtc Windows develop patch 记录
-tags: WebRTC windows
-categories: RTC
-abbrlink: 4152150583
 date: 2018-09-12 06:13:22
+author: Mr Chen
+cover: '/assets/img/shan.jpg'
+categories: RTC
+tags: 
+- RTC
 ---
 
 # 编译

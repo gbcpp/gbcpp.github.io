@@ -1,10 +1,12 @@
 ---
+layout: post
 title: Linux 常用命令备忘录
-categories: 经验总结
-comments: false
-abbrlink: 2785101152
-date: 2018-03-22 00:34:14
-tags:
+date: 2018-3-22
+author: Mr Chen
+cover: '/assets/img/shan.jpg'
+categories: notes
+tags: 
+- Linux
 ---
 
 >记录 Linux 常用命令

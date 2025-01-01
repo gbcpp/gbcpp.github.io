@@ -1,9 +1,13 @@
 ---
 title: Linux 基于 webrtc 进行流媒体开发
 tags: webrtc Linux Ubuntu g++
-categories: RTC
-abbrlink: 3440048822
+author: Mr Chen
 date: 2019-01-23 10:56:31
+categories: RTC
+tags: 
+- WebRTC
+- OpenSource
+- Linux
 ---
 
 
