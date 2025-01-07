@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 07 Jan 2025 14:04:24 +0000</pubDate>
-    <lastBuildDate>Tue, 07 Jan 2025 14:04:24 +0000</lastBuildDate>
+    <pubDate>Tue, 07 Jan 2025 14:14:20 +0000</pubDate>
+    <lastBuildDate>Tue, 07 Jan 2025 14:14:20 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -283,8 +283,9 @@ vhost __defaultVhost__ {
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;测试结果
-测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。&lt;/p&gt;
+&lt;h1 id=&quot;测试结果&quot;&gt;测试结果&lt;/h1&gt;
+
+&lt;p&gt;测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。&lt;/p&gt;
 
 &lt;p&gt;测试场景：为该 SRS 注入一路 stream 做为源，然后远端从该 SRS 通过 HTTPS-FLV 拉取十路该流。&lt;/p&gt;
 
@@ -293,6 +294,7 @@ vhost __defaultVhost__ {
 &lt;h1 id=&quot;srs-支持sni和多证书&quot;&gt;SRS 支持SNI和多证书&lt;/h1&gt;
 
 &lt;p&gt;目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。&lt;/p&gt;
+
 </description>
         <pubDate>Sun, 05 Jan 2025 00:00:00 +0000</pubDate>
         <link>https://gbcpp.github.io/notes/srs-on-arm.html</link>
