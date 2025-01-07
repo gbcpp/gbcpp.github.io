@@ -1,4 +1,142 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-01T13:55:04+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-07T09:50:01+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/notes/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/notes/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
+<p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，手心尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
+
+<blockquote>
+  <p>本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化，我进公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
+且对比 Tcp 来看，webtransport-go 带来的性能消耗是 tcp 的 5 倍以上。</p>
+</blockquote>
+
+<h2 id="为什么不直接使用-quic-go">为什么不直接使用 quic-go</h2>
+
+<p>因为 quic 虽然也是可靠传输，但是 quic 暂不支持通过 Url 来携带业务测参数，如：vhost、token 等的。</p>
+
+<h1 id="初始化">初始化</h1>
+<h2 id="代码下载">代码下载</h2>
+
+<p><code class="language-plaintext highlighter-rouge">git clone git@github.com:quic-go/webtransport-go.git</code></p>
+
+<p>拉取相关依赖仓库代码：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 进入代码目录
+cd webtransport-go
+
+# 通过 build 触发代码拉取
+go build webtransport_test.go
+</code></pre></div></div>
+
+<p>Golang 默认将代码存放在<code class="language-plaintext highlighter-rouge">$GOPATH</code>目录下，我的<code class="language-plaintext highlighter-rouge">GOPATH</code>环境变量配置为 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go</code>，那么拉取的依赖仓库 <code class="language-plaintext highlighter-rouge">quic-go 的存放目录就是 </code>/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1<code class="language-plaintext highlighter-rouge">，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：</code>Add Folder to WorkSpace<code class="language-plaintext highlighter-rouge">，选择上述目录，即可一起查看 </code>quic-go` 相关的代码，如下：
+<img src="/assets/img/blog/vscode-go.jpg" alt="" /></p>
+
+<h2 id="quic-go">Quic-go</h2>
+
+<p>Quic-go 作为 webtransport-go 的依赖仓库，提供 quic 的基础传输能力，但是其提供的传输配置能力非常有限，特别是作为发送端时，一些基础的 CWnd、Burst、Ack 等参数均不支持配置，接口文件为：
+<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/interface.go</code></p>
+
+<p>quic-go 内部相关参数主要位于：
+<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code>
+<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/protocol.go</code>
+<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/params.go</code></p>
+
+<h1 id="优化项">优化项</h1>
+
+<ul>
+  <li>初始化发送包数：</li>
+</ul>
+
+<p>文件：<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code> 中指定
+<code class="language-plaintext highlighter-rouge">const maxBurstSizePackets = 10</code>，在直播场景，I 帧切片后（1200Bytes/Frame）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
+该配置项生效后对秒开的影响较小，属于毫秒级别，原来可能受 pacer 控制在几个 timerGraulariry 中将一个关键帧发送完，该配置的理想效果是减少这几个 timerGraulariry 的延迟。</p>
+
+<ul>
+  <li>握手超时时间：
+应用层建议也是用 2 秒的配置。</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
+const DefaultHandshakeIdleTimeout = 5 * time.Second
+// 建议修改为 2 或者 3 秒，业务测可以快速重连，减少等待时间
+const DefaultHandshakeIdleTimeout = 2 * time.Second
+</code></pre></div></div>
+
+<ul>
+  <li>定时器精度</li>
+</ul>
+
+<p>最好是从系统中获取自己的定时器精度（一般是4ms），不建议使用 1 ms 这种精度，过于高频，无效的 cpu 消耗。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
+const TimerGranularity = time.Millisecond
+// 建议值：动态获取系统定时器精度，或者 hardcode 为 4ms 或者 10ms
+const TimerGranularity = 4 * time.Millisecond
+</code></pre></div></div>
+
+<ul>
+  <li>转发模式</li>
+</ul>
+
+<p>目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。
+可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。</p>
+
+<h1 id="faq">FAQ</h1>
+
+<h2 id="webtransport-是否是整帧的收发">Webtransport 是否是整帧的收发？</h2>
+
+<p>不是，websocket 在发送大的数据帧时，会通过 FIN 标记位是否为 1 标记为该 Frame 是否结束，而 WebTransport 中是基于流的传输，需要应用层自行组装完整的数据帧。
+<a href="https://www.ietf.org/archive/id/draft-ietf-webtrans-overview-05.html#name-conventions-and-definitions-8">ref link</a></p>
+
+<blockquote>
+  <p>A stream is a sequence of bytes that is reliably delivered to the receiving application in the same order as it was transmitted by the sender. Streams can be of arbitrary length, and therefore cannot always be buffered entirely in memory. WebTransport protocols and APIs are expected to provide partial stream data to the application before the stream has been entirely received.</p>
+</blockquote>
+
+<h2 id="bbr-sender-配置-startup-的较大带宽但是-max-burst-send-packets-number-却较小能将关键帧的几个切片一次性发送出去吗">BBR sender 配置 startup 的较大带宽，但是 max burst send packets number 却较小，能将关键帧的几个切片一次性发送出去吗？</h2>
+
+<p><code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        p := &amp;pacer{
+                maxDatagramSize: initialMaxDatagramSize,
+                adjustedBandwidth: func() uint64 {
+                        // Bandwidth is in bits/s. We need the value in bytes/s.
+                        bw := uint64(getBandwidth() / BytesPerSecond)
+                        // Use a slightly higher value than the actual measured bandwidth.
+                        // RTT variations then won't result in under-utilization of the congestion window.
+                        // Ultimately, this will result in sending packets as acknowledgments are received rather than when timers fire,
+                        // provided the congestion window is fully utilized and acknowledgments arrive at regular intervals.
+                        return bw * 5 / 4
+                },
+        }
+        p.budgetAtLastSent = p.maxBurstSize()
+        return p
+}
+</code></pre></div></div>
+
+<p>而在初始化时，由于没有 smoothedRTT 的有效值，所以初始化为 <code class="language-plaintext highlighter-rouge">infBandwidth</code> (UINT64_MAX)，
+<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/bbr_sender.go</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (b *bbrSender) bandwidthEstimate() Bandwidth {
+        srtt := b.rttStats.SmoothedRTT()
+        if srtt == 0 {
+                // If we haven't measured an rtt, the bandwidth estimate is unknown.
+                return infBandwidth
+        }
+        bw := b.maxBandwidth.GetBest()
+        if bw == 0 {
+                return infBandwidth
+        }
+        return bw
+}
+</code></pre></div></div>
+
+<p>虽然初始化的 bandwidth 比较大，但是 pacer 在发送数据时依然会受限于 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 的配置，如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (p *pacer) maxBurstSize() protocol.ByteCount {
+        return utils.Max(
+                protocol.ByteCount(uint64((protocol.MinPacingDelay+protocol.TimerGranularity).Nanoseconds())*p.adjustedBandwidth())/1e9,
+                maxBurstSizePackets*p.maxDatagramSize,
+        )
+}
+</code></pre></div></div>
+
+<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，手心尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
 
 <h2 id="头文件">头文件</h2>
@@ -566,113 +704,4 @@ Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">tim
 Float / Int radio: 62
 </code></pre></div></div>
 
-<p>以上仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry><entry><title type="html">获取不同 Clock Id 在不同 Linux Kernel 下的精度</title><link href="https://gbcpp.github.io/notes/measure-clock-resolution.html" rel="alternate" type="text/html" title="获取不同 Clock Id 在不同 Linux Kernel 下的精度" /><published>2023-10-25T00:00:00+00:00</published><updated>2023-10-25T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/measure-clock-resolution</id><content type="html" xml:base="https://gbcpp.github.io/notes/measure-clock-resolution.html"><![CDATA[]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="C++" /><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">GitHub Pages 博客搭建记录</title><link href="https://gbcpp.github.io/notes/blog-building-notes.html" rel="alternate" type="text/html" title="GitHub Pages 博客搭建记录" /><published>2023-10-07T00:00:00+00:00</published><updated>2023-10-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/blog-building-notes</id><content type="html" xml:base="https://gbcpp.github.io/notes/blog-building-notes.html"><![CDATA[<h1 id="渊源">渊源</h1>
-
-<p>  国庆放假期间，机缘巧合看到一篇使用了非常漂亮主题的文章，它也是基于 GitHub 的 Pages 进行搭建和部署的，回想起几年前自己搭建的个人博客（因始终不满足自己的审美要求，已废弃），让我一眼便喜欢上了它，立即决定重建我的个人博客。</p>
-
-<h1 id="博客构建框架">博客构建框架</h1>
-
-<p>  搭建个人博客，大部分人都是通过 GitHub 的 Pages 进行白嫖，但是已有的主题都不是非常完美，对于一个从事非前端开发的人来说，优化调整博客主题到自己满意的程度是非常难的，长时间搞不到自己满意的程度，结局大概率都是废弃。
-在看到这篇基于<a href="https://blog.lui8.cn/tech/new-theme-h2o-ac.html">H2O-ac 主题</a> 搭建的的博客后，我决定就是它了，瞬间重拾搭建个人博客的兴趣。</p>
-
-<p>  早些时候，我使用的 GitHub blog 是通过 <code class="language-plaintext highlighter-rouge">Hexo</code> 构建的，<code class="language-plaintext highlighter-rouge">Hexo</code> 是基于 <code class="language-plaintext highlighter-rouge">Node.js</code> 驱动的，而上述博客是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 构建，该框架基于 <code class="language-plaintext highlighter-rouge">Ruby</code> 驱动，它们都是开源的，通过 GitHub 的 star 和 fork 数量，可以看到 <code class="language-plaintext highlighter-rouge">Jekyll</code> 的热度要高于 <code class="language-plaintext highlighter-rouge">Hexo</code>，但是不知道当时自己怎么没有注意到这一点，可能是因为当时是摸着别人过的河，没有了自己的思考。</p>
-
-<p>  由于该主题是基于 <code class="language-plaintext highlighter-rouge">Jekyll</code> 框架构建的，所以我们就此切换到 <code class="language-plaintext highlighter-rouge">Jekyll</code>，主题就用 <code class="language-plaintext highlighter-rouge">H2O-ac</code>。</p>
-
-<h1 id="初始化">初始化</h1>
-
-<p>  首先创建一个自己的专门用户博客的 public 仓库，这里建议直接从 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 主题作者的 repo <a href="https://github.com/zhonger/jekyll-theme-H2O-ac">jekyll-theme-H2O-ac</a> 中 fork，在命名新的 repo 时，一定要命名自己的 GitHub <code class="language-plaintext highlighter-rouge">name</code> + ‘.github.io’，比如我自己的：gbcpp.github.io，其中 <code class="language-plaintext highlighter-rouge">gbcpp</code> 便是我的 GitHub name，这样做也是官方建议的，同时 Fork 过去的 repo 才可以直接 Publish，而不用做其它任何链接失效之类的修复，而我因为当初好几年没有再折腾过 GitHub 的博客，早已经忘记了这一点，起了个非此模板的名字：<code class="language-plaintext highlighter-rouge">blog</code>、 <code class="language-plaintext highlighter-rouge">webindex</code> 等，部署上的博客有好几处都是无效的链接，需要自行查找并修改，同时博客的 Url 中也要增加子路径。</p>
-
-<p>Fork 后，在该 repo 的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，找到 <code class="language-plaintext highlighter-rouge">Pages</code>，在 <code class="language-plaintext highlighter-rouge">Build and deployment</code> 中选择 <code class="language-plaintext highlighter-rouge">master</code> 分支进行发布，目录就选择 <code class="language-plaintext highlighter-rouge">/(root)</code>, Save 后等待约 3 分钟，即可通过 <code class="language-plaintext highlighter-rouge">xxx.github.io</code> 进行访问。</p>
-
-<p><img src="/assets/img/github_settings.png" alt="" /></p>
-
-<h1 id="个人信息调整">个人信息调整</h1>
-
-<p>虽然经过上述的简单操作，已经能够访问到自己新搭建的博客，但是还有一些个人信息需要调整，在 <code class="language-plaintext highlighter-rouge">.github/workflow</code> 中，每次提交，均会触发 GitHub Actions Workflow，重新执行 Jekyll build &amp; deploy CI 操作，所以我们要为自己的 repo 增加一个 <code class="language-plaintext highlighter-rouge">GITHUB_TOKEN</code>，否则每次 CI 均会报错。如下图所示：</p>
-
-<p><img src="/assets/img/github_token.png" alt="GitHub Token" /></p>
-
-<p>GitHub 的 CI 每次构建完成后会将生成的 <code class="language-plaintext highlighter-rouge">_site</code> 目录 Push 到 <a href="https://jupyterbook.org/en/stable/publish/gh-pages.html"><code class="language-plaintext highlighter-rouge">gh-pages</code></a> 分支。</p>
-
-<p>在该作者的 repo 中，添加的 GitHub workflow 不止 <code class="language-plaintext highlighter-rouge">GitHub</code> 一个，还有亚马逊等其它家，用于网站加速，不过，我个人并没有使用这种多个 workflow 的方式，我删除了除了 ‘jekyll.yml’ 以外所有的 workflow，网站加速请继续往下看。</p>
-
-<h1 id="部署-cdn">部署 CDN</h1>
-
-<p>博客初步建立后，直接访问是非常慢的，没有任何的 CDN 托管加速，而 <code class="language-plaintext highlighter-rouge">H2O-ac</code> 的作者开通了多家国内外 CDN 厂家的托管，访问速度要比直接 xxx.github.io 快很多。</p>
-
-<p>这里我选择了提供全球节点的 <code class="language-plaintext highlighter-rouge">Cloudflare</code> <a href="https://dash.cloudflare.com/">官网</a> 进行托管，主要是因为它对于个人站点是完全免费的，并且操作简单，易上手。</p>
-
-<h2 id="cloudflare-新建-pages">Cloudflare 新建 Pages</h2>
-
-<p>注册并登陆 Cloudflare，进入到个人 <code class="language-plaintext highlighter-rouge">账户主页</code>，进入 <code class="language-plaintext highlighter-rouge">Worker 和 Pages</code>，选择 <code class="language-plaintext highlighter-rouge">Pages</code> 选项，<strong>注意</strong>我们这里选择 <code class="language-plaintext highlighter-rouge">连接到 Git</code>，选择自己的仓库和分支，自动部署即可，如下图：</p>
-
-<p><a href="/assets/img/Cloudflare_GitPages.png"></a></p>
-
-<p>由于我们仅使用了 <code class="language-plaintext highlighter-rouge">jekyll.yml</code> 一个 GitHub Action，该 CI 完成后，会将 <code class="language-plaintext highlighter-rouge">_site</code> 目录自动 push 到 <code class="language-plaintext highlighter-rouge">gp-pages</code> 分支，所以在 <code class="language-plaintext highlighter-rouge">Cloudflare</code> 的 <code class="language-plaintext highlighter-rouge">Pages</code> 配置中，我们选择 <strong>分支</strong> 为 <code class="language-plaintext highlighter-rouge">gh-pages</code>，同时不要添加任何的构建框架和执行命令，只要选择自动选择更新即可。添加完成后的配置如下，可做参考：
-<a href="/assets/img/Cloudflare_GitPages2.png"></a></p>
-
-<h2 id="自定义域名">自定义域名</h2>
-
-<p>上述部署完成，可以生成自己博客在 Cloudflare 的域名，比如：xxx-github-io.pages.dev，执行以下步骤将 xxx.github.io 重定向到 xxx-github-io.pages.dev。</p>
-
-<h3 id="cname">CNAME</h3>
-<p>Custom domain 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 
-博客仓库中新建 <code class="language-plaintext highlighter-rouge">CNAME</code> 文件，填充 Cloudflare 生成的 ‘xxx-github-io.pages.dev’ 域名，并提交。</p>
-
-<h3 id="pages-自定义域名配置">Pages 自定义域名配置</h3>
-
-<p>回到 GitHub 博客仓库的 <code class="language-plaintext highlighter-rouge">Settings</code> 页面，在 <code class="language-plaintext highlighter-rouge">Pages</code> 子页面的 <code class="language-plaintext highlighter-rouge">Custom domain</code> 中填入 <code class="language-plaintext highlighter-rouge">xxx-github-io.pages.dev</code> 保存。以后每次访问自己的 xxx.github.io 便会自动跳转到 xxx-github-io.pages.dev。</p>
-
-<p>当然这样的白嫖效果也就一般般，访问速度并不能完全达到国内建站的速度。</p>
-
-<h1 id="绊脚石">绊脚石</h1>
-
-<h2 id="jekyll-安装">Jekyll 安装</h2>
-
-<p>本人的环境是在 WSL2 下的 Ubuntu Linux 安装的，发现 Jekyll 官方提供的 Installing docs 在 Ubuntu 18.04 及以下由于版本兼容问题已经无法正常的安装了，在 Ubuntu 20.04 中较为顺利，依次执行以下命令不太会遇到太多的问题：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="nt">-y</span>
-<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span>  ruby-full build-essential zlib1g-dev
-<span class="nb">echo</span> <span class="s1">'# Install Ruby Gems to ~/gems'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">echo</span> <span class="s1">'export GEM_HOME="$HOME/gems"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">echo</span> <span class="s1">'export PATH="$HOME/gems/bin:$PATH"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-<span class="nb">source</span> ~/.bashrc
-
-<span class="c"># 这里 proxychains 为本人配置的 代理，否则容易出现下载失败</span>
-<span class="nb">sudo </span>proxychains gem <span class="nb">install </span>jekyll bundler
-<span class="nb">sudo </span>proxychains bundle <span class="nb">install</span>
-</code></pre></div></div>
-
-<h2 id="h2o-ac-blog-页面异常">H2O-ac Blog 页面异常</h2>
-
-<p>基于作者的最新版本 <code class="language-plaintext highlighter-rouge">master</code> 或者 <code class="language-plaintext highlighter-rouge">tag: v1.2.1</code>，在 <code class="language-plaintext highlighter-rouge">Blog</code> 首页会有如下分页显示的问题，该问题在 GitHub 中已经有人反馈给作者, <a href="https://github.com/zhonger/jekyll-theme-H2O-ac/issues/13">ISSUE</a>，等待作者修复（本人不懂前端，经过几天努力，排查修复失败），不过本人已经排查到该显示问题是从 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 升级到 <code class="language-plaintext highlighter-rouge">v1.1.7</code> 时开始引入的，在本地 build 查看时，没有异常，一旦部署到 GitHub 便异常，所以该站使用的是 <code class="language-plaintext highlighter-rouge">v1.1.6</code> 版本。</p>
-
-<p><a href="/assets/img/jekyll_blog_bug.png"></a></p>
-
-<h2 id="cloudflare-部署报错">Cloudflare 部署报错</h2>
-
-<p>当 Blog 中存在文件 size ~&gt; 25MB 时，Cloudflare 会报错而终止部署，对此需要删除 repo 中所有 size 过大的文件（一般是图片），根据报错，通过以下命令查找并删除所有相关文件的历史记录。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 其中 assets/img/shan.png 为要删除的文件</span>
-git filter-branch <span class="nt">--force</span> <span class="nt">--index-filter</span> <span class="s1">'git rm --cached --ignore-unmatch assets/img/shan.png'</span> <span class="nt">--prune-empty</span> <span class="nt">--tag-name-filter</span> <span class="nb">cat</span> <span class="nt">--</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>排查结束后，会显示涉及到该文件的分支列表，如下：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ref <span class="s1">'refs/heads/gh-pages'</span> was rewritten
-Ref <span class="s1">'refs/heads/master'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/master'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/dev'</span> was rewritten
-Ref <span class="s1">'refs/remotes/origin/gh-pages'</span> was rewritten
-WARNING: Ref <span class="s1">'refs/remotes/origin/master'</span> is unchanged
-</code></pre></div></div>
-
-<p>将 <code class="language-plaintext highlighter-rouge">rewritten</code> 的本地分支 push 到 GitHub，然后在 Cloudflare 上重新部署。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout master
-git push <span class="nt">-f</span> origin master
-
-git checkout gh-pages
-git push <span class="nt">-f</span> origin gh-pages
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="GitPages" /><category term="blog" /><summary type="html"><![CDATA[渊源]]></summary></entry></feed>
+<p>以上仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry><entry><title type="html">获取不同 Clock Id 在不同 Linux Kernel 下的精度</title><link href="https://gbcpp.github.io/notes/measure-clock-resolution.html" rel="alternate" type="text/html" title="获取不同 Clock Id 在不同 Linux Kernel 下的精度" /><published>2023-10-25T00:00:00+00:00</published><updated>2023-10-25T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/measure-clock-resolution</id><content type="html" xml:base="https://gbcpp.github.io/notes/measure-clock-resolution.html"><![CDATA[]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="C++" /><summary type="html"><![CDATA[]]></summary></entry></feed>
