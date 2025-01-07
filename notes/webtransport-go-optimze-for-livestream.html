@@ -223,10 +223,10 @@
           <article class="markdown-body post">
               
             <h1 id="背景">背景</h1>
-<p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，手心尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
+<p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
 
 <blockquote>
-  <p>本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化，我进公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
+  <p>本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化， B本人进入公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
 且对比 Tcp 来看，webtransport-go 带来的性能消耗是 tcp 的 5 倍以上。</p>
 </blockquote>
 
@@ -248,7 +248,7 @@ cd webtransport-go
 go build webtransport_test.go
 </code></pre></div></div>
 
-<p>Golang 默认将代码存放在<code class="language-plaintext highlighter-rouge">$GOPATH</code>目录下，我的<code class="language-plaintext highlighter-rouge">GOPATH</code>环境变量配置为 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go</code>，那么拉取的依赖仓库 <code class="language-plaintext highlighter-rouge">quic-go 的存放目录就是 </code>/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1<code class="language-plaintext highlighter-rouge">，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：</code>Add Folder to WorkSpace<code class="language-plaintext highlighter-rouge">，选择上述目录，即可一起查看 </code>quic-go` 相关的代码，如下：
+<p>Golang 默认将代码存放在<code class="language-plaintext highlighter-rouge">$GOPATH</code>目录下，我的<code class="language-plaintext highlighter-rouge">GOPATH</code>环境变量配置为 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go</code>，那么拉取的依赖仓库 <code class="language-plaintext highlighter-rouge">quic-go</code> 的存放目录就是 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1</code>，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：<code class="language-plaintext highlighter-rouge">Add Folder to WorkSpace</code>，选择上述目录，即可一起查看 <code class="language-plaintext highlighter-rouge">quic-go</code> 相关的代码，如下：
 <img src="/assets/img/blog/vscode-go.jpg" alt=""></p>
 
 <h2 id="quic-go">Quic-go</h2>
@@ -268,7 +268,7 @@ go build webtransport_test.go
 </ul>
 
 <p>文件：<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code> 中指定
-<code class="language-plaintext highlighter-rouge">const maxBurstSizePackets = 10</code>，在直播场景，I 帧切片后（1200Bytes/Frame）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
+<code class="language-plaintext highlighter-rouge">const maxBurstSizePackets = 10</code>，在直播场景，I 帧切片后（1200Bytes/pkt）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
 该配置项生效后对秒开的影响较小，属于毫秒级别，原来可能受 pacer 控制在几个 timerGraulariry 中将一个关键帧发送完，该配置的理想效果是减少这几个 timerGraulariry 的延迟。</p>
 
 <ul>
@@ -298,8 +298,9 @@ const TimerGranularity = 4 * time.Millisecond
   <li>转发模式</li>
 </ul>
 
-<p>目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。
-可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。</p>
+<p>目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。</p>
+
+<p>可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。</p>
 
 <h1 id="faq">FAQ</h1>
 
