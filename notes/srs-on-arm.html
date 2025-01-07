@@ -8,27 +8,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C++ 程序输出当前堆栈 - Mr Chen</title>
+    <title>移植裁剪 srs 到 ARMv64 系统设备 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="C++ 程序输出当前堆栈">
-    <meta name="keywords"  content="C++">
+    <meta name="description" content="移植裁剪 srs 到 ARMv64 系统设备">
+    <meta name="keywords"  content="Life">
     <!-- Open Graph -->
-    <meta property="og:title" content="C++ 程序输出当前堆栈 - Mr Chen">
+    <meta property="og:title" content="移植裁剪 srs 到 ARMv64 系统设备 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/print_stacktrace.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/srs-on-arm.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/srs-on-arm.html">
+    <meta property="og:previous_url" content="/protocol/webtransport-go-optimze-for-livestream.html">
     
     
-    <meta property="og:next_url" content="/notes/learning-cpp-notes.html">
+    <meta property="og:next_url" content="/notes/print_stacktrace.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2024-06-11 00:00:00 +0000" />
+    <meta property="post-date" content="2025-01-05 00:00:00 +0000" />
     
     
     
@@ -155,18 +155,18 @@
 
 
     <header
-      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
       data-theme="default"
     >
       <div class="post-wrapper">
         <div class="post-tags">
           
             
-              <a href="/tags.html#C++" class="post-tag">C++</a>
+              <a href="/tags.html#Life" class="post-tag">Life</a>
             
           
         </div>
-        <h1>C++ 程序输出当前堆栈</h1>
+        <h1>移植裁剪 srs 到 ARMv64 系统设备</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +174,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="24-06-11">
+          <time class="post-meta-item" datetime="25-01-05">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="24-06-11">
+          <time class="post-meta-item" datetime="25-01-05">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,7 +191,7 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.6k  字
+              本文总共  1.7k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
@@ -211,6 +211,9 @@
         </div>
       </div>
       
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+      
     </header>
     <div class="post-content visible">
       
@@ -221,89 +224,133 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
-互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
+            <h1 id="srs-版本">SRS 版本</h1>
 
-<h2 id="头文件">头文件</h2>
+<p>srs 源码选择较新的 stable 版本：v5.0-r3</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;cxxabi.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;execinfo.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span></code></pre></div></div>
+<p><strong>代码拉取</strong></p>
 
-<h2 id="源码">源码</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Utils</span><span class="o">::</span><span class="n">PrintStackTrace</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxFrames</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxPrettyFunctionNameLength</span> <span class="o">=</span> <span class="mi">512</span><span class="p">;</span>
-
-  <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">oss</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="o">*</span><span class="n">addrlist</span><span class="p">[</span><span class="n">kMaxFrames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
-
-  <span class="c1">// 获取当前堆栈中的地址</span>
-  <span class="kt">int</span> <span class="n">addrlen</span> <span class="o">=</span> <span class="n">backtrace</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addrlist</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">));</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">addrlen</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="s">"StackTraces: "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-
-  <span class="c1">// 解析地址为函数名</span>
-  <span class="kt">char</span> <span class="o">**</span><span class="n">symbollist</span> <span class="o">=</span> <span class="n">backtrace_symbols</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="n">addrlen</span><span class="p">);</span>
-
-  <span class="c1">// 解析函数名的更多信息</span>
-  <span class="kt">size_t</span> <span class="n">funcNameSize</span> <span class="o">=</span> <span class="n">kMaxPrettyFunctionNameLength</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">funcName</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">char</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">malloc</span><span class="p">(</span><span class="n">funcNameSize</span><span class="p">));</span>
-
-  <span class="c1">// 跳过第一个元素（即本身）</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">addrlen</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginName</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-
-    <span class="c1">// 解析符号名称及偏移量</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'('</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginName</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'+'</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">')'</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">endOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-        <span class="k">break</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">beginName</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span> <span class="o">&amp;&amp;</span> <span class="n">endOffset</span> <span class="o">&amp;&amp;</span> <span class="n">beginName</span> <span class="o">&lt;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-      <span class="o">*</span><span class="n">beginName</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">beginOffset</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-
-      <span class="c1">// 解码并打印函数名称</span>
-      <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
-      <span class="kt">char</span> <span class="o">*</span><span class="n">ret</span> <span class="o">=</span>
-          <span class="n">abi</span><span class="o">::</span><span class="n">__cxa_demangle</span><span class="p">(</span><span class="n">beginName</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">funcNameSize</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">ret</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-      <span class="c1">// 如果无法解析，直接输出原始符号信息</span>
-      <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">funcName</span><span class="p">);</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">symbollist</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
-<span class="p">}</span>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git clone --branch v5.0-r3 https://github.com/ossrs/srs.git
 </code></pre></div></div>
 
-<h2 id="编译">编译</h2>
+<p><strong>编译</strong></p>
 
-<p><code class="language-plaintext highlighter-rouge">ldflags</code> 参数一定要指定 <code class="language-plaintext highlighter-rouge">-ldynamiclib</code> 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
-主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。</p>
+<p>已知设备系统：ARMv8 指令集架构的 Debian，此次测试选择在 Debian 系统下部署 srs 服务进行测试。</p>
 
-<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>
+<p>使用 docker 进行编译，首先保证开发机上有 docker 服务，编译命令会自行拉取 aarch64 专用编译镜像并编译：</p>
 
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd srs/trunk
+$ docker run -it --rm -v `pwd`:/srs -w /srs ossrs/srs:aarch64 \
+    bash -c "./configure --srt=off --rtc=off --ffmpeg-fit=off --static=on \
+        --sanitizer=off --sanitizer-static=off --sanitizer-log=off &amp;&amp; make -j4"
+ 
+
+# 查看 srs 二进制文件
+$ ls -sh objs/srs
+</code></pre></div></div>
+
+<h1 id="测试环境">测试环境</h1>
+
+<p>基于当前测试条件，此次测试选择将 srs 服务部署在 Debian 系统的小盒子中进行测试。</p>
+
+<p>Debian 系统小盒子性能如下：</p>
+<ul>
+  <li>CPU：4 核 4 线程，主频 1.5GHz</li>
+  <li>Mem：2GB</li>
+  <li>Disk：8GB</li>
+</ul>
+
+<p>观众端：</p>
+
+<p>Mac 下 Shell 脚本启动 10 路 ffplay 进行播放，启动命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bash repeat_command.sh "ffplay https://ossrs.com:8088/live/livestream.flv"  10
+</code></pre></div></div>
+
+<p>repeat_command.sh 脚本：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash
+ 
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 &lt;command&gt; &lt;times&gt;"
+    exit 1
+fi
+ 
+# 获取参数
+command=$1
+times=$2
+ 
+# 检查 times 是否是数字
+if ! [[ $times =~ ^[0-9]+$ ]]; then
+    echo "Error: &lt;times&gt; must be a positive integer."
+    exit 1
+fi
+ 
+# 循环执行命令
+for ((i=1; i&lt;=times; i++)); do
+    echo "Executing command '$command' in the background: iteration $i"
+    eval "$command &amp;"
+done
+ 
+echo "All commands have been executed in the background."
+</code></pre></div></div>
+
+<h1 id="srs-配置">SRS 配置</h1>
+
+<p>使用了自签名证书 ossrs.com</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen              1935;
+max_connections     1000;
+daemon              off;
+srs_log_tank        console;
+ 
+http_api {
+    enabled         on;
+    listen          1985;
+}
+ 
+http_server {
+    enabled         on;
+    listen          8080;
+    dir             ./objs/nginx/html;
+ 
+    https {
+        enabled on;
+        listen 8088;
+        key ./ossrs.key;
+        cert ./ossrs.crt;
+    }
+}
+vhost __defaultVhost__ {
+    http_remux {
+        enabled     on;
+        mount       [vhost]/[app]/[stream].flv;
+    }
+    ingest livestream {
+        enabled      on;
+        input {
+            type    stream;
+        url     http://100.100.34.14:8080/live/livestream.flv;
+        }
+        ffmpeg      ./objs/ffmpeg/bin/ffmpeg;
+        engine {
+            enabled          off;
+            output          rtmp://0.0.0.0:[port]/live/livestream?vhost=[vhost];
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>测试结果
+测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。</p>
+
+<p>测试场景：为该 SRS 注入一路 stream 做为源，然后远端从该 SRS 通过 HTTPS-FLV 拉取十路该流。</p>
+
+<p><img src="/assets/img/blog/srs_perf.jpg" alt=""></p>
+
+<h1 id="srs-支持sni和多证书">SRS 支持SNI和多证书</h1>
+
+<p>目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。</p>
 
             <div class="post-copyright">
               <p>
@@ -319,15 +366,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 C++ 程序输出当前堆栈 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/print_stacktrace.html" class="cplink">https://gbcpp.github.io/notes/print_stacktrace.html</a></p>
+              <p><span>本文标题：</span>《 移植裁剪 srs 到 ARMv64 系统设备 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/srs-on-arm.html" class="cplink">https://gbcpp.github.io/notes/srs-on-arm.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('头文件')">头文件</a></li><li><a onclick="scrollToAdjust('源码')">源码</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('srs-版本')">SRS 版本</a></li><li><a onclick="scrollToAdjust('测试环境')">测试环境</a></li><li><a onclick="scrollToAdjust('srs-配置')">SRS 配置</a></li><li><a onclick="scrollToAdjust('srs-支持sni和多证书')">SRS 支持SNI和多证书</a></li></ul>
         </div>
       </div>
       
@@ -382,10 +429,10 @@
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/srs-on-arm.html" class="read-next-link" aria-label="移植裁剪 srs 到 ARMv64 系统设备"></a>
+          <a href="/protocol/webtransport-go-optimze-for-livestream.html" class="read-next-link" aria-label="webtransport-go 在直播场景下的优化"></a>
           <section>
-            <span>移植裁剪 srs 到 ARMv64 系统设备</span>
-            <p>SRS 版本</p>
+            <span>webtransport-go 在直播场景下的优化</span>
+            <p>背景公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然...</p>
           </section>
           
           <div class="filter"></div>
@@ -396,14 +443,11 @@
 
         
         <div class="read-next-item">
-          <a href="/notes/learning-cpp-notes.html" class="read-next-link" aria-label="温故而知新之-C++"></a>
+          <a href="/notes/print_stacktrace.html" class="read-next-link" aria-label="C++ 程序输出当前堆栈"></a>
             <section>
-              <span>温故而知新之-C++</span>
-              <p>指针的退化及如何避免</p>
+              <span>C++ 程序输出当前堆栈</span>
+              <p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。互联网中找到的，使用均有内存问题，以下是修...</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/benpao2.jpg" alt="">
             
         </div>
         
@@ -418,7 +462,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2024-06-11 00:00:00 +0000',
+      id: '2025-01-05 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -631,7 +675,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/utility/2024-06-11-print_stacktrace.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-05-srs-on-arm.md")
           .then((response) => {
             return response.json();
           })

@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 07 Jan 2025 09:59:59 +0000</pubDate>
-    <lastBuildDate>Tue, 07 Jan 2025 09:59:59 +0000</lastBuildDate>
+    <pubDate>Tue, 07 Jan 2025 14:04:24 +0000</pubDate>
+    <lastBuildDate>Tue, 07 Jan 2025 14:04:24 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -161,6 +161,147 @@ const TimerGranularity = 4 * time.Millisecond
         
         
         <category>Protocol</category>
+        
+      </item>
+    
+      <item>
+        <title>移植裁剪 srs 到 ARMv64 系统设备</title>
+        <description>&lt;h1 id=&quot;srs-版本&quot;&gt;SRS 版本&lt;/h1&gt;
+
+&lt;p&gt;srs 源码选择较新的 stable 版本：v5.0-r3&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;代码拉取&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ git clone --branch v5.0-r3 https://github.com/ossrs/srs.git
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;编译&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;已知设备系统：ARMv8 指令集架构的 Debian，此次测试选择在 Debian 系统下部署 srs 服务进行测试。&lt;/p&gt;
+
+&lt;p&gt;使用 docker 进行编译，首先保证开发机上有 docker 服务，编译命令会自行拉取 aarch64 专用编译镜像并编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd srs/trunk
+$ docker run -it --rm -v `pwd`:/srs -w /srs ossrs/srs:aarch64 \
+    bash -c &quot;./configure --srt=off --rtc=off --ffmpeg-fit=off --static=on \
+        --sanitizer=off --sanitizer-static=off --sanitizer-log=off &amp;amp;&amp;amp; make -j4&quot;
+ 
+
+# 查看 srs 二进制文件
+$ ls -sh objs/srs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;测试环境&quot;&gt;测试环境&lt;/h1&gt;
+
+&lt;p&gt;基于当前测试条件，此次测试选择将 srs 服务部署在 Debian 系统的小盒子中进行测试。&lt;/p&gt;
+
+&lt;p&gt;Debian 系统小盒子性能如下：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;CPU：4 核 4 线程，主频 1.5GHz&lt;/li&gt;
+  &lt;li&gt;Mem：2GB&lt;/li&gt;
+  &lt;li&gt;Disk：8GB&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;观众端：&lt;/p&gt;
+
+&lt;p&gt;Mac 下 Shell 脚本启动 10 路 ffplay 进行播放，启动命令：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;bash repeat_command.sh &quot;ffplay https://ossrs.com:8088/live/livestream.flv&quot;  10
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;repeat_command.sh 脚本：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#!/bin/bash
+ 
+if [ $# -lt 2 ]; then
+    echo &quot;Usage: $0 &amp;lt;command&amp;gt; &amp;lt;times&amp;gt;&quot;
+    exit 1
+fi
+ 
+# 获取参数
+command=$1
+times=$2
+ 
+# 检查 times 是否是数字
+if ! [[ $times =~ ^[0-9]+$ ]]; then
+    echo &quot;Error: &amp;lt;times&amp;gt; must be a positive integer.&quot;
+    exit 1
+fi
+ 
+# 循环执行命令
+for ((i=1; i&amp;lt;=times; i++)); do
+    echo &quot;Executing command &apos;$command&apos; in the background: iteration $i&quot;
+    eval &quot;$command &amp;amp;&quot;
+done
+ 
+echo &quot;All commands have been executed in the background.&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;srs-配置&quot;&gt;SRS 配置&lt;/h1&gt;
+
+&lt;p&gt;使用了自签名证书 ossrs.com&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;listen              1935;
+max_connections     1000;
+daemon              off;
+srs_log_tank        console;
+ 
+http_api {
+    enabled         on;
+    listen          1985;
+}
+ 
+http_server {
+    enabled         on;
+    listen          8080;
+    dir             ./objs/nginx/html;
+ 
+    https {
+        enabled on;
+        listen 8088;
+        key ./ossrs.key;
+        cert ./ossrs.crt;
+    }
+}
+vhost __defaultVhost__ {
+    http_remux {
+        enabled     on;
+        mount       [vhost]/[app]/[stream].flv;
+    }
+    ingest livestream {
+        enabled      on;
+        input {
+            type    stream;
+        url     http://100.100.34.14:8080/live/livestream.flv;
+        }
+        ffmpeg      ./objs/ffmpeg/bin/ffmpeg;
+        engine {
+            enabled          off;
+            output          rtmp://0.0.0.0:[port]/live/livestream?vhost=[vhost];
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;测试结果
+测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。&lt;/p&gt;
+
+&lt;p&gt;测试场景：为该 SRS 注入一路 stream 做为源，然后远端从该 SRS 通过 HTTPS-FLV 拉取十路该流。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/srs_perf.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;srs-支持sni和多证书&quot;&gt;SRS 支持SNI和多证书&lt;/h1&gt;
+
+&lt;p&gt;目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。&lt;/p&gt;
+</description>
+        <pubDate>Sun, 05 Jan 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/notes/srs-on-arm.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/srs-on-arm.html</guid>
+        
+        <category>Life</category>
+        
+        
+        <category>Notes</category>
         
       </item>
     
@@ -858,23 +999,6 @@ Float / Int radio: 62
         
         
         <category>Tech</category>
-        
-      </item>
-    
-      <item>
-        <title>获取不同 Clock Id 在不同 Linux Kernel 下的精度</title>
-        <description>
-</description>
-        <pubDate>Wed, 25 Oct 2023 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/measure-clock-resolution.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/measure-clock-resolution.html</guid>
-        
-        <category>Linux</category>
-        
-        <category>C++</category>
-        
-        
-        <category>Notes</category>
         
       </item>
     

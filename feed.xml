@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-07T09:59:59+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-07T14:04:24+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
 <p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
 
 <blockquote>
@@ -137,7 +137,133 @@ const TimerGranularity = 4 * time.Millisecond
 }
 </code></pre></div></div>
 
-<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
+<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry><entry><title type="html">移植裁剪 srs 到 ARMv64 系统设备</title><link href="https://gbcpp.github.io/notes/srs-on-arm.html" rel="alternate" type="text/html" title="移植裁剪 srs 到 ARMv64 系统设备" /><published>2025-01-05T00:00:00+00:00</published><updated>2025-01-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/srs-on-arm</id><content type="html" xml:base="https://gbcpp.github.io/notes/srs-on-arm.html"><![CDATA[<h1 id="srs-版本">SRS 版本</h1>
+
+<p>srs 源码选择较新的 stable 版本：v5.0-r3</p>
+
+<p><strong>代码拉取</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git clone --branch v5.0-r3 https://github.com/ossrs/srs.git
+</code></pre></div></div>
+
+<p><strong>编译</strong></p>
+
+<p>已知设备系统：ARMv8 指令集架构的 Debian，此次测试选择在 Debian 系统下部署 srs 服务进行测试。</p>
+
+<p>使用 docker 进行编译，首先保证开发机上有 docker 服务，编译命令会自行拉取 aarch64 专用编译镜像并编译：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd srs/trunk
+$ docker run -it --rm -v `pwd`:/srs -w /srs ossrs/srs:aarch64 \
+    bash -c "./configure --srt=off --rtc=off --ffmpeg-fit=off --static=on \
+        --sanitizer=off --sanitizer-static=off --sanitizer-log=off &amp;&amp; make -j4"
+ 
+
+# 查看 srs 二进制文件
+$ ls -sh objs/srs
+</code></pre></div></div>
+
+<h1 id="测试环境">测试环境</h1>
+
+<p>基于当前测试条件，此次测试选择将 srs 服务部署在 Debian 系统的小盒子中进行测试。</p>
+
+<p>Debian 系统小盒子性能如下：</p>
+<ul>
+  <li>CPU：4 核 4 线程，主频 1.5GHz</li>
+  <li>Mem：2GB</li>
+  <li>Disk：8GB</li>
+</ul>
+
+<p>观众端：</p>
+
+<p>Mac 下 Shell 脚本启动 10 路 ffplay 进行播放，启动命令：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bash repeat_command.sh "ffplay https://ossrs.com:8088/live/livestream.flv"  10
+</code></pre></div></div>
+
+<p>repeat_command.sh 脚本：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash
+ 
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 &lt;command&gt; &lt;times&gt;"
+    exit 1
+fi
+ 
+# 获取参数
+command=$1
+times=$2
+ 
+# 检查 times 是否是数字
+if ! [[ $times =~ ^[0-9]+$ ]]; then
+    echo "Error: &lt;times&gt; must be a positive integer."
+    exit 1
+fi
+ 
+# 循环执行命令
+for ((i=1; i&lt;=times; i++)); do
+    echo "Executing command '$command' in the background: iteration $i"
+    eval "$command &amp;"
+done
+ 
+echo "All commands have been executed in the background."
+</code></pre></div></div>
+
+<h1 id="srs-配置">SRS 配置</h1>
+
+<p>使用了自签名证书 ossrs.com</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen              1935;
+max_connections     1000;
+daemon              off;
+srs_log_tank        console;
+ 
+http_api {
+    enabled         on;
+    listen          1985;
+}
+ 
+http_server {
+    enabled         on;
+    listen          8080;
+    dir             ./objs/nginx/html;
+ 
+    https {
+        enabled on;
+        listen 8088;
+        key ./ossrs.key;
+        cert ./ossrs.crt;
+    }
+}
+vhost __defaultVhost__ {
+    http_remux {
+        enabled     on;
+        mount       [vhost]/[app]/[stream].flv;
+    }
+    ingest livestream {
+        enabled      on;
+        input {
+            type    stream;
+        url     http://100.100.34.14:8080/live/livestream.flv;
+        }
+        ffmpeg      ./objs/ffmpeg/bin/ffmpeg;
+        engine {
+            enabled          off;
+            output          rtmp://0.0.0.0:[port]/live/livestream?vhost=[vhost];
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>测试结果
+测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。</p>
+
+<p>测试场景：为该 SRS 注入一路 stream 做为源，然后远端从该 SRS 通过 HTTPS-FLV 拉取十路该流。</p>
+
+<p><img src="/assets/img/blog/srs_perf.jpg" alt="" /></p>
+
+<h1 id="srs-支持sni和多证书">SRS 支持SNI和多证书</h1>
+
+<p>目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[SRS 版本]]></summary></entry><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
 
 <h2 id="头文件">头文件</h2>
@@ -705,4 +831,4 @@ Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">tim
 Float / Int radio: 62
 </code></pre></div></div>
 
-<p>以上仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry><entry><title type="html">获取不同 Clock Id 在不同 Linux Kernel 下的精度</title><link href="https://gbcpp.github.io/notes/measure-clock-resolution.html" rel="alternate" type="text/html" title="获取不同 Clock Id 在不同 Linux Kernel 下的精度" /><published>2023-10-25T00:00:00+00:00</published><updated>2023-10-25T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/measure-clock-resolution</id><content type="html" xml:base="https://gbcpp.github.io/notes/measure-clock-resolution.html"><![CDATA[]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="C++" /><summary type="html"><![CDATA[]]></summary></entry></feed>
+<p>以上仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry></feed>
