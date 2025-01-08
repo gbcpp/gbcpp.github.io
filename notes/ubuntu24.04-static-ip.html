@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>webtransport-go 在直播场景下的优化 - Mr Chen</title>
+    <title>Ubuntu24.04 配置静态 IP - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="webtransport-go 在直播场景下的优化">
-    <meta name="keywords"  content="Protocol">
+    <meta name="description" content="Ubuntu24.04 配置静态 IP">
+    <meta name="keywords"  content="Life">
     <!-- Open Graph -->
-    <meta property="og:title" content="webtransport-go 在直播场景下的优化 - Mr Chen">
+    <meta property="og:title" content="Ubuntu24.04 配置静态 IP - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/ubuntu24.04-static-ip.html">
     
-    
-    <meta property="og:next_url" content="/notes/srs-on-arm.html">
+    <meta property="og:next_url" content="/protocol/webtransport-go-optimze-for-livestream.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-01-07 00:00:00 +0000" />
+    <meta property="post-date" content="2025-01-08 00:00:00 +0000" />
     
     
     
@@ -162,11 +160,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+              <a href="/tags.html#Life" class="post-tag">Life</a>
             
           
         </div>
-        <h1>webtransport-go 在直播场景下的优化</h1>
+        <h1>Ubuntu24.04 配置静态 IP</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="25-01-07">
+          <time class="post-meta-item" datetime="25-01-08">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="25-01-07">
+          <time class="post-meta-item" datetime="25-01-08">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  4.1k  字
+              本文总共  2.0k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 12 分钟
+              阅读全文大约需要 6 分钟
             </span>
             
               <span class="post-meta-item">
@@ -224,146 +222,111 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="背景">背景</h1>
-<p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
-
-<blockquote>
-  <p>本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化， B本人进入公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
-且对比 Tcp 来看，webtransport-go 带来的性能消耗是 tcp 的 5 倍以上。</p>
+            <blockquote>
+  <p>公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。</p>
 </blockquote>
 
-<h2 id="为什么不直接使用-quic-go">为什么不直接使用 quic-go</h2>
-
-<p>因为 quic 虽然也是可靠传输，但是 quic 暂不支持通过 Url 来携带业务测参数，如：vhost、token 等的。</p>
-
-<h1 id="初始化">初始化</h1>
-<h2 id="代码下载">代码下载</h2>
-
-<p><code class="language-plaintext highlighter-rouge">git clone git@github.com:quic-go/webtransport-go.git</code></p>
-
-<p>拉取相关依赖仓库代码：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 进入代码目录
-cd webtransport-go
-
-# 通过 build 触发代码拉取
-go build webtransport_test.go
-</code></pre></div></div>
-
-<p>Golang 默认将代码存放在<code class="language-plaintext highlighter-rouge">$GOPATH</code>目录下，我的<code class="language-plaintext highlighter-rouge">GOPATH</code>环境变量配置为 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go</code>，那么拉取的依赖仓库 <code class="language-plaintext highlighter-rouge">quic-go</code> 的存放目录就是 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1</code>，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：<code class="language-plaintext highlighter-rouge">Add Folder to WorkSpace</code>，选择上述目录，即可一起查看 <code class="language-plaintext highlighter-rouge">quic-go</code> 相关的代码，如下：
-<img src="/assets/img/blog/vscode-go.jpg" alt=""></p>
-
-<h2 id="quic-go">Quic-go</h2>
-
-<p>Quic-go 作为 webtransport-go 的依赖仓库，提供 quic 的基础传输能力，但是其提供的传输配置能力非常有限，特别是作为发送端时，一些基础的 CWnd、Burst、Ack 等参数均不支持配置，接口文件为：
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/interface.go</code></p>
-
-<p>quic-go 内部相关参数主要位于：
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code>
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/protocol.go</code>
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/params.go</code></p>
-
-<h1 id="优化项">优化项</h1>
-
-<ul>
-  <li>初始化发送包数：</li>
-</ul>
-
-<p>文件：<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code> 中指定
-<code class="language-plaintext highlighter-rouge">const maxBurstSizePackets = 10</code>，在直播场景，I 帧切片后（1200Bytes/pkt）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
-该配置项生效后对秒开的影响较小，属于毫秒级别，原来可能受 pacer 控制在几个 timerGraulariry 中将一个关键帧发送完，该配置的理想效果是减少这几个 timerGraulariry 的延迟。</p>
-
-<ul>
-  <li>握手超时时间：
-应用层建议也是用 2 秒的配置。</li>
-</ul>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
-const DefaultHandshakeIdleTimeout = 5 * time.Second
-// 建议修改为 2 或者 3 秒，业务测可以快速重连，减少等待时间
-const DefaultHandshakeIdleTimeout = 2 * time.Second
-</code></pre></div></div>
-
-<ul>
-  <li>定时器精度</li>
-</ul>
-
-<p>最好是从系统中获取自己的定时器精度（一般是4ms），不建议使用 1 ms 这种精度，过于高频，无效的 cpu 消耗。</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
-const TimerGranularity = time.Millisecond
-// 建议值：动态获取系统定时器精度，或者 hardcode 为 4ms 或者 10ms
-const TimerGranularity = 4 * time.Millisecond
-</code></pre></div></div>
-
-<ul>
-  <li>转发模式</li>
-</ul>
-
-<p>目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。</p>
-
-<p>可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。</p>
-
-<h1 id="faq">FAQ</h1>
-
-<h2 id="webtransport-是否是整帧的收发">Webtransport 是否是整帧的收发？</h2>
-
-<p>不是，websocket 在发送大的数据帧时，会通过 FIN 标记位是否为 1 标记为该 Frame 是否结束，而 WebTransport 中是基于流的传输，需要应用层自行组装完整的数据帧。
-<a href="https://www.ietf.org/archive/id/draft-ietf-webtrans-overview-05.html#name-conventions-and-definitions-8" rel="nofollow" target="_blank" class="extlinks">ref link</a></p>
-
 <blockquote>
-  <p>A stream is a sequence of bytes that is reliably delivered to the receiving application in the same order as it was transmitted by the sender. Streams can be of arbitrary length, and therefore cannot always be buffered entirely in memory. WebTransport protocols and APIs are expected to provide partial stream data to the application before the stream has been entirely received.</p>
+  <p>如下所有操作均使用 <code class="language-plaintext highlighter-rouge">root</code> 权限。</p>
 </blockquote>
 
-<h2 id="bbr-sender-配置-startup-的较大带宽但是-max-burst-send-packets-number-却较小能将关键帧的几个切片一次性发送出去吗">BBR sender 配置 startup 的较大带宽，但是 max burst send packets number 却较小，能将关键帧的几个切片一次性发送出去吗？</h2>
+<blockquote>
+  <p>记录该过程主要是因为想当然的以为网关地址就是同网段的 .1，导致配置后网络不通，通过 <code class="language-plaintext highlighter-rouge">ip route</code> 查询后方可。</p>
+</blockquote>
 
-<p><code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code></p>
+<h1 id="查看当前-ip">查看当前 IP</h1>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        p := &amp;pacer{
-                maxDatagramSize: initialMaxDatagramSize,
-                adjustedBandwidth: func() uint64 {
-                        // Bandwidth is in bits/s. We need the value in bytes/s.
-                        bw := uint64(getBandwidth() / BytesPerSecond)
-                        // Use a slightly higher value than the actual measured bandwidth.
-                        // RTT variations then won't result in under-utilization of the congestion window.
-                        // Ultimately, this will result in sending packets as acknowledgments are received rather than when timers fire,
-                        // provided the congestion window is fully utilized and acknowledgments arrive at regular intervals.
-                        return bw * 5 / 4
-                },
-        }
-        p.budgetAtLastSent = p.maxBurstSize()
-        return p
-}
+<p>系统默认开启 DHCP，自动获取 IP，且查看 IP 不再默认支持<code class="language-plaintext highlighter-rouge">ifconfig</code>命令，需要 <code class="language-plaintext highlighter-rouge">ip addr show</code>进行查看。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: eno1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 2c:f0:5d:2b:11:31 brd ff:ff:ff:ff:ff:ff
+    altname enp0s31f6
+    inet 100.100.57.20/23 brd 100.100.57.255 scope global noprefixroute eno1
+       valid_lft forever preferred_lft forever
 </code></pre></div></div>
 
-<p>而在初始化时，由于没有 smoothedRTT 的有效值，所以初始化为 <code class="language-plaintext highlighter-rouge">infBandwidth</code> (UINT64_MAX)，
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/bbr_sender.go</code></p>
+<p>可以看到自己的 IP 地址为<code class="language-plaintext highlighter-rouge">100.100.57.20</code>。</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (b *bbrSender) bandwidthEstimate() Bandwidth {
-        srtt := b.rttStats.SmoothedRTT()
-        if srtt == 0 {
-                // If we haven't measured an rtt, the bandwidth estimate is unknown.
-                return infBandwidth
-        }
-        bw := b.maxBandwidth.GetBest()
-        if bw == 0 {
-                return infBandwidth
-        }
-        return bw
-}
+<h1 id="配置静态-ip">配置静态 IP</h1>
+
+<p>ubuntu 18 以后版本开始使用<code class="language-plaintext highlighter-rouge">netplan</code>配置网卡信息，查看当前系统目录<code class="language-plaintext highlighter-rouge">/etc/netplan/</code>下具体配置文件名：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ls /etc/netplan
+$ 50-cloud-init.yaml
 </code></pre></div></div>
 
-<p>虽然初始化的 bandwidth 比较大，但是 pacer 在发送数据时依然会受限于 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 的配置，如下：</p>
+<blockquote>
+  <p>编辑前建议先进行备份。</p>
+</blockquote>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (p *pacer) maxBurstSize() protocol.ByteCount {
-        return utils.Max(
-                protocol.ByteCount(uint64((protocol.MinPacingDelay+protocol.TimerGranularity).Nanoseconds())*p.adjustedBandwidth())/1e9,
-                maxBurstSizePackets*p.maxDatagramSize,
-        )
-}
+<p><strong>默认配置：</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    ethernets:
+        eno1:
+            dhcp4: true
+    version: 2
 </code></pre></div></div>
 
-<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>
+<p><strong>查询路由</strong></p>
+
+<p>通过<code class="language-plaintext highlighter-rouge">ip route</code>获取当前路由地址：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ip route
+$ default via 100.100.56.254 dev eno1 proto static metric 100
+$ default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+$ 100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+</code></pre></div></div>
+
+<p>可以看到默认路由地址为<code class="language-plaintext highlighter-rouge">100.100.56.254</code>。</p>
+
+<p><strong>配置文件</strong></p>
+
+<p><code class="language-plaintext highlighter-rouge">vim /etc/netplan/50-cloud-init.yaml</code>进行编辑,最终内容如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    version: 2
+    ethernets:
+        eno1:
+            dhcp4: no
+            addresses:
+             - 100.100.57.20/23
+            routes:
+              - to: default
+                via: 100.100.56.254
+            nameservers:
+              addresses:
+                - 8.8.8.8
+                - 8.8.4.4
+</code></pre></div></div>
+
+<blockquote>
+  <p>注意缩进的格式和位置，不能使用<code class="language-plaintext highlighter-rouge">tab</code>只能用空格进行缩进。</p>
+</blockquote>
+
+<p><strong>应用</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netplan apply
+</code></pre></div></div>
+
+<p>如果没有格式错误的话，便没有任何输出，否则提示格式错误。
+至此配置成功，通过<code class="language-plaintext highlighter-rouge">ip addr show</code>查看确认。</p>
 
 
             <div class="post-copyright">
@@ -380,15 +343,15 @@ const TimerGranularity = 4 * time.Millisecond
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 webtransport-go 在直播场景下的优化 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" class="cplink">https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html</a></p>
+              <p><span>本文标题：</span>《 Ubuntu24.04 配置静态 IP 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html" class="cplink">https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('背景')">背景</a><ul><li><a onclick="scrollToAdjust('为什么不直接使用-quic-go')">为什么不直接使用 quic-go</a></li></ul></li><li><a onclick="scrollToAdjust('初始化')">初始化</a><ul><li><a onclick="scrollToAdjust('代码下载')">代码下载</a></li><li><a onclick="scrollToAdjust('quic-go')">Quic-go</a></li></ul></li><li><a onclick="scrollToAdjust('优化项')">优化项</a></li><li><a onclick="scrollToAdjust('faq')">FAQ</a><ul><li><a onclick="scrollToAdjust('webtransport-是否是整帧的收发？')">Webtransport 是否是整帧的收发？</a></li><li><a onclick="scrollToAdjust('bbr-sender-配置-startup-的较大带宽，但是-max-burst-send-packets-number-却较小，能将关键帧的几个切片一次性发送出去吗？')">BBR sender 配置 startup 的较大带宽，但是 max burst send packets number 却较小，能将关键帧的几个切片一次性发送出去吗？</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('查看当前-ip')">查看当前 IP</a></li><li><a onclick="scrollToAdjust('配置静态-ip')">配置静态 IP</a></li></ul>
         </div>
       </div>
       
@@ -442,25 +405,13 @@ const TimerGranularity = 4 * time.Millisecond
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/notes/ubuntu24.04-static-ip.html" class="read-next-link" aria-label="Ubuntu24.04 配置静态 IP"></a>
-          <section>
-            <span>Ubuntu24.04 配置静态 IP</span>
-            <p>  公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的...</p>
-          </section>
-          
-          <div class="filter"></div>
-          <img src="/assets/img/shan.jpg" alt="">
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/notes/srs-on-arm.html" class="read-next-link" aria-label="移植裁剪 srs 到 ARMv64 系统设备"></a>
+          <a href="/protocol/webtransport-go-optimze-for-livestream.html" class="read-next-link" aria-label="webtransport-go 在直播场景下的优化"></a>
             <section>
-              <span>移植裁剪 srs 到 ARMv64 系统设备</span>
-              <p>SRS 版本</p>
+              <span>webtransport-go 在直播场景下的优化</span>
+              <p>背景公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然...</p>
             </section>
             
             <div class="filter"></div>
@@ -479,7 +430,7 @@ const TimerGranularity = 4 * time.Millisecond
   
   <script>
     var gitalk = new Gitalk({
-      id: '2025-01-07 00:00:00 +0000',
+      id: '2025-01-08 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -692,7 +643,7 @@ const TimerGranularity = 4 * time.Millisecond
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/2025-01-07-webtransport-go-optimze-for-livestream.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-08-ubuntu24.04-static-ip.md")
           .then((response) => {
             return response.json();
           })

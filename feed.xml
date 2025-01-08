@@ -1,4 +1,108 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-07T14:14:20+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-08T05:45:09+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Ubuntu24.04 配置静态 IP</title><link href="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html" rel="alternate" type="text/html" title="Ubuntu24.04 配置静态 IP" /><published>2025-01-08T00:00:00+00:00</published><updated>2025-01-08T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/ubuntu24.04-static-ip</id><content type="html" xml:base="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html"><![CDATA[<blockquote>
+  <p>公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。</p>
+</blockquote>
+
+<blockquote>
+  <p>如下所有操作均使用 <code class="language-plaintext highlighter-rouge">root</code> 权限。</p>
+</blockquote>
+
+<blockquote>
+  <p>记录该过程主要是因为想当然的以为网关地址就是同网段的 .1，导致配置后网络不通，通过 <code class="language-plaintext highlighter-rouge">ip route</code> 查询后方可。</p>
+</blockquote>
+
+<h1 id="查看当前-ip">查看当前 IP</h1>
+
+<p>系统默认开启 DHCP，自动获取 IP，且查看 IP 不再默认支持<code class="language-plaintext highlighter-rouge">ifconfig</code>命令，需要 <code class="language-plaintext highlighter-rouge">ip addr show</code>进行查看。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: eno1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 2c:f0:5d:2b:11:31 brd ff:ff:ff:ff:ff:ff
+    altname enp0s31f6
+    inet 100.100.57.20/23 brd 100.100.57.255 scope global noprefixroute eno1
+       valid_lft forever preferred_lft forever
+</code></pre></div></div>
+
+<p>可以看到自己的 IP 地址为<code class="language-plaintext highlighter-rouge">100.100.57.20</code>。</p>
+
+<h1 id="配置静态-ip">配置静态 IP</h1>
+
+<p>ubuntu 18 以后版本开始使用<code class="language-plaintext highlighter-rouge">netplan</code>配置网卡信息，查看当前系统目录<code class="language-plaintext highlighter-rouge">/etc/netplan/</code>下具体配置文件名：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ls /etc/netplan
+$ 50-cloud-init.yaml
+</code></pre></div></div>
+
+<blockquote>
+  <p>编辑前建议先进行备份。</p>
+</blockquote>
+
+<p><strong>默认配置：</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    ethernets:
+        eno1:
+            dhcp4: true
+    version: 2
+</code></pre></div></div>
+
+<p><strong>查询路由</strong></p>
+
+<p>通过<code class="language-plaintext highlighter-rouge">ip route</code>获取当前路由地址：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ip route
+$ default via 100.100.56.254 dev eno1 proto static metric 100
+$ default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+$ 100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+</code></pre></div></div>
+
+<p>可以看到默认路由地址为<code class="language-plaintext highlighter-rouge">100.100.56.254</code>。</p>
+
+<p><strong>配置文件</strong></p>
+
+<p><code class="language-plaintext highlighter-rouge">vim /etc/netplan/50-cloud-init.yaml</code>进行编辑,最终内容如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    version: 2
+    ethernets:
+        eno1:
+            dhcp4: no
+            addresses:
+             - 100.100.57.20/23
+            routes:
+              - to: default
+                via: 100.100.56.254
+            nameservers:
+              addresses:
+                - 8.8.8.8
+                - 8.8.4.4
+</code></pre></div></div>
+
+<blockquote>
+  <p>注意缩进的格式和位置，不能使用<code class="language-plaintext highlighter-rouge">tab</code>只能用空格进行缩进。</p>
+</blockquote>
+
+<p><strong>应用</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netplan apply
+</code></pre></div></div>
+
+<p>如果没有格式错误的话，便没有任何输出，否则提示格式错误。
+至此配置成功，通过<code class="language-plaintext highlighter-rouge">ip addr show</code>查看确认。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。]]></summary></entry><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
 <p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
 
 <blockquote>
@@ -757,79 +861,4 @@ Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">tim
 Float / Int radio: 62
 </code></pre></div></div>
 
-<p>由于不同的 CPU 和体系架构对 FPU 支持情况的不同，以及不同的运算方法对结果也有很大的影响， 比如 加、减、乘、除，以及系数的不同：大于 1 或者小于 1 等均有不同的结果，上述结论为选择了较为复杂的计算场景，仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Tech" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry><entry><title type="html">float 和 int 在 Linux 下的计算性能对比</title><link href="https://gbcpp.github.io/notes/float-performance.html" rel="alternate" type="text/html" title="float 和 int 在 Linux 下的计算性能对比" /><published>2023-10-30T00:00:00+00:00</published><updated>2023-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/float-performance</id><content type="html" xml:base="https://gbcpp.github.io/notes/float-performance.html"><![CDATA[<h1 id="linux下-float-与-int-类型计算性能对比">Linux下 Float 与 Int 类型计算性能对比</h1>
-
-<h2 id="代码">代码</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;time.h&gt;</span><span class="cp">
-</span>
-<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
-</span>
-<span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int64_t</span> <span class="n">kCalculateNum</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mi">1000L</span><span class="p">;</span>
-
-<span class="k">static</span> <span class="kt">int64_t</span> <span class="nf">testFloat</span><span class="p">()</span>  <span class="c1">// return void* in POSIX</span>
-<span class="p">{</span>
-  <span class="k">struct</span> <span class="nc">timespec</span> <span class="n">start_ts</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">;</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start_ts</span><span class="p">);</span>
-  <span class="k">volatile</span> <span class="kt">float</span> <span class="n">d</span> <span class="o">=</span> <span class="mf">999999.</span><span class="n">f</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">kCalculateNum</span><span class="p">;</span> <span class="o">++</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="mf">0.7</span><span class="n">f</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end_ts</span><span class="p">);</span>
-  <span class="k">auto</span> <span class="n">diff_ns</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span> <span class="o">+</span>
-                 <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_nsec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">diff_ns</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">static</span> <span class="kt">int64_t</span> <span class="nf">testInt</span><span class="p">()</span>  <span class="c1">// return void* in POSIX</span>
-<span class="p">{</span>
-  <span class="k">struct</span> <span class="nc">timespec</span> <span class="n">start_ts</span><span class="p">,</span> <span class="n">end_ts</span><span class="p">;</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start_ts</span><span class="p">);</span>
-  <span class="k">volatile</span> <span class="kt">int32_t</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">999999</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">kCalculateNum</span><span class="p">;</span> <span class="o">++</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span> <span class="o">=</span> <span class="n">d</span> <span class="o">*</span> <span class="mi">7</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">clock_gettime</span><span class="p">(</span><span class="n">CLOCK_MONOTONIC</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">end_ts</span><span class="p">);</span>
-  <span class="k">auto</span> <span class="n">diff_ns</span> <span class="o">=</span> <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_sec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e9</span> <span class="o">+</span>
-                 <span class="p">(</span><span class="n">end_ts</span><span class="p">.</span><span class="n">tv_nsec</span> <span class="o">-</span> <span class="n">start_ts</span><span class="p">.</span><span class="n">tv_nsec</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">diff_ns</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">auto</span> <span class="n">float_duration_us</span> <span class="o">=</span> <span class="n">testFloat</span><span class="p">();</span>
-  <span class="k">auto</span> <span class="n">int_duration_us</span> <span class="o">=</span> <span class="n">testInt</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Float calculate times: "</span> <span class="o">&lt;&lt;</span> <span class="n">kCalculateNum</span>
-            <span class="o">&lt;&lt;</span> <span class="s">" took time: "</span> <span class="o">&lt;&lt;</span> <span class="n">float_duration_us</span> <span class="o">&lt;&lt;</span> <span class="s">"us.</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Int calculate times: "</span> <span class="o">&lt;&lt;</span> <span class="n">kCalculateNum</span>
-            <span class="o">&lt;&lt;</span> <span class="s">" took time: "</span> <span class="o">&lt;&lt;</span> <span class="n">int_duration_us</span> <span class="o">&lt;&lt;</span> <span class="s">"us.</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Float / Int radio: "</span>
-            <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">float_duration_us</span> <span class="o">/</span> <span class="n">int_duration_us</span> <span class="o">*</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="执行结果">执行结果</h2>
-
-<ul>
-  <li>编译</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ test_float.cpp <span class="nt">-g3</span> <span class="nt">-o</span> test_float.exe
-</code></pre></div></div>
-
-<ul>
-  <li>结果</li>
-</ul>
-
-<p>多次执行，结果相当，计算 float 类型耗时大约是 int 整形的 62倍，即性能是 int 的 1/62 左右。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobert@DESKTOP-EJV14VH:~/develop/debug<span class="nv">$ </span>g++ test_float.cpp <span class="nt">-g3</span> <span class="nt">-o</span> test_float.exe
-gobert@DESKTOP-EJV14VH:~/develop/debug<span class="nv">$ </span>./test_float.exe
-Float calculate <span class="nb">times</span>: 100000000 took <span class="nb">time</span>: 2537060us.
-Int calculate <span class="nb">times</span>: 100000000 took <span class="nb">time</span>: 40442us.
-Float / Int radio: 62
-</code></pre></div></div>
-
-<p>以上仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry></feed>
+<p>由于不同的 CPU 和体系架构对 FPU 支持情况的不同，以及不同的运算方法对结果也有很大的影响， 比如 加、减、乘、除，以及系数的不同：大于 1 或者小于 1 等均有不同的结果，上述结论为选择了较为复杂的计算场景，仅供参考！！</p>]]></content><author><name>Mr Chen</name></author><category term="Tech" /><category term="Linux" /><category term="float" /><summary type="html"><![CDATA[Linux下 Float 与 Int 类型计算性能对比]]></summary></entry></feed>

@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "Ubuntu24.04 配置静态 IP",
+    "tags"     : "Life",
+    "url"      : "/notes/ubuntu24.04-static-ip.html"
+  } ,
+
+  {
     "title"    : "webtransport-go 在直播场景下的优化",
     "tags"     : "Protocol",
     "url"      : "/protocol/webtransport-go-optimze-for-livestream.html"
