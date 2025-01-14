@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "直播场景秒开 TCP 优化",
+    "tags"     : "Life Protocol",
+    "url"      : "/notes/tcp-optimize-livestream-scene.html"
+  } ,
+
+  {
     "title"    : "Ubuntu24.04 配置静态 IP",
     "tags"     : "Life",
     "url"      : "/notes/ubuntu24.04-static-ip.html"

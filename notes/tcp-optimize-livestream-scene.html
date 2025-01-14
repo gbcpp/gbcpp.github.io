@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直播场景秒开 TCP 优化 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="直播场景秒开 TCP 优化">
+    <meta name="keywords"  content="Life, Protocol">
+    <!-- Open Graph -->
+    <meta property="og:title" content="直播场景秒开 TCP 优化 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/notes/ubuntu24.04-static-ip.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-01-10 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Life" class="post-tag">Life</a>
+            
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+            
+          
+        </div>
+        <h1>直播场景秒开 TCP 优化</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-01-10">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="25-01-10">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  9.1k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 27 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <blockquote>
+  <p>当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现主要问题出在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(RTMP/HTTP-FLV/HLS等），并且 Player 是 Web 平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接质量，尽量加快 TCP 的建连速度，以及关键帧的下发速度。</p>
+</blockquote>
+
+<h2 id="现状">现状</h2>
+
+<p>公司使用静态节点和动态节点作为边缘以节省成本，且多种业务集中进行混布，其中动态节点质量较差，但成本较低，也是导致问题的关键所在，在对Linux 内核的升级和参数调整操作上一定要慎重。</p>
+
+<p><strong>当前动态节点版本及相关配置：</strong></p>
+
+<ul>
+  <li>内核版本：5.4.119-19-0006</li>
+  <li>见下面章节</li>
+</ul>
+
+<h2 id="优化验证">优化验证</h2>
+
+<h3 id="环境准备">环境准备</h3>
+
+<p>#### TC 配置</p>
+
+<p>首先安装 tc 工具，系统默认不安装：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> iproute2
+
+tc <span class="nt">--version</span>
+</code></pre></div></div>
+
+<p><strong>启动配置网损:</strong></p>
+
+<p>比如配置 <code class="language-plaintext highlighter-rouge">lo</code> 网卡 50～150ms 左右的延迟，且包含 0～15% 的一个随机丢包，配置如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>su
+<span class="nv">$ </span>tc qdisc add dev lo root netem delay 50ms 25ms distribution normal loss random 0% 15%
+
+<span class="c"># 查看配置是否生效</span>
+<span class="nv">$ </span>tc qdisc show dev lo
+  qdisc netem 8002: root refcnt 2 limit 1000 delay 50ms  25ms
+</code></pre></div></div>
+
+<p><strong>验证：</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>ping 127.0.0.1 <span class="nt">-i</span> 0.2
+PING 127.0.0.1 <span class="o">(</span>127.0.0.1<span class="o">)</span> 56<span class="o">(</span>84<span class="o">)</span> bytes of data.
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>1 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>102 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>2 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>115 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>3 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>175 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>4 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>80.4 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>5 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>55.7 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>6 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>118 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>7 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>95.2 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>8 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>106 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>9 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>113 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>10 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>48.2 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>11 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>108 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>12 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>164 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>13 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>50.0 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>14 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>207 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>15 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>56.3 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>16 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>137 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>17 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>92.5 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>18 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>141 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>19 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>154 ms
+64 bytes from 127.0.0.1: <span class="nv">icmp_seq</span><span class="o">=</span>20 <span class="nv">ttl</span><span class="o">=</span>64 <span class="nb">time</span><span class="o">=</span>141 ms
+<span class="nt">---</span> 127.0.0.1 ping statistics <span class="nt">---</span>
+21 packets transmitted, 20 received, 4.7619% packet loss, <span class="nb">time </span>4016ms
+rtt min/avg/max/mdev <span class="o">=</span> 48.201/113.013/207.390/42.338 ms, pipe 2
+</code></pre></div></div>
+
+<p><strong>恢复：</strong></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 删除配置
+$ tc qdisc del dev lo root
+</code></pre></div></div>
+
+<p><strong>注意：</strong> 不要无脑 copy 别人的 tc 配置命令，使用了 <code class="language-plaintext highlighter-rouge">channge</code> 而非 <code class="language-plaintext highlighter-rouge">add</code>，导致 <code class="language-plaintext highlighter-rouge">Error: Qdisc not found. To create specify NLM_F_CREATE flag.</code> 报错，还以为内核缺少 sch_netem 模块，差点重新安装完整内核。
+可以通过命令：<code class="language-plaintext highlighter-rouge">modinfo sch_netem</code> 查看系统是否已经安装有 <code class="language-plaintext highlighter-rouge">sche_netem</code> 模块，如果没有就会报错，有的话会有模块信息输出：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>filename:       /lib/modules/6.8.0-51-generic/kernel/net/sched/sch_netem.ko.zst
+description:    Network characteristics emulator qdisc
+license:        GPL
+srcversion:     7631AD62974660130A36DCA
+depends:
+retpoline:      Y
+intree:         Y
+name:           sch_netem
+vermagic:       6.8.0-51-generic SMP preempt mod_unload modversions
+sig_id:         PKCS#7
+signer:         Build <span class="nb">time </span>autogenerated kernel key
+sig_key:        29:0D:80:5A:E0:B3:D6:D4:D4:D3:D0:EF:AB:48:F3:DB:73:58:2F:63
+sig_hashalgo:   sha512
+signature:      03:A4:1E:0E:CA:01:0F:58:3E:93:93:A7:25:97:FC:82:3E:4F:60:CA:
+                00:84:75:DF:A3:20:F7:1B:92:9D:B1:58:6D:E2:47:92:84:83:00:FD:
+                88:31:2B:84:32:FE:04:38:1F:24:FB:3E:D0:38:75:35:DB:11:C4:EE:
+                19:B8:C1:1F:FE:B8:77:AF:AA:4B:DE:05:E7:5F:53:A4:79:65:B4:C7:
+                1F:A1:6D:46:70:FA:26:00:5D:B1:08:F2:52:DD:2F:EF:AD:6E:B3:0C:
+                E6:FA:9A:9A:C2:9D:00:E0:EA:D2:D2:FE:F1:40:3B:32:E3:09:20:27:
+                CB:A9:8C:7E:0A:A7:2E:E4:F1:EE:89:3E:59:71:81:91:2F:CA:02:77:
+                84:8B:68:92:E5:2F:CF:45:8E:31:5C:BD:54:99:0D:3E:72:55:85:79:
+                A8:D6:A5:8E:EA:9A:32:21:1D:EB:28:4F:C4:54:36:1F:33:EC:82:61:
+                D9:0A:DC:B7:CD:17:9B:A5:1A:89:78:94:93:42:6D:25:29:A0:E8:CD:
+                7E:22:C6:BE:2F:7E:1F:E6:06:43:E3:33:2E:6F:19:1B:E8:22:45:BB:
+                FC:F2:C2:A3:2D:31:F6:A3:80:19:8A:64:54:7A:BF:9C:BE:A1:D6:1B:
+                2F:85:E7:F0:45:90:BC:52:42:4B:DE:5E:B5:DE:9A:1E:92:F7:F5:B3:
+                9D:D5:52:03:C6:DC:2E:43:F2:4E:C6:3E:10:A0:F8:4F:24:99:66:06:
+                A5:B8:48:3C:2D:AF:41:D7:84:F4:2A:61:66:3A:D2:6F:13:EA:67:5F:
+                A5:DF:D3:36:F7:94:0C:85:AD:6E:CA:D7:56:E2:22:CD:AF:8A:33:25:
+                41:86:10:A3:DC:47:56:DF:00:67:2D:DE:2D:66:B8:21:DF:4B:E5:B0:
+                62:CC:44:7D:2F:49:C4:FD:BE:ED:35:98:C8:7E:2E:8B:27:62:32:4E:
+                3A:8C:24:A9:CF:3F:69:FC:08:F9:D6:55:B1:2D:56:FB:27:8E:71:BB:
+                7A:20:1C:45:77:0E:B7:83:B9:82:A4:F9:BD:C4:F1:C7:0F:6B:FB:B0:
+                3D:A9:AC:A6:4B:F2:2D:AA:E0:8B:89:84:9E:35:9A:EB:C3:8A:B8:53:
+                4D:A5:B3:AD:8A:2C:28:41:E7:EC:CA:46:3F:03:1C:D2:C3:EA:4E:1B:
+                05:24:07:9D:A7:8A:67:58:02:9B:69:3C:ED:27:A2:33:44:4F:9A:DD:
+                3D:99:D5:20:A2:AA:31:9E:9A:00:A2:F9:63:7A:F7:1A:C9:4F:9A:A7:
+                F9:26:F4:F6:0B:38:BF:8A:7B:75:2B:B1:37:6C:12:4B:A0:01:E8:29:
+                E0:CF:97:54:EA:1D:ED:B9:1C:D2:6F:A8
+</code></pre></div></div>
+
+<h4 id="netperf">NetPerf</h4>
+
+<ul>
+  <li>启动 netserver</li>
+</ul>
+
+<p>启动 <code class="language-plaintext highlighter-rouge">netserver</code>, <code class="language-plaintext highlighter-rouge">netserver</code> 与 <code class="language-plaintext highlighter-rouge">netperf</code> 是同一套 Tools，只是 server 测启动命令：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>~<span class="nv">$ </span>netserver <span class="nt">-h</span>
+
+Usage: netserver <span class="o">[</span>options]
+
+Options:
+    <span class="nt">-h</span>                Display this text
+    <span class="nt">-D</span>                Do not daemonize
+    <span class="nt">-d</span>                Increase debugging output
+    <span class="nt">-f</span>                Do not spawn chilren <span class="k">for </span>each <span class="nb">test</span>, run serially
+    <span class="nt">-L</span> name,family    Use name to pick listen address and family <span class="k">for </span>family
+    <span class="nt">-N</span>                No debugging output, even <span class="k">if </span>netperf asks
+    <span class="nt">-p</span> portnum        Listen <span class="k">for </span>connect requests on portnum.
+    <span class="nt">-4</span>                Do IPv4
+    <span class="nt">-6</span>                Do IPv6
+    <span class="nt">-v</span> verbosity      Specify the verbosity level
+    <span class="nt">-V</span>                Display version information and <span class="nb">exit</span>
+    <span class="nt">-Z</span> passphrase     Expect passphrase as the first thing received
+
+
+<span class="c"># 启动命令</span>
+<span class="nv">$ </span>~<span class="nv">$ </span><span class="nb">sudo </span>netserver <span class="nt">-p</span> 1234 <span class="nt">-D</span> <span class="nt">-4</span>
+check_if_inetd: enter
+setup_listens: enter
+create_listens: called with host <span class="s1">'0.0.0.0'</span> port <span class="s1">'1234'</span> family AF_INET<span class="o">(</span>2<span class="o">)</span>
+getaddrinfo returned the following <span class="k">for </span>host <span class="s1">'0.0.0.0'</span> port <span class="s1">'1234'</span>  family AF_INET
+        cannonical name: <span class="s1">'(nil)'</span>
+        flags: 1 family: AF_INET: socktype: SOCK_STREAM protocol IPPROTO_TCP addrlen 16
+        sa_family: AF_INET sadata: 4 210 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+Starting netserver with host <span class="s1">'IN(6)ADDR_ANY'</span> port <span class="s1">'1234'</span> and family AF_INET
+accept_connections: enter
+set_fdset: enter list 0x5f3130ac4740 fd_set 0x7fff92fb9450
+setting 3 <span class="k">in </span>fdset
+
+</code></pre></div></div>
+
+<p>使 <code class="language-plaintext highlighter-rouge">netserver</code> 监听在 1234 端口上，并指定 IPv4 协议，-D 表示不在后台运行。</p>
+
+<ul>
+  <li>启动 Client</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netperf <span class="nt">-H</span> 127.0.0.1  <span class="nt">-p</span> 1234 <span class="nt">-l</span> 10  <span class="nt">-t</span> TCP_CRR <span class="nt">--</span> <span class="nt">-r</span> 100,3000000
+</code></pre></div></div>
+
+<p>参数说明：
+-H： 指定 server 的 IP 地址
+-p： 指定 server 的 port
+-l： 指定测试运行多长时间，单位：秒
+-t： 运行模式，我们使用 <code class="language-plaintext highlighter-rouge">TCP_CRR</code> 来模拟 client 请求与 server 建连以后，由server 下发一定的数据量以后，关闭连接的这种 request/response 模式
+-r： 分别指定 request 和 response 的字节数大小</p>
+
+<h3 id="当前内核参数配置记录">当前内核参数配置记录</h3>
+
+<p>记录下当前内核参数中与 tcp 相关的配置，并获取当前配置的 Benchmark 数据，用以在后续的优化中进行对比。
+首先直接用 <code class="language-plaintext highlighter-rouge">netperf</code> 执行 20分钟的测试数据获取：</p>
+
+<p>首先获取下当前测试流的关键帧的大小用以模拟尽量贴近实际业务场景的模拟：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 首先 dump 到本地</span>
+ffmpeg <span class="nt">-i</span> http://xxxx/yyyyy/zzzzzzz.flv <span class="nt">-c</span> copy  1.flv
+
+<span class="c"># 然后获取该片段的的首个关键帧的大小</span>
+ffmpeg <span class="nt">-i</span> 1.flv <span class="nt">-frames</span>:v 1 <span class="nt">-f</span> image2pipe <span class="nt">-vcodec</span> mjpeg - | <span class="nb">wc</span> <span class="nt">-c</span>
+
+<span class="c"># 可以看到最后输出的为：117118，即 114KB 左右。</span>
+</code></pre></div></div>
+
+<p>netperf 模拟 Player 请求下发直播数据，这里设置让 server 一次性下发 300KB 的数据，同时假设 Client 的 request 默认为 1KB,
+测试 20分钟，命令如下：</p>
+
+<p><strong>BenchMark：</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>~<span class="nv">$ </span>netperf <span class="nt">-H</span> 127.0.0.1  <span class="nt">-p</span> 1234 <span class="nt">-l</span> 1200  <span class="nt">-t</span> TCP_CRR <span class="nt">--</span> <span class="nt">-r</span> 1000,3000000
+MIGRATED TCP Connect/Request/Response TEST from 0.0.0.0 <span class="o">(</span>0.0.0.0<span class="o">)</span> port 0 AF_INET to 127.0.0.1 <span class="o">()</span> port 0 AF_INET : demo
+Local /Remote
+Socket Size   Request  Resp.   Elapsed  Trans.
+Send   Recv   Size     Size    Time     Rate
+bytes  Bytes  bytes    bytes   secs.    per sec
+
+16384  131072 100      3000000  100.01      0.79
+16384  131072
+</code></pre></div></div>
+
+<blockquote>
+  <p>上述测试数据输出的 <code class="language-plaintext highlighter-rouge">Local /Remote</code> 可以看到在下面多出一行，分别表示的是 local 和 remote 的 socket send and recv buffer’s bytes。
+最后一列 <code class="language-plaintext highlighter-rouge">Trans</code> 表示的便是在测试的这段时间内平均每秒钟可以执行了多少次请求，即 0.79 次，相当于 Qps，越大说明效率越高。</p>
+</blockquote>
+
+<h2 id="tcp-优化记录">TCP 优化记录：</h2>
+
+<h3 id="当前默认内核参数配置">当前默认内核参数配置</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@XXXLink64 ~]# sysctl <span class="nt">-a</span> | <span class="nb">grep</span> <span class="s2">"net</span><span class="se">\.</span><span class="s2">ipv4</span><span class="se">\.</span><span class="s2">tcp"</span>
+
+net.ipv4.tcp_abort_on_overflow <span class="o">=</span> 0
+net.ipv4.tcp_adv_win_scale <span class="o">=</span> 1
+net.ipv4.tcp_allowed_congestion_control <span class="o">=</span> reno cubic bbr
+net.ipv4.tcp_app_win <span class="o">=</span> 31
+net.ipv4.tcp_autocorking <span class="o">=</span> 1
+net.ipv4.tcp_available_congestion_control <span class="o">=</span> reno cubic bbr
+net.ipv4.tcp_available_ulp <span class="o">=</span> 
+net.ipv4.tcp_base_mss <span class="o">=</span> 1024
+net.ipv4.tcp_challenge_ack_limit <span class="o">=</span> 1000
+net.ipv4.tcp_comp_sack_delay_ns <span class="o">=</span> 1000000
+net.ipv4.tcp_comp_sack_nr <span class="o">=</span> 44
+net.ipv4.tcp_congestion_control <span class="o">=</span> cubic
+net.ipv4.tcp_dsack <span class="o">=</span> 1
+net.ipv4.tcp_early_demux <span class="o">=</span> 1
+net.ipv4.tcp_early_retrans <span class="o">=</span> 3
+net.ipv4.tcp_ecn <span class="o">=</span> 2
+net.ipv4.tcp_ecn_fallback <span class="o">=</span> 1
+net.ipv4.tcp_fack <span class="o">=</span> 0
+net.ipv4.tcp_fastopen <span class="o">=</span> 1
+net.ipv4.tcp_fastopen_blackhole_timeout_sec <span class="o">=</span> 3600
+net.ipv4.tcp_fastopen_key <span class="o">=</span> 5b1b3bb0-e9881f5a-8bf3fda0-1c410b36
+net.ipv4.tcp_fin_timeout <span class="o">=</span> 30
+net.ipv4.tcp_frto <span class="o">=</span> 2
+net.ipv4.tcp_fwmark_accept <span class="o">=</span> 0
+net.ipv4.tcp_inherit_buffsize <span class="o">=</span> 1
+net.ipv4.tcp_init_cwnd <span class="o">=</span> 15
+net.ipv4.tcp_init_rto <span class="o">=</span> 1000
+net.ipv4.tcp_invalid_ratelimit <span class="o">=</span> 500
+net.ipv4.tcp_keepalive_intvl <span class="o">=</span> 75
+net.ipv4.tcp_keepalive_probes <span class="o">=</span> 9
+net.ipv4.tcp_keepalive_time <span class="o">=</span> 7200
+net.ipv4.tcp_l3mdev_accept <span class="o">=</span> 0
+net.ipv4.tcp_limit_output_bytes <span class="o">=</span> 1048576
+net.ipv4.tcp_loss_init_cwnd <span class="o">=</span> 10
+net.ipv4.tcp_low_latency <span class="o">=</span> 0
+net.ipv4.tcp_max_orphans <span class="o">=</span> 524288
+net.ipv4.tcp_max_reordering <span class="o">=</span> 300
+net.ipv4.tcp_max_syn_backlog <span class="o">=</span> 62144
+net.ipv4.tcp_max_tw_buckets <span class="o">=</span> 6000
+net.ipv4.tcp_mem <span class="o">=</span> 2621440      3932160 5242880
+net.ipv4.tcp_min_rtt_wlen <span class="o">=</span> 300
+net.ipv4.tcp_min_snd_mss <span class="o">=</span> 48
+net.ipv4.tcp_min_tso_segs <span class="o">=</span> 2
+net.ipv4.tcp_moderate_rcvbuf <span class="o">=</span> 1
+net.ipv4.tcp_mtu_probe_floor <span class="o">=</span> 48
+net.ipv4.tcp_mtu_probing <span class="o">=</span> 0
+net.ipv4.tcp_no_metrics_save <span class="o">=</span> 1
+net.ipv4.tcp_notsent_lowat <span class="o">=</span> 8388608
+net.ipv4.tcp_orphan_retries <span class="o">=</span> 0
+net.ipv4.tcp_pacing_ca_ratio <span class="o">=</span> 120
+net.ipv4.tcp_pacing_ss_ratio <span class="o">=</span> 200
+net.ipv4.tcp_probe_interval <span class="o">=</span> 600
+net.ipv4.tcp_probe_threshold <span class="o">=</span> 8
+net.ipv4.tcp_proc_sched <span class="o">=</span> 1
+net.ipv4.tcp_recovery <span class="o">=</span> 1
+net.ipv4.tcp_reordering <span class="o">=</span> 3
+net.ipv4.tcp_retrans_collapse <span class="o">=</span> 1
+net.ipv4.tcp_retries1 <span class="o">=</span> 5
+net.ipv4.tcp_retries2 <span class="o">=</span> 15
+net.ipv4.tcp_rfc1337 <span class="o">=</span> 0
+net.ipv4.tcp_rmem <span class="o">=</span> 131072      1048576 16384000
+net.ipv4.tcp_rto_max <span class="o">=</span> 120
+net.ipv4.tcp_rto_min <span class="o">=</span> 200
+net.ipv4.tcp_rx_skb_cache <span class="o">=</span> 0
+net.ipv4.tcp_sack <span class="o">=</span> 1
+net.ipv4.tcp_slow_start_after_idle <span class="o">=</span> 0
+net.ipv4.tcp_stdurg <span class="o">=</span> 0
+sysctl: net.ipv4.tcp_syn_retries <span class="o">=</span> 2
+net.ipv4.tcp_synack_retries <span class="o">=</span> 2
+reading key <span class="s2">"net.ipv6.conf.all.stable_secret"</span>net.ipv4.tcp_synack_rto_interval <span class="o">=</span> 200
+
+net.ipv4.tcp_syncookies <span class="o">=</span> 1
+net.ipv4.tcp_thin_linear_timeouts <span class="o">=</span> 0
+net.ipv4.tcp_timestamps <span class="o">=</span> 0
+net.ipv4.tcp_tso_win_divisor <span class="o">=</span> 3
+net.ipv4.tcp_tw_ignore_syn_tsval_zero <span class="o">=</span> 1
+net.ipv4.tcp_tw_reuse <span class="o">=</span> 1
+net.ipv4.tcp_tw_timeout <span class="o">=</span> 60
+net.ipv4.tcp_tx_skb_cache <span class="o">=</span> 0
+net.ipv4.tcp_wan_timestamps <span class="o">=</span> 0
+net.ipv4.tcp_window_scaling <span class="o">=</span> 1
+net.ipv4.tcp_wmem <span class="o">=</span> 4096000     16384000        32768000
+net.ipv4.tcp_workaround_signed_windows <span class="o">=</span> 0
+</code></pre></div></div>
+
+<h3 id="一优化-tcp-建连速度">一、优化 TCP 建连速度</h3>
+
+<p>以下均为仅优化单边的 Server 测参数。</p>
+
+<p>编辑 <code class="language-plaintext highlighter-rouge">/etc/sysctl.conf</code>，添加或修改如下参数：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 设置 tcp 拥塞算法为 bbr</span>
+net.ipv4.tcp_congestion_control <span class="o">=</span> bbr
+
+</code></pre></div></div>
+
+<p>使参数立即生效：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>sysctl <span class="nt">-p</span>
+</code></pre></div></div>
+
+<h4 id="测试结果">测试结果</h4>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>~<span class="nv">$ </span>netperf <span class="nt">-H</span> 127.0.0.1  <span class="nt">-p</span> 1234 <span class="nt">-l</span> 300  <span class="nt">-t</span> TCP_CRR <span class="nt">--</span> <span class="nt">-r</span> 1000,3000000
+MIGRATED TCP Connect/Request/Response TEST from 0.0.0.0 <span class="o">(</span>0.0.0.0<span class="o">)</span> port 0 AF_INET to 127.0.0.1 <span class="o">()</span> port 0 AF_INET : demo
+Local /Remote
+Socket Size   Request  Resp.   Elapsed  Trans.
+Send   Recv   Size     Size    Time     Rate
+bytes  Bytes  bytes    bytes   secs.    per sec
+
+436600 87380  100      3000000  300.00      1.06
+436600 87380
+</code></pre></div></div>
+
+<p>可以看到在开启了 bbr 拥塞算法后，<code class="language-plaintext highlighter-rouge">Trans</code> 由 0.79 升到了 1.06，有了明显的提升。
+但是实际优化数据不会这么明显，因为线上环境我们只能开启 server 测的 bbr，而无法控制 client 同时开启。</p>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 直播场景秒开 TCP 优化 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" class="cplink">https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化验证')">优化验证</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a><ul><li><a onclick="scrollToAdjust('netperf')">NetPerf</a></li></ul></li><li><a onclick="scrollToAdjust('当前内核参数配置记录')">当前内核参数配置记录</a></li></ul></li><li><a onclick="scrollToAdjust('tcp-优化记录')">TCP 优化记录：</a><ul><li><a onclick="scrollToAdjust('当前默认内核参数配置')">当前默认内核参数配置</a></li><li><a onclick="scrollToAdjust('一、优化-tcp-建连速度')">一、优化 TCP 建连速度</a><ul><li><a onclick="scrollToAdjust('测试结果')">测试结果</a></li></ul></li></ul></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/notes/ubuntu24.04-static-ip.html" class="read-next-link" aria-label="Ubuntu24.04 配置静态 IP"></a>
+            <section>
+              <span>Ubuntu24.04 配置静态 IP</span>
+              <p>  公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2025-01-10 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2025
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-10-tcp-optimize-livestream-scene.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
