@@ -1,6 +1,6 @@
 ---
 layout: post
-title: '直播场景秒开 TCP 优化'
+title: '直播场景TCP秒开优化'
 subtitle: 
 date: 2025-01-10
 author: Mr Chen
@@ -85,7 +85,7 @@ rtt min/avg/max/mdev = 48.201/113.013/207.390/42.338 ms, pipe 2
 
 **恢复：**
 
-```
+```bash
 # 删除配置
 $ tc qdisc del dev lo root
 ```
@@ -194,7 +194,7 @@ netperf -H 127.0.0.1  -p 1234 -l 10  -t TCP_CRR -- -r 100,3000000
 -r： 分别指定 request 和 response 的字节数大小
 
 
-### 当前内核参数配置记录
+### 默认配置Benchmark
 
 记录下当前内核参数中与 tcp 相关的配置，并获取当前配置的 Benchmark 数据，用以在后续的优化中进行对比。
 首先直接用 `netperf` 执行 20分钟的测试数据获取：
@@ -214,7 +214,7 @@ ffmpeg -i 1.flv -frames:v 1 -f image2pipe -vcodec mjpeg - | wc -c
 netperf 模拟 Player 请求下发直播数据，这里设置让 server 一次性下发 300KB 的数据，同时假设 Client 的 request 默认为 1KB,
 测试 20分钟，命令如下：
 
-**BenchMark：**
+**测试数据：**
 
 ```bash
 $ ~$ netperf -H 127.0.0.1  -p 1234 -l 1200  -t TCP_CRR -- -r 1000,3000000
@@ -235,7 +235,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 ## TCP 优化记录：
 
-### 当前默认内核参数配置
+### 默认内核参数配置
 
 ```bash
 [root@XXXLink64 ~]# sysctl -a | grep "net\.ipv4\.tcp"
@@ -325,7 +325,7 @@ net.ipv4.tcp_wmem = 4096000     16384000        32768000
 net.ipv4.tcp_workaround_signed_windows = 0
 ```
 
-### 一、优化 TCP 建连速度
+### 优化内容
 
 以下均为仅优化单边的 Server 测参数。
 
