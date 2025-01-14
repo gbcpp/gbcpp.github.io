@@ -8,12 +8,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>直播场景秒开 TCP 优化 - Mr Chen</title>
+    <title>直播场景TCP秒开优化 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="直播场景秒开 TCP 优化">
+    <meta name="description" content="直播场景TCP秒开优化">
     <meta name="keywords"  content="Life, Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="直播场景秒开 TCP 优化 - Mr Chen">
+    <meta property="og:title" content="直播场景TCP秒开优化 - Mr Chen">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html">
     <meta property="og:baseurl" content="">
@@ -166,7 +166,7 @@
             
           
         </div>
-        <h1>直播场景秒开 TCP 优化</h1>
+        <h1>直播场景TCP秒开优化</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -296,8 +296,8 @@ rtt min/avg/max/mdev <span class="o">=</span> 48.201/113.013/207.390/42.338 ms, 
 
 <p><strong>恢复：</strong></p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 删除配置
-$ tc qdisc del dev lo root
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 删除配置</span>
+<span class="nv">$ </span>tc qdisc del dev lo root
 </code></pre></div></div>
 
 <p><strong>注意：</strong> 不要无脑 copy 别人的 tc 配置命令，使用了 <code class="language-plaintext highlighter-rouge">channge</code> 而非 <code class="language-plaintext highlighter-rouge">add</code>，导致 <code class="language-plaintext highlighter-rouge">Error: Qdisc not found. To create specify NLM_F_CREATE flag.</code> 报错，还以为内核缺少 sch_netem 模块，差点重新安装完整内核。
@@ -403,7 +403,7 @@ setting 3 <span class="k">in </span>fdset
 -t： 运行模式，我们使用 <code class="language-plaintext highlighter-rouge">TCP_CRR</code> 来模拟 client 请求与 server 建连以后，由server 下发一定的数据量以后，关闭连接的这种 request/response 模式
 -r： 分别指定 request 和 response 的字节数大小</p>
 
-<h3 id="当前内核参数配置记录">当前内核参数配置记录</h3>
+<h3 id="默认配置benchmark">默认配置Benchmark</h3>
 
 <p>记录下当前内核参数中与 tcp 相关的配置，并获取当前配置的 Benchmark 数据，用以在后续的优化中进行对比。
 首先直接用 <code class="language-plaintext highlighter-rouge">netperf</code> 执行 20分钟的测试数据获取：</p>
@@ -422,7 +422,7 @@ ffmpeg <span class="nt">-i</span> 1.flv <span class="nt">-frames</span>:v 1 <spa
 <p>netperf 模拟 Player 请求下发直播数据，这里设置让 server 一次性下发 300KB 的数据，同时假设 Client 的 request 默认为 1KB,
 测试 20分钟，命令如下：</p>
 
-<p><strong>BenchMark：</strong></p>
+<p><strong>测试数据：</strong></p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>~<span class="nv">$ </span>netperf <span class="nt">-H</span> 127.0.0.1  <span class="nt">-p</span> 1234 <span class="nt">-l</span> 1200  <span class="nt">-t</span> TCP_CRR <span class="nt">--</span> <span class="nt">-r</span> 1000,3000000
 MIGRATED TCP Connect/Request/Response TEST from 0.0.0.0 <span class="o">(</span>0.0.0.0<span class="o">)</span> port 0 AF_INET to 127.0.0.1 <span class="o">()</span> port 0 AF_INET : demo
@@ -442,7 +442,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 <h2 id="tcp-优化记录">TCP 优化记录：</h2>
 
-<h3 id="当前默认内核参数配置">当前默认内核参数配置</h3>
+<h3 id="默认内核参数配置">默认内核参数配置</h3>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@XXXLink64 ~]# sysctl <span class="nt">-a</span> | <span class="nb">grep</span> <span class="s2">"net</span><span class="se">\.</span><span class="s2">ipv4</span><span class="se">\.</span><span class="s2">tcp"</span>
 
@@ -531,7 +531,7 @@ net.ipv4.tcp_wmem <span class="o">=</span> 4096000     16384000        32768000
 net.ipv4.tcp_workaround_signed_windows <span class="o">=</span> 0
 </code></pre></div></div>
 
-<h3 id="一优化-tcp-建连速度">一、优化 TCP 建连速度</h3>
+<h3 id="优化内容">优化内容</h3>
 
 <p>以下均为仅优化单边的 Server 测参数。</p>
 
@@ -577,7 +577,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 直播场景秒开 TCP 优化 》</p>
+              <p><span>本文标题：</span>《 直播场景TCP秒开优化 》</p>
               <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" class="cplink">https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
@@ -585,7 +585,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化验证')">优化验证</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a><ul><li><a onclick="scrollToAdjust('netperf')">NetPerf</a></li></ul></li><li><a onclick="scrollToAdjust('当前内核参数配置记录')">当前内核参数配置记录</a></li></ul></li><li><a onclick="scrollToAdjust('tcp-优化记录')">TCP 优化记录：</a><ul><li><a onclick="scrollToAdjust('当前默认内核参数配置')">当前默认内核参数配置</a></li><li><a onclick="scrollToAdjust('一、优化-tcp-建连速度')">一、优化 TCP 建连速度</a><ul><li><a onclick="scrollToAdjust('测试结果')">测试结果</a></li></ul></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化验证')">优化验证</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a><ul><li><a onclick="scrollToAdjust('netperf')">NetPerf</a></li></ul></li><li><a onclick="scrollToAdjust('默认配置benchmark')">默认配置Benchmark</a></li></ul></li><li><a onclick="scrollToAdjust('tcp-优化记录')">TCP 优化记录：</a><ul><li><a onclick="scrollToAdjust('默认内核参数配置')">默认内核参数配置</a></li><li><a onclick="scrollToAdjust('优化内容')">优化内容</a><ul><li><a onclick="scrollToAdjust('测试结果')">测试结果</a></li></ul></li></ul></li></ul>
         </div>
       </div>
       

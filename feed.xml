@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-14T15:27:04+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播场景秒开 TCP 优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景秒开 TCP 优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-14T15:34:19+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播场景TCP秒开优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景TCP秒开优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
   <p>当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现主要问题出在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(RTMP/HTTP-FLV/HLS等），并且 Player 是 Web 平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接质量，尽量加快 TCP 的建连速度，以及关键帧的下发速度。</p>
 </blockquote>
 
@@ -70,8 +70,8 @@ rtt min/avg/max/mdev <span class="o">=</span> 48.201/113.013/207.390/42.338 ms, 
 
 <p><strong>恢复：</strong></p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 删除配置
-$ tc qdisc del dev lo root
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 删除配置</span>
+<span class="nv">$ </span>tc qdisc del dev lo root
 </code></pre></div></div>
 
 <p><strong>注意：</strong> 不要无脑 copy 别人的 tc 配置命令，使用了 <code class="language-plaintext highlighter-rouge">channge</code> 而非 <code class="language-plaintext highlighter-rouge">add</code>，导致 <code class="language-plaintext highlighter-rouge">Error: Qdisc not found. To create specify NLM_F_CREATE flag.</code> 报错，还以为内核缺少 sch_netem 模块，差点重新安装完整内核。
@@ -177,7 +177,7 @@ setting 3 <span class="k">in </span>fdset
 -t： 运行模式，我们使用 <code class="language-plaintext highlighter-rouge">TCP_CRR</code> 来模拟 client 请求与 server 建连以后，由server 下发一定的数据量以后，关闭连接的这种 request/response 模式
 -r： 分别指定 request 和 response 的字节数大小</p>
 
-<h3 id="当前内核参数配置记录">当前内核参数配置记录</h3>
+<h3 id="默认配置benchmark">默认配置Benchmark</h3>
 
 <p>记录下当前内核参数中与 tcp 相关的配置，并获取当前配置的 Benchmark 数据，用以在后续的优化中进行对比。
 首先直接用 <code class="language-plaintext highlighter-rouge">netperf</code> 执行 20分钟的测试数据获取：</p>
@@ -196,7 +196,7 @@ ffmpeg <span class="nt">-i</span> 1.flv <span class="nt">-frames</span>:v 1 <spa
 <p>netperf 模拟 Player 请求下发直播数据，这里设置让 server 一次性下发 300KB 的数据，同时假设 Client 的 request 默认为 1KB,
 测试 20分钟，命令如下：</p>
 
-<p><strong>BenchMark：</strong></p>
+<p><strong>测试数据：</strong></p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>~<span class="nv">$ </span>netperf <span class="nt">-H</span> 127.0.0.1  <span class="nt">-p</span> 1234 <span class="nt">-l</span> 1200  <span class="nt">-t</span> TCP_CRR <span class="nt">--</span> <span class="nt">-r</span> 1000,3000000
 MIGRATED TCP Connect/Request/Response TEST from 0.0.0.0 <span class="o">(</span>0.0.0.0<span class="o">)</span> port 0 AF_INET to 127.0.0.1 <span class="o">()</span> port 0 AF_INET : demo
@@ -216,7 +216,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 <h2 id="tcp-优化记录">TCP 优化记录：</h2>
 
-<h3 id="当前默认内核参数配置">当前默认内核参数配置</h3>
+<h3 id="默认内核参数配置">默认内核参数配置</h3>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@XXXLink64 ~]# sysctl <span class="nt">-a</span> | <span class="nb">grep</span> <span class="s2">"net</span><span class="se">\.</span><span class="s2">ipv4</span><span class="se">\.</span><span class="s2">tcp"</span>
 
@@ -305,7 +305,7 @@ net.ipv4.tcp_wmem <span class="o">=</span> 4096000     16384000        32768000
 net.ipv4.tcp_workaround_signed_windows <span class="o">=</span> 0
 </code></pre></div></div>
 
-<h3 id="一优化-tcp-建连速度">一、优化 TCP 建连速度</h3>
+<h3 id="优化内容">优化内容</h3>
 
 <p>以下均为仅优化单边的 Server 测参数。</p>
 
