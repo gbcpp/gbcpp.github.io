@@ -1,4 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-14T15:34:19+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播场景TCP秒开优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景TCP秒开优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-20T11:42:48+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
+  <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
+</blockquote>
+
+<h1 id="现状">现状</h1>
+
+<p>  当前 streamd server 在收到拉流请求时，若需要回源，在回源后 streamd 下发给 Player 数据时使用的是帧级别的下发，特别是在接收首个关键帧时，只有接收到完整的视频帧以后，方才开始下发给 Player，这样无形中增加了一定的数据接收+组帧的耗时，通过当前 superset 的数据分析，在需要回源的 case 中， streamd 等待接收首个视频关键帧的时长几乎全部超过 100ms 以上，这便为该次播放请求增加了固定时间的延迟，优化空间明显。</p>
+
+<h1 id="优化内容">优化内容</h1>
+
+<p>  针对当前数据转发的模式，将帧级别的转发模式优化为 Slice 级别的转发模式。</p>
+
+<h2 id="流程图">流程图</h2>
+
+<p><img src="/assets/img/blog/streamd-optimize.png" alt="数据转发流程图" /></p>
+
+<h2 id="优点">优点</h2>
+
+<ul>
+  <li>加快秒开速度，减少回源阶段 Block 等待时间，初步估计对回源 case 的秒开优化在百毫秒以上。</li>
+  <li>Streamd 下发数据时基于 Slice 进行下发，数据发送更加平滑，减少 Frame 级别的下发带来的网络拥塞，有益于卡顿率的降低。</li>
+</ul>
+
+<h2 id="缺点">缺点</h2>
+
+<p>  Streamd 服务在各协议的封装性上需要结构性的调整，数据流程改动较大，需要考虑不同 Protocol/Muxer/Demuxer 之间的兼容性，可能难以实现所有 Protocol/Muxer/Demuxer 之间的分片转发，但依然有很大的优化场景需求。
+最理想的情况为：源站提供 FLV 的数据拉流协议，而 Streamd 也是用 FLV 的回源拉流协议，Streamd 在接收端最多需要处理 FLV Header Tag 的部分信息，不阻塞 Slice 的下发。</p>
+
+<h2 id="flv-格式">FLV 格式</h2>
+
+<p><a href="https://blog.ibaoger.com/2017/06/04/flv-file-format/">Reference URL</a></p>
+
+<p><img src="/assets/img/blog/flv-format.png" alt="FLV format" /></p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[该文档主要考虑的是针对需要回源时秒开的优化。]]></summary></entry><entry><title type="html">直播场景TCP秒开优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景TCP秒开优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
   <p>当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现主要问题出在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(RTMP/HTTP-FLV/HLS等），并且 Player 是 Web 平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接质量，尽量加快 TCP 的建连速度，以及关键帧的下发速度。</p>
 </blockquote>
 
@@ -1023,102 +1055,4 @@ WebTransport over HTTP3 需要基于 QUIC 传输参数，这样可以通过 HTTP
 <p>  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。</p>
 
 <h2 id="总结">总结</h2>
-<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[人们对学习的态度分为三种类型：犯人、过客和探索者。]]></summary></entry><entry><title type="html">NeoVim 安装配置记录</title><link href="https://gbcpp.github.io/notes/neovim.html" rel="alternate" type="text/html" title="NeoVim 安装配置记录" /><published>2024-01-01T00:00:00+00:00</published><updated>2024-01-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/neovim</id><content type="html" xml:base="https://gbcpp.github.io/notes/neovim.html"><![CDATA[<blockquote>
-  <p>安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。</p>
-</blockquote>
-
-<h2 id="windows-wsl-ubuntu">Windows WSL Ubuntu</h2>
-
-<p>  WSL 下 Ubuntu 子系统的安装与原生的 Ubuntu 系统安装有所不同，主要是字体的配置方式上有所区别。</p>
-
-<h3 id="install-neovim">Install NeoVim</h3>
-
-<p>  我选择手动下载 NeoVim，这样可以安装官方最新版本，这里选择目前官方的最新版本 0.10.0，依次执行以下命令：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> ~/tools
-<span class="nb">cd</span> ~/tools
-wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
-<span class="nb">tar </span>xzf nvim-linux64.tar.gz
-</code></pre></div></div>
-
-<p>上面下载的 <code class="language-plaintext highlighter-rouge">nvim-linux64.tar.gz</code> 为 NeoVim 的二进制包，可直接运行，可以将上述解压的 NeoVim 中的 bin 目录添加到系统环境变量 <code class="language-plaintext highlighter-rouge">PATH</code>中，或者为 NeoVim 在 <code class="language-plaintext highlighter-rouge">/usr/bin</code>目录下添加一个软连接：</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo ln</span> <span class="nt">-s</span> ~/tools/nvim-linux64/bin/nvim /usr/bin/nvim
-
-<span class="c"># 可通过执行以下命令进行校验</span>
-nvim <span class="nt">--version</span>
-</code></pre></div></div>
-
-<h3 id="neovim-configuration">NeoVim Configuration</h3>
-
-<p>  使用 NeoVim 一个很大的门槛就是前期各种 <code class="language-plaintext highlighter-rouge">Plugins</code>的配置，目前有 <code class="language-plaintext highlighter-rouge">lazyVim</code>将很多易用的 <code class="language-plaintext highlighter-rouge">Plugins</code>打包在了一起，做到了开箱即用。</p>
-
-<p>将 <code class="language-plaintext highlighter-rouge">LazyVim</code> 下载并解压到 <code class="language-plaintext highlighter-rouge">NeoVim</code>的配置目录下，启动 <code class="language-plaintext highlighter-rouge">NeoVim</code>便会自动安装了。</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 直接 clone 代码到 neovim 的配置文件目录下</span>
-git clone https://github.com/LazyVim/starter ~/.config/nvim
-
-<span class="c"># 启动 nvim，自动开始安装</span>
-nvim
-</code></pre></div></div>
-
-<p>安装完成后，使用 nvim 随便打开一个目录可以看到 NeoTree 中的图标全是小方块，即乱码：</p>
-
-<p><img src="/assets/img/blog/nerofont_0.png" alt="NeroFont0" /></p>
-
-<p>继续以下操作，安装所有符号等宽展示的字体。</p>
-
-<h3 id="install-nerd-font">Install Nerd Font</h3>
-
-<p><a href="https://www.nerdfonts.com/">Nerd Font</a></p>
-
-<p>选择下载 <code class="language-plaintext highlighter-rouge">JetBrainsMono Font</code> 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 <code class="language-plaintext highlighter-rouge">.ttf</code> 的文件，选中后，右键 <code class="language-plaintext highlighter-rouge">安装</code> 即安装成功。</p>
-
-<h3 id="windows-terminal-配置-mono-字体">Windows Terminal 配置 Mono 字体</h3>
-
-<p>我的 <code class="language-plaintext highlighter-rouge">windows terminal</code> 版本如下 ：</p>
-
-<p><img src="/assets/img/blog/win_terminal.png" alt="" /></p>
-
-<p>该版本没有 UI 的配置界面，通过 <code class="language-plaintext highlighter-rouge">settings.json</code> 进行配置，在 <code class="language-plaintext highlighter-rouge">profiles</code> 的 <code class="language-plaintext highlighter-rouge">defaults</code> 配置中添加 <code class="language-plaintext highlighter-rouge">fontFace</code> 字段指定字体，如下：</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">"defaults"</span><span class="p">:</span><span class="w">
-</span><span class="p">{</span><span class="w">
-   </span><span class="err">//</span><span class="w"> </span><span class="err">Put</span><span class="w"> </span><span class="err">settings</span><span class="w"> </span><span class="err">here</span><span class="w"> </span><span class="err">that</span><span class="w"> </span><span class="err">you</span><span class="w"> </span><span class="err">want</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">apply</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">all</span><span class="w"> </span><span class="err">profiles.</span><span class="w">
-   </span><span class="nl">"fontFace"</span><span class="p">:</span><span class="w"> </span><span class="s2">"JetBrainsMono Nerd Font Mono"</span><span class="w">
-</span><span class="p">}</span><span class="err">,</span><span class="w">
-
-</span><span class="err">....</span><span class="w">
-</span></code></pre></div></div>
-
-<p>配置成功后，重启 <code class="language-plaintext highlighter-rouge">windows terminal</code>，通过 NeoVim 打开上一次的目录，查看图标显示已正常：</p>
-
-<p><img src="/assets/img/blog/nerofont_1.png" alt="" /></p>
-
-<h2 id="mac">Mac</h2>
-
-<h2 id="ubuntu">Ubuntu</h2>
-
-<h2 id="常用功能介绍">常用功能介绍</h2>
-
-<h3 id="窗口管理">窗口管理</h3>
-
-<ul>
-  <li>打开内置控制台，执行命令，这是比较常用的场景，不需要切换窗口，快捷键 <code class="language-plaintext highlighter-rouge">Ctrl + L</code>，目录定位在当前路径，不是当前被打开的目录：</li>
-</ul>
-
-<p><img src="/assets/img/blog/nvim_console.png" alt="" /></p>
-
-<blockquote>
-  <p>关闭亦是使用该快捷键。</p>
-</blockquote>
-
-<ul>
-  <li>切换光标在 <code class="language-plaintext highlighter-rouge">NeoTree</code> 和代码窗口中，使用 <code class="language-plaintext highlighter-rouge">Ctrl + h|l|j|k</code>，即是 nvim 中移动光标位置的快捷键加上 <code class="language-plaintext highlighter-rouge">Ctrl</code> 键便是上下左右切换窗口的快捷键。</li>
-</ul>
-
-<h3 id="快捷键引导">快捷键引导</h3>
-
-<p><code class="language-plaintext highlighter-rouge">Normal</code>模式下输入空格键弹出功能菜单，均可按照快捷键说明进行操作，功能菜单有多层，退格键可返回，Esc 键退出。</p>
-
-<p><img src="/assets/img/blog/nvim_menu.png" alt="" /></p>]]></content><author><name>Mr Chen</name></author><category term="notes" /><category term="develop" /><summary type="html"><![CDATA[安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。]]></summary></entry></feed>
+<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[人们对学习的态度分为三种类型：犯人、过客和探索者。]]></summary></entry></feed>

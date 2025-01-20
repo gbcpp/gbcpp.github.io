@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直播回源优化 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="直播回源优化">
+    <meta name="keywords"  content="Life">
+    <!-- Open Graph -->
+    <meta property="og:title" content="直播回源优化 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/optimize-back-to-source.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/notes/tcp-optimize-livestream-scene.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-01-20 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Life" class="post-tag">Life</a>
+            
+          
+        </div>
+        <h1>直播回源优化</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-01-20">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="25-01-20">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  638  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 2 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <blockquote>
+  <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
+</blockquote>
+
+<h1 id="现状">现状</h1>
+
+<p>  当前 streamd server 在收到拉流请求时，若需要回源，在回源后 streamd 下发给 Player 数据时使用的是帧级别的下发，特别是在接收首个关键帧时，只有接收到完整的视频帧以后，方才开始下发给 Player，这样无形中增加了一定的数据接收+组帧的耗时，通过当前 superset 的数据分析，在需要回源的 case 中， streamd 等待接收首个视频关键帧的时长几乎全部超过 100ms 以上，这便为该次播放请求增加了固定时间的延迟，优化空间明显。</p>
+
+<h1 id="优化内容">优化内容</h1>
+
+<p>  针对当前数据转发的模式，将帧级别的转发模式优化为 Slice 级别的转发模式。</p>
+
+<h2 id="流程图">流程图</h2>
+
+<p><img src="/assets/img/blog/streamd-optimize.png" alt="数据转发流程图"></p>
+
+<h2 id="优点">优点</h2>
+
+<ul>
+  <li>加快秒开速度，减少回源阶段 Block 等待时间，初步估计对回源 case 的秒开优化在百毫秒以上。</li>
+  <li>Streamd 下发数据时基于 Slice 进行下发，数据发送更加平滑，减少 Frame 级别的下发带来的网络拥塞，有益于卡顿率的降低。</li>
+</ul>
+
+<h2 id="缺点">缺点</h2>
+
+<p>  Streamd 服务在各协议的封装性上需要结构性的调整，数据流程改动较大，需要考虑不同 Protocol/Muxer/Demuxer 之间的兼容性，可能难以实现所有 Protocol/Muxer/Demuxer 之间的分片转发，但依然有很大的优化场景需求。
+最理想的情况为：源站提供 FLV 的数据拉流协议，而 Streamd 也是用 FLV 的回源拉流协议，Streamd 在接收端最多需要处理 FLV Header Tag 的部分信息，不阻塞 Slice 的下发。</p>
+
+<h2 id="flv-格式">FLV 格式</h2>
+
+<p><a href="https://blog.ibaoger.com/2017/06/04/flv-file-format/" rel="nofollow" target="_blank" class="extlinks">Reference URL</a></p>
+
+<p><img src="/assets/img/blog/flv-format.png" alt="FLV format"></p>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 直播回源优化 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/optimize-back-to-source.html" class="cplink">https://gbcpp.github.io/notes/optimize-back-to-source.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化内容')">优化内容</a><ul><li><a onclick="scrollToAdjust('流程图')">流程图</a></li><li><a onclick="scrollToAdjust('优点')">优点</a></li><li><a onclick="scrollToAdjust('缺点')">缺点</a></li><li><a onclick="scrollToAdjust('flv-格式')">FLV 格式</a></li></ul></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/notes/tcp-optimize-livestream-scene.html" class="read-next-link" aria-label="直播场景TCP秒开优化"></a>
+            <section>
+              <span>直播场景TCP秒开优化</span>
+              <p>  当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现主要问题出在拨测节点 Player 与边缘...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2025-01-20 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2025
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-20-optimize-back-to-source.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>

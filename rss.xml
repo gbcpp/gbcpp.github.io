@@ -5,9 +5,56 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 14 Jan 2025 15:34:19 +0000</pubDate>
-    <lastBuildDate>Tue, 14 Jan 2025 15:34:19 +0000</lastBuildDate>
+    <pubDate>Mon, 20 Jan 2025 11:42:48 +0000</pubDate>
+    <lastBuildDate>Mon, 20 Jan 2025 11:42:48 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
+    
+      <item>
+        <title>直播回源优化</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;该文档主要考虑的是针对需要回源时秒开的优化。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;现状&quot;&gt;现状&lt;/h1&gt;
+
+&lt;p&gt;  当前 streamd server 在收到拉流请求时，若需要回源，在回源后 streamd 下发给 Player 数据时使用的是帧级别的下发，特别是在接收首个关键帧时，只有接收到完整的视频帧以后，方才开始下发给 Player，这样无形中增加了一定的数据接收+组帧的耗时，通过当前 superset 的数据分析，在需要回源的 case 中， streamd 等待接收首个视频关键帧的时长几乎全部超过 100ms 以上，这便为该次播放请求增加了固定时间的延迟，优化空间明显。&lt;/p&gt;
+
+&lt;h1 id=&quot;优化内容&quot;&gt;优化内容&lt;/h1&gt;
+
+&lt;p&gt;  针对当前数据转发的模式，将帧级别的转发模式优化为 Slice 级别的转发模式。&lt;/p&gt;
+
+&lt;h2 id=&quot;流程图&quot;&gt;流程图&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/streamd-optimize.png&quot; alt=&quot;数据转发流程图&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;优点&quot;&gt;优点&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;加快秒开速度，减少回源阶段 Block 等待时间，初步估计对回源 case 的秒开优化在百毫秒以上。&lt;/li&gt;
+  &lt;li&gt;Streamd 下发数据时基于 Slice 进行下发，数据发送更加平滑，减少 Frame 级别的下发带来的网络拥塞，有益于卡顿率的降低。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;缺点&quot;&gt;缺点&lt;/h2&gt;
+
+&lt;p&gt;  Streamd 服务在各协议的封装性上需要结构性的调整，数据流程改动较大，需要考虑不同 Protocol/Muxer/Demuxer 之间的兼容性，可能难以实现所有 Protocol/Muxer/Demuxer 之间的分片转发，但依然有很大的优化场景需求。
+最理想的情况为：源站提供 FLV 的数据拉流协议，而 Streamd 也是用 FLV 的回源拉流协议，Streamd 在接收端最多需要处理 FLV Header Tag 的部分信息，不阻塞 Slice 的下发。&lt;/p&gt;
+
+&lt;h2 id=&quot;flv-格式&quot;&gt;FLV 格式&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://blog.ibaoger.com/2017/06/04/flv-file-format/&quot;&gt;Reference URL&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/flv-format.png&quot; alt=&quot;FLV format&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Mon, 20 Jan 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/notes/optimize-back-to-source.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/optimize-back-to-source.html</guid>
+        
+        <category>Life</category>
+        
+        
+        <category>Notes</category>
+        
+      </item>
     
       <item>
         <title>直播场景TCP秒开优化</title>
@@ -1256,39 +1303,6 @@ nvim
         
         
         <category>notes</category>
-        
-      </item>
-    
-      <item>
-        <title>Blog title</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;人们对学习的态度分为三种类型：犯人、过客和探索者。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;犯人&quot;&gt;犯人&lt;/h2&gt;
-
-&lt;p&gt;  他们可能视学习为一种负担或义务，而不是一种机会或乐趣。他们可能觉得被迫学习，而不是出于内心的愿望或对知识的渴望。这种态度可能会限制他们的学习潜力，因为他们可能无法全身心投入。&lt;/p&gt;
-
-&lt;h2 id=&quot;过客&quot;&gt;过客&lt;/h2&gt;
-
-&lt;p&gt;  他们可能对学习有一种漠不关心的态度，只是偶尔参与，没有持续的投入或深度的参与。他们可能在学习中得到一些知识，但可能无法充分利用学习的潜力，因为他们没有深入研究或投入足够的时间。&lt;/p&gt;
-
-&lt;h2 id=&quot;探索者&quot;&gt;探索者&lt;/h2&gt;
-
-&lt;p&gt;  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。&lt;/p&gt;
-
-&lt;h2 id=&quot;总结&quot;&gt;总结&lt;/h2&gt;
-&lt;p&gt;  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/blog-templete.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/blog-templete.html</guid>
-        
-        <category>Life</category>
-        
-        
-        <category>Notes</category>
         
       </item>
     
