@@ -12,10 +12,10 @@ tags:
 ---
 
 
-> 当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现主要问题出在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(RTMP/HTTP-FLV/HLS等），并且 Player 是 Web 平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接质量，尽量加快 TCP 的建连速度，以及关键帧的下发速度。
+> 当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上存在比较大的问题，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(HTTP-FLV），并且 Player 位于第三方平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接参数，尽量加快 TCP 的建连和数据下发的速度。
 
 
-## 现状
+# 现状
 
 公司使用静态节点和动态节点作为边缘以节省成本，且多种业务集中进行混布，其中动态节点质量较差，但成本较低，也是导致问题的关键所在，在对Linux 内核的升级和参数调整操作上一定要慎重。
 
@@ -25,11 +25,11 @@ tags:
  - 见下面章节
 
 
-## 优化验证
+# 优化验证
 
-### 环境准备
+## 环境准备
 
- #### TC 配置
+### TC 配置
 
  首先安装 tc 工具，系统默认不安装：
 
@@ -62,22 +62,6 @@ PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
 64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=115 ms
 64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=175 ms
 64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=80.4 ms
-64 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=55.7 ms
-64 bytes from 127.0.0.1: icmp_seq=6 ttl=64 time=118 ms
-64 bytes from 127.0.0.1: icmp_seq=7 ttl=64 time=95.2 ms
-64 bytes from 127.0.0.1: icmp_seq=8 ttl=64 time=106 ms
-64 bytes from 127.0.0.1: icmp_seq=9 ttl=64 time=113 ms
-64 bytes from 127.0.0.1: icmp_seq=10 ttl=64 time=48.2 ms
-64 bytes from 127.0.0.1: icmp_seq=11 ttl=64 time=108 ms
-64 bytes from 127.0.0.1: icmp_seq=12 ttl=64 time=164 ms
-64 bytes from 127.0.0.1: icmp_seq=13 ttl=64 time=50.0 ms
-64 bytes from 127.0.0.1: icmp_seq=14 ttl=64 time=207 ms
-64 bytes from 127.0.0.1: icmp_seq=15 ttl=64 time=56.3 ms
-64 bytes from 127.0.0.1: icmp_seq=16 ttl=64 time=137 ms
-64 bytes from 127.0.0.1: icmp_seq=17 ttl=64 time=92.5 ms
-64 bytes from 127.0.0.1: icmp_seq=18 ttl=64 time=141 ms
-64 bytes from 127.0.0.1: icmp_seq=19 ttl=64 time=154 ms
-64 bytes from 127.0.0.1: icmp_seq=20 ttl=64 time=141 ms
 --- 127.0.0.1 ping statistics ---
 21 packets transmitted, 20 received, 4.7619% packet loss, time 4016ms
 rtt min/avg/max/mdev = 48.201/113.013/207.390/42.338 ms, pipe 2
@@ -109,33 +93,10 @@ sig_key:        29:0D:80:5A:E0:B3:D6:D4:D4:D3:D0:EF:AB:48:F3:DB:73:58:2F:63
 sig_hashalgo:   sha512
 signature:      03:A4:1E:0E:CA:01:0F:58:3E:93:93:A7:25:97:FC:82:3E:4F:60:CA:
                 00:84:75:DF:A3:20:F7:1B:92:9D:B1:58:6D:E2:47:92:84:83:00:FD:
-                88:31:2B:84:32:FE:04:38:1F:24:FB:3E:D0:38:75:35:DB:11:C4:EE:
-                19:B8:C1:1F:FE:B8:77:AF:AA:4B:DE:05:E7:5F:53:A4:79:65:B4:C7:
-                1F:A1:6D:46:70:FA:26:00:5D:B1:08:F2:52:DD:2F:EF:AD:6E:B3:0C:
-                E6:FA:9A:9A:C2:9D:00:E0:EA:D2:D2:FE:F1:40:3B:32:E3:09:20:27:
-                CB:A9:8C:7E:0A:A7:2E:E4:F1:EE:89:3E:59:71:81:91:2F:CA:02:77:
-                84:8B:68:92:E5:2F:CF:45:8E:31:5C:BD:54:99:0D:3E:72:55:85:79:
-                A8:D6:A5:8E:EA:9A:32:21:1D:EB:28:4F:C4:54:36:1F:33:EC:82:61:
-                D9:0A:DC:B7:CD:17:9B:A5:1A:89:78:94:93:42:6D:25:29:A0:E8:CD:
-                7E:22:C6:BE:2F:7E:1F:E6:06:43:E3:33:2E:6F:19:1B:E8:22:45:BB:
-                FC:F2:C2:A3:2D:31:F6:A3:80:19:8A:64:54:7A:BF:9C:BE:A1:D6:1B:
-                2F:85:E7:F0:45:90:BC:52:42:4B:DE:5E:B5:DE:9A:1E:92:F7:F5:B3:
-                9D:D5:52:03:C6:DC:2E:43:F2:4E:C6:3E:10:A0:F8:4F:24:99:66:06:
-                A5:B8:48:3C:2D:AF:41:D7:84:F4:2A:61:66:3A:D2:6F:13:EA:67:5F:
-                A5:DF:D3:36:F7:94:0C:85:AD:6E:CA:D7:56:E2:22:CD:AF:8A:33:25:
-                41:86:10:A3:DC:47:56:DF:00:67:2D:DE:2D:66:B8:21:DF:4B:E5:B0:
-                62:CC:44:7D:2F:49:C4:FD:BE:ED:35:98:C8:7E:2E:8B:27:62:32:4E:
-                3A:8C:24:A9:CF:3F:69:FC:08:F9:D6:55:B1:2D:56:FB:27:8E:71:BB:
-                7A:20:1C:45:77:0E:B7:83:B9:82:A4:F9:BD:C4:F1:C7:0F:6B:FB:B0:
-                3D:A9:AC:A6:4B:F2:2D:AA:E0:8B:89:84:9E:35:9A:EB:C3:8A:B8:53:
-                4D:A5:B3:AD:8A:2C:28:41:E7:EC:CA:46:3F:03:1C:D2:C3:EA:4E:1B:
-                05:24:07:9D:A7:8A:67:58:02:9B:69:3C:ED:27:A2:33:44:4F:9A:DD:
-                3D:99:D5:20:A2:AA:31:9E:9A:00:A2:F9:63:7A:F7:1A:C9:4F:9A:A7:
-                F9:26:F4:F6:0B:38:BF:8A:7B:75:2B:B1:37:6C:12:4B:A0:01:E8:29:
-                E0:CF:97:54:EA:1D:ED:B9:1C:D2:6F:A8
+                ...
 ```
 
-#### NetPerf
+### NetPerf
 
 - 启动 netserver
 
@@ -194,7 +155,7 @@ netperf -H 127.0.0.1  -p 1234 -l 10  -t TCP_CRR -- -r 100,3000000
 -r： 分别指定 request 和 response 的字节数大小
 
 
-### 默认配置Benchmark
+## 默认配置Benchmark
 
 记录下当前内核参数中与 tcp 相关的配置，并获取当前配置的 Benchmark 数据，用以在后续的优化中进行对比。
 首先直接用 `netperf` 执行 20分钟的测试数据获取：
@@ -233,25 +194,61 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 
 
-## TCP 优化记录：
+# TCP 优化记录：
 
-### 默认内核参数配置
+[内核网络参数说明](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt)
+
+## 内核参数配置
 
 ```bash
 [root@XXXLink64 ~]# sysctl -a | grep "net\.ipv4\.tcp"
 
+# 下面 4 个参数不区分协议
+# 默认的 socket 接收窗口大小 （bytes）
+net.core.rmem_default = 327680
+# 最大的 socket 接收窗口大小 （bytes）
+net.core.rmem_max = 327680
+# 默认的 socket 发送窗口大小 （bytes）
+net.core.wmem_default = 327680
+# 最大的 socket 发送窗口大小 （bytes）
+net.core.wmem_max = 3276800
+
+# 在每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目，默认值是 1000
+net.core.netdev_max_backlog = 3000
+
+# 定义了系统中每一个端口最大的监听队列的长度，是个全局的参数
+net.core.somaxconn = 2048
+
+# 表示每个套接字所允许的最大缓冲区的大小
+net.core.optmem_max = 81920
+
+# 自动调整 tcp recv buffer
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.ipv4.tcp_rmem = 131072      1048576 49152000
+net.ipv4.tcp_wmem = 12288000    49152000        98304000
+net.ipv4.udp_rmem_min = 4096
+net.ipv4.udp_wmem_min = 4096
+vm.lowmem_reserve_ratio = 256   256     32      0       0
+
+# 用于控制当服务器的监听队列（listen 队列）溢出时，是否向客户端发送 TCP 重置（RST）信号以终止连接
 net.ipv4.tcp_abort_on_overflow = 0
+
+# 内核中与 TCP 窗口大小相关的一个参数，它影响接收窗口的大小调整行为
 net.ipv4.tcp_adv_win_scale = 1
+
 net.ipv4.tcp_allowed_congestion_control = reno cubic bbr
 net.ipv4.tcp_app_win = 31
-net.ipv4.tcp_autocorking = 1
+
+# 尽量合并包一起发送，减少发包数量。enable 了会增加延迟，建议关闭
+net.ipv4.kcp_autocorking = 1
+
 net.ipv4.tcp_available_congestion_control = reno cubic bbr
 net.ipv4.tcp_available_ulp = 
 net.ipv4.tcp_base_mss = 1024
 net.ipv4.tcp_challenge_ack_limit = 1000
 net.ipv4.tcp_comp_sack_delay_ns = 1000000
 net.ipv4.tcp_comp_sack_nr = 44
-net.ipv4.tcp_congestion_control = cubic
+net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_dsack = 1
 net.ipv4.tcp_early_demux = 1
 net.ipv4.tcp_early_retrans = 3
@@ -268,12 +265,18 @@ net.ipv4.tcp_inherit_buffsize = 1
 net.ipv4.tcp_init_cwnd = 15
 net.ipv4.tcp_init_rto = 1000
 net.ipv4.tcp_invalid_ratelimit = 500
-net.ipv4.tcp_keepalive_intvl = 75
-net.ipv4.tcp_keepalive_probes = 9
+
+# TCP发送keepalive探测消息的间隔时间（秒），用于确认TCP连接是否有效
 net.ipv4.tcp_keepalive_time = 7200
+# 探测消息未获得响应时，重发该消息的间隔时间（秒）
+net.ipv4.tcp_keepalive_intvl = 75
+# 在认定TCP连接失效之前，最多发送多少个keepalive探测消息
+net.ipv4.tcp_keepalive_probes = 9
+
 net.ipv4.tcp_l3mdev_accept = 0
 net.ipv4.tcp_limit_output_bytes = 1048576
 net.ipv4.tcp_loss_init_cwnd = 10
+# 允许TCP/IP栈适应在高吞吐量情况下低延时的情况，这个选项应该禁用
 net.ipv4.tcp_low_latency = 0
 net.ipv4.tcp_max_orphans = 524288
 net.ipv4.tcp_max_reordering = 300
@@ -289,13 +292,14 @@ net.ipv4.tcp_mtu_probing = 0
 net.ipv4.tcp_no_metrics_save = 1
 net.ipv4.tcp_notsent_lowat = 8388608
 net.ipv4.tcp_orphan_retries = 0
+
 net.ipv4.tcp_pacing_ca_ratio = 120
 net.ipv4.tcp_pacing_ss_ratio = 200
 net.ipv4.tcp_probe_interval = 600
 net.ipv4.tcp_probe_threshold = 8
 net.ipv4.tcp_proc_sched = 1
 net.ipv4.tcp_recovery = 1
-net.ipv4.tcp_reordering = 3
+net.ipv4.tcp_reordering = 5
 net.ipv4.tcp_retrans_collapse = 1
 net.ipv4.tcp_retries1 = 5
 net.ipv4.tcp_retries2 = 15
@@ -307,16 +311,26 @@ net.ipv4.tcp_rx_skb_cache = 0
 net.ipv4.tcp_sack = 1
 net.ipv4.tcp_slow_start_after_idle = 0
 net.ipv4.tcp_stdurg = 0
-sysctl: net.ipv4.tcp_syn_retries = 2
+net.ipv4.tcp_syn_retries = 2
 net.ipv4.tcp_synack_retries = 2
-reading key "net.ipv6.conf.all.stable_secret"net.ipv4.tcp_synack_rto_interval = 200
+net.ipv4.tcp_synack_rto_interval = 200
 
+# 表示是否打开TCP同步标签（syncookie），内核必须打开了CONFIG_SYN_COOKIES项进行编译，同步标签可以防止一个套接字在有过多试图连接到达时引起过载
 net.ipv4.tcp_syncookies = 1
 net.ipv4.tcp_thin_linear_timeouts = 0
-net.ipv4.tcp_timestamps = 0
+
+# TCP时间戳（会在TCP包头增加12个字节），以一种比重发超时更精确的方法（参考RFC 1323）来启用对RTT 的计算，为实现更好的性能应该启用这个选项
+net.ipv4.tcp_timestamps = 1
 net.ipv4.tcp_tso_win_divisor = 3
 net.ipv4.tcp_tw_ignore_syn_tsval_zero = 1
+
+# 表示是否允许将处于TIME-WAIT状态的socket（TIME-WAIT的端口）用于新的TCP连接 
 net.ipv4.tcp_tw_reuse = 1
+# 对于本端断开的socket连接，TCP保持在FIN-WAIT-2状态的时间（秒）。对方可能会断开连接或一直不结束连接或不可预料的进程死亡
+net.ipv4.tcp_fin_timeout = 30
+
+# 能够更快地回收TIME-WAIT套接字
+net.ipv4.tcp_tw_recycle = 1
 net.ipv4.tcp_tw_timeout = 60
 net.ipv4.tcp_tx_skb_cache = 0
 net.ipv4.tcp_wan_timestamps = 0
@@ -325,9 +339,11 @@ net.ipv4.tcp_wmem = 4096000     16384000        32768000
 net.ipv4.tcp_workaround_signed_windows = 0
 ```
 
-### 优化内容
+## 优化内容
 
-以下均为仅优化单边的 Server 测参数。
+>以下均为仅优化单边的 Server 测参数。
+
+### BBR
 
 编辑 `/etc/sysctl.conf`，添加或修改如下参数：
 
@@ -343,7 +359,7 @@ net.ipv4.tcp_congestion_control = bbr
 $ sysctl -p
 ```
 
-#### 测试结果
+**测试结果**
 
 ```bash
 $ ~$ netperf -H 127.0.0.1  -p 1234 -l 300  -t TCP_CRR -- -r 1000,3000000
@@ -359,3 +375,57 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 可以看到在开启了 bbr 拥塞算法后，`Trans` 由 0.79 升到了 1.06，有了明显的提升。
 但是实际优化数据不会这么明显，因为线上环境我们只能开启 server 测的 bbr，而无法控制 client 同时开启。
+
+```bash
+$ sysctl -a | egrep "rmem|wmem|adv_win|moderate"
+net.core.rmem_default = 327680
+net.core.rmem_max = 327680
+net.core.wmem_default = 327680
+net.core.wmem_max = 3276800
+net.ipv4.tcp_adv_win_scale = 1
+net.ipv4.tcp_moderate_rcvbuf = 1
+net.ipv4.tcp_rmem = 131072      1048576 49152000
+net.ipv4.tcp_wmem = 12288000    49152000        98304000
+net.ipv4.udp_rmem_min = 4096
+net.ipv4.udp_wmem_min = 4096
+vm.lowmem_reserve_ratio = 256   256     32      0       0
+```
+
+**测试结果对比**
+
+- 上述默认配置，无调整 buffer
+
+```bash
+$ netperf -H 100.100.57.20  -p 1234 -l 600  -t TCP_CRR -- -r 1000,300000
+MIGRATED TCP Connect/Request/Response TEST from (null) (0.0.0.0) port 0 AF_INET to (null) () port 0 AF_INET : demo
+Local /Remote
+Socket Size   Request  Resp.   Elapsed  Trans.
+Send   Recv   Size     Size    Time     Rate
+bytes  Bytes  bytes    bytes   secs.    per sec
+
+131072 131072 1000     300000  599.99      1.59
+16384000 1048576
+```
+
+- 强制64KB buffer
+
+配置 net.ipv4.tcp_wmem 为 65536 后的测试结果 `sysctl -w net.ipv4.tcp_wmem="65536 65536 65536"` :
+
+```bash
+$ netperf -H 100.100.57.20  -p 1234 -l 600  -t TCP_CRR -- -r 1000,300000
+MIGRATED TCP Connect/Request/Response TEST from (null) (0.0.0.0) port 0 AF_INET to (null) () port 0 AF_INET : demo
+Local /Remote
+Socket Size   Request  Resp.   Elapsed  Trans.
+Send   Recv   Size     Size    Time     Rate
+bytes  Bytes  bytes    bytes   secs.    per sec
+
+131072 131072 1000     300000  599.99      1.16
+65535  1048576
+```
+
+可以看到之前配置了 64KB 的 send buffer 后，Trans 由 1.59 下降到了 1.16，有明显的下降，但是上述配置是将 min、default、max 均全部强行配置为 64KB，失去了动态伸缩的能力，如果仅配置 default 为 64KB，不限制最大值，则不受影响。
+
+## 结论
+
+在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大。
+暂无有其它对与直播场景首开有明显影响的参数。
