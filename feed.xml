@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-22T05:51:19+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-22T09:20:26+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
   <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
 </blockquote>
 
@@ -30,7 +30,92 @@
 
 <p><a href="https://blog.ibaoger.com/2017/06/04/flv-file-format/">Reference URL</a></p>
 
-<p><img src="/assets/img/blog/flv-format.png" alt="FLV format" /></p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[该文档主要考虑的是针对需要回源时秒开的优化。]]></summary></entry><entry><title type="html">直播场景TCP秒开优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景TCP秒开优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
+<p><img src="/assets/img/blog/flv-format.png" alt="FLV format" /></p>
+
+<h1 id="srs-现状">SRS 现状</h1>
+
+<p>  那么问题来了， srs 是否已经考虑到这一点的优化空间呢？</p>
+
+<p>  对比查看 srs 是否使用的这种透明转发模式，还是帧转发模式？
+这里记录的为使用 HTTP-FLV 回源协议的代码流程。</p>
+
+<p>srs 需要回源时建议优先使用 Edge 模式，回源时，内部首先创建一个 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream</code> 实例，用于向源站发起连接，并用于实时的接收、处理数据，代码文件：<code class="language-plaintext highlighter-rouge">srs_app_edge.cpp</code>。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">connect</code> ==&gt; <code class="language-plaintext highlighter-rouge">do_connect</code> 发起向源站的连接请求，判定 http response status code 非 404、非 302 后，开始接收、处理媒体数据。</p>
+
+<p>事件轮询在 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::ingest()</code> 中，同步模式不断循环执行 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream::recv_message()</code> 接收完整的数据，而后通过 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::process_publish_message</code> 将数据流转到后序处理的模块，比如 Source、Consumer 等，但在这之前重点是确认在 recv_message 中是否会 block 等待完整的一个 tag data。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsEdgeFlvUpstream</span><span class="o">::</span><span class="n">recv_message</span><span class="p">(</span><span class="n">SrsCommonMessage</span><span class="o">**</span> <span class="n">pmsg</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
+
+    <span class="kt">char</span> <span class="n">type</span><span class="p">;</span>
+    <span class="kt">int32_t</span> <span class="n">size</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">time</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_header</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">time</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag header"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">char</span><span class="o">*</span> <span class="n">data</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">size</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">srs_freepa</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag data"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">char</span> <span class="n">pps</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_previous_tag_size</span><span class="p">(</span><span class="n">pps</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read pts"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">int</span> <span class="n">stream_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">SrsCommonMessage</span><span class="o">*</span> <span class="n">msg</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">srs_rtmp_create_msg</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"create message"</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="o">*</span><span class="n">pmsg</span> <span class="o">=</span> <span class="n">msg</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>可以看到首先读取 tag_header，然后从header 中获取 tag size 开始读取指定size 的tag data，<code class="language-plaintext highlighter-rouge">SrsFlvDecoder::read_tag_data()</code> ==» <code class="language-plaintext highlighter-rouge">SrsHttpFileReader:read()</code></p>
+
+<p>可以看到在 <code class="language-plaintext highlighter-rouge">SrsHttpFileReader::read(void* buf, size_t count, ssize_t* pnread)</code> 中其会持续的尝试去接收指定 size 大小的数据，直到接收完整，或者 io 报错，源码如下：</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsHttpFileReader</span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="kt">ssize_t</span><span class="o">*</span> <span class="n">pnread</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">http</span><span class="o">-&gt;</span><span class="n">eof</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
+    <span class="p">}</span>
+    
+    <span class="kt">int</span> <span class="n">total_read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">total_read</span> <span class="o">&lt;</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">count</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">ssize_t</span> <span class="n">nread</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">http</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">buf</span> <span class="o">+</span> <span class="n">total_read</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">count</span> <span class="o">-</span> <span class="n">total_read</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">nread</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read"</span><span class="p">);</span>
+        <span class="p">}</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="n">nread</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+        
+        <span class="n">srs_assert</span><span class="p">(</span><span class="n">nread</span><span class="p">);</span>
+        <span class="n">total_read</span> <span class="o">+=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">nread</span><span class="p">;</span>
+    <span class="p">}</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="n">pnread</span><span class="p">)</span> <span class="p">{</span>
+        <span class="o">*</span><span class="n">pnread</span> <span class="o">=</span> <span class="n">total_read</span><span class="p">;</span>
+    <span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>结论：</strong> 当前 srs 使用的是帧级别的转发模式，没有实现分片的透明转发。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[该文档主要考虑的是针对需要回源时秒开的优化。]]></summary></entry><entry><title type="html">直播场景TCP秒开优化</title><link href="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html" rel="alternate" type="text/html" title="直播场景TCP秒开优化" /><published>2025-01-10T00:00:00+00:00</published><updated>2025-01-10T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene</id><content type="html" xml:base="https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html"><![CDATA[<blockquote>
   <p>当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上存在比较大的问题，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(HTTP-FLV），并且 Player 位于第三方平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接参数，尽量加快 TCP 的建连和数据下发的速度。</p>
 </blockquote>
 
