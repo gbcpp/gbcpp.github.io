@@ -41,3 +41,92 @@ tags:
 
 
 ![FLV format](/assets/img/blog/flv-format.png)
+
+# SRS 现状
+
+&emsp;&emsp;那么问题来了， srs 是否已经考虑到这一点的优化空间呢？
+
+&emsp;&emsp;对比查看 srs 是否使用的这种透明转发模式，还是帧转发模式？
+这里记录的为使用 HTTP-FLV 回源协议的代码流程。
+
+srs 需要回源时建议优先使用 Edge 模式，回源时，内部首先创建一个 `SrsEdgeFlvUpstream` 实例，用于向源站发起连接，并用于实时的接收、处理数据，代码文件：`srs_app_edge.cpp`。
+
+通过 `connect` ==> `do_connect` 发起向源站的连接请求，判定 http response status code 非 404、非 302 后，开始接收、处理媒体数据。
+
+事件轮询在 `SrsEdgeIngester::ingest()` 中，同步模式不断循环执行 `SrsEdgeFlvUpstream::recv_message()` 接收完整的数据，而后通过 `SrsEdgeIngester::process_publish_message` 将数据流转到后序处理的模块，比如 Source、Consumer 等，但在这之前重点是确认在 recv_message 中是否会 block 等待完整的一个 tag data。
+
+```cpp
+srs_error_t SrsEdgeFlvUpstream::recv_message(SrsCommonMessage** pmsg)
+{
+    srs_error_t err = srs_success;
+
+    char type;
+    int32_t size;
+    uint32_t time;
+    if ((err = decoder_->read_tag_header(&type, &size, &time)) != srs_success) {
+        return srs_error_wrap(err, "read tag header");
+    }
+
+    char* data = new char[size];
+    if ((err = decoder_->read_tag_data(data, size)) != srs_success) {
+        srs_freepa(data);
+        return srs_error_wrap(err, "read tag data");
+    }
+
+    char pps[4];
+    if ((err = decoder_->read_previous_tag_size(pps)) != srs_success) {
+        return srs_error_wrap(err, "read pts");
+    }
+
+    int stream_id = 1;
+    SrsCommonMessage* msg = NULL;
+    if ((err = srs_rtmp_create_msg(type, time, data, size, stream_id, &msg)) != srs_success) {
+        return srs_error_wrap(err, "create message");
+    }
+
+    *pmsg = msg;
+
+    return err;
+}
+```
+
+可以看到首先读取 tag_header，然后从header 中获取 tag size 开始读取指定size 的tag data，`SrsFlvDecoder::read_tag_data()` ==>> `SrsHttpFileReader:read()`
+
+可以看到在 `SrsHttpFileReader::read(void* buf, size_t count, ssize_t* pnread)` 中其会持续的尝试去接收指定 size 大小的数据，直到接收完整，或者 io 报错，源码如下：
+
+```cpp
+srs_error_t SrsHttpFileReader::read(void* buf, size_t count, ssize_t* pnread)
+{
+    srs_error_t err = srs_success;
+    
+    if (http->eof()) {
+        return srs_error_new(ERROR_HTTP_REQUEST_EOF, "EOF");
+    }
+    
+    int total_read = 0;
+    while (total_read < (int)count) {
+        ssize_t nread = 0;
+        if ((err = http->read((char*)buf + total_read, (int)(count - total_read), &nread)) != srs_success) {
+            return srs_error_wrap(err, "read");
+        }
+        
+        if (nread == 0) {
+            err = srs_error_new(ERROR_HTTP_REQUEST_EOF, "EOF");
+            break;
+        }
+        
+        srs_assert(nread);
+        total_read += (int)nread;
+    }
+    
+    if (pnread) {
+        *pnread = total_read;
+    }
+    
+    return err;
+}
+```
+
+**结论：** 当前 srs 使用的是帧级别的转发模式，没有实现分片的透明转发。
+
+
