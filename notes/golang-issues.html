@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>直播回源优化 - Mr Chen</title>
+    <title>golang 问题记录 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="直播回源优化">
+    <meta name="description" content="golang 问题记录">
     <meta name="keywords"  content="Life">
     <!-- Open Graph -->
-    <meta property="og:title" content="直播回源优化 - Mr Chen">
+    <meta property="og:title" content="golang 问题记录 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/optimize-back-to-source.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/golang-issues.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/golang-issues.html">
     
-    
-    <meta property="og:next_url" content="/notes/tcp-optimize-livestream-scene.html">
+    <meta property="og:next_url" content="/notes/optimize-back-to-source.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-01-20 00:00:00 +0000" />
+    <meta property="post-date" content="2025-01-21 00:00:00 +0000" />
     
     
     
@@ -166,7 +164,7 @@
             
           
         </div>
-        <h1>直播回源优化</h1>
+        <h1>golang 问题记录</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="25-01-20">
+          <time class="post-meta-item" datetime="25-01-21">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="25-01-20">
+          <time class="post-meta-item" datetime="25-01-21">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  2.6k  字
+              本文总共  1.1k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 8 分钟
+              阅读全文大约需要 4 分钟
             </span>
             
               <span class="post-meta-item">
@@ -217,6 +215,8 @@
     </header>
     <div class="post-content visible">
       
+      <h2 class="post-subtitle">go 常见问题记事本</h2>
+      
 
       
       
@@ -224,124 +224,41 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
+            <p>  </p>
+<blockquote>
+  <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
 
-<h1 id="现状">现状</h1>
+<h1 id="环境问题">环境问题</h1>
 
-<p>  当前 streamd server 在收到拉流请求时，若需要回源，在回源后 streamd 下发给 Player 数据时使用的是帧级别的下发，特别是在接收首个关键帧时，只有接收到完整的视频帧以后，方才开始下发给 Player，这样无形中增加了一定的数据接收+组帧的耗时，通过当前 superset 的数据分析，在需要回源的 case 中， streamd 等待接收首个视频关键帧的时长几乎全部超过 100ms 以上，这便为该次播放请求增加了固定时间的延迟，优化空间明显。</p>
+<h2 id="missing-gosum-entry-for-module">missing go.sum entry for module</h2>
 
-<h1 id="优化内容">优化内容</h1>
+<p>曾经编译过的代码出现类似如下的错误 <code class="language-plaintext highlighter-rouge">missing go.sum entry for module</code>，各种依赖缺失的 mod，如下：</p>
 
-<p>  针对当前数据转发的模式，将帧级别的转发模式优化为 Slice 级别的转发模式。</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>base/file.go:10:2: missing go.sum entry for module providing package github.com/astaxie/beego/logs; to add:
+	go mod download github.com/astaxie/beego
+base/name_generate.go:6:2: missing go.sum entry for module providing package github.com/google/uuid (imported by ben/base); to add:
+	go get ben/base
+helpers/data_analysis/base/bar_base.go:6:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/charts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/metrics.go:9:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/components (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/opts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+</code></pre></div></div>
 
-<h2 id="流程图">流程图</h2>
+<p><strong>解决办法</strong></p>
 
-<p><img src="/assets/img/blog/streamd-optimize.png" alt="数据转发流程图"></p>
-
-<h2 id="优点">优点</h2>
+<p>使用 <code class="language-plaintext highlighter-rouge">go mod tidy</code> 来整理依赖，该命令有如下作用：</p>
 
 <ul>
-  <li>加快秒开速度，减少回源阶段 Block 等待时间，初步估计对回源 case 的秒开优化在百毫秒以上。</li>
-  <li>Streamd 下发数据时基于 Slice 进行下发，数据发送更加平滑，减少 Frame 级别的下发带来的网络拥塞，有益于卡顿率的降低。</li>
+  <li>删除不需要的依赖包</li>
+  <li>下载新的依赖包</li>
+  <li>更新 <code class="language-plaintext highlighter-rouge">go.sum</code>
+</li>
 </ul>
 
-<h2 id="缺点">缺点</h2>
-
-<p>  Streamd 服务在各协议的封装性上需要结构性的调整，数据流程改动较大，需要考虑不同 Protocol/Muxer/Demuxer 之间的兼容性，可能难以实现所有 Protocol/Muxer/Demuxer 之间的分片转发，但依然有很大的优化场景需求。
-最理想的情况为：源站提供 FLV 的数据拉流协议，而 Streamd 也是用 FLV 的回源拉流协议，Streamd 在接收端最多需要处理 FLV Header Tag 的部分信息，不阻塞 Slice 的下发。</p>
-
-<h2 id="flv-格式">FLV 格式</h2>
-
-<p><a href="https://blog.ibaoger.com/2017/06/04/flv-file-format/" rel="nofollow" target="_blank" class="extlinks">Reference URL</a></p>
-
-<p><img src="/assets/img/blog/flv-format.png" alt="FLV format"></p>
-
-<h1 id="srs-现状">SRS 现状</h1>
-
-<p>  那么问题来了， srs 是否已经考虑到这一点的优化空间呢？</p>
-
-<p>  对比查看 srs 是否使用的这种透明转发模式，还是帧转发模式？
-这里记录的为使用 HTTP-FLV 回源协议的代码流程。</p>
-
-<p>srs 需要回源时建议优先使用 Edge 模式，回源时，内部首先创建一个 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream</code> 实例，用于向源站发起连接，并用于实时的接收、处理数据，代码文件：<code class="language-plaintext highlighter-rouge">srs_app_edge.cpp</code>。</p>
-
-<p>通过 <code class="language-plaintext highlighter-rouge">connect</code> ==&gt; <code class="language-plaintext highlighter-rouge">do_connect</code> 发起向源站的连接请求，判定 http response status code 非 404、非 302 后，开始接收、处理媒体数据。</p>
-
-<p>事件轮询在 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::ingest()</code> 中，同步模式不断循环执行 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream::recv_message()</code> 接收完整的数据，而后通过 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::process_publish_message</code> 将数据流转到后序处理的模块，比如 Source、Consumer 等，但在这之前重点是确认在 recv_message 中是否会 block 等待完整的一个 tag data。</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsEdgeFlvUpstream</span><span class="o">::</span><span class="n">recv_message</span><span class="p">(</span><span class="n">SrsCommonMessage</span><span class="o">**</span> <span class="n">pmsg</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
-
-    <span class="kt">char</span> <span class="n">type</span><span class="p">;</span>
-    <span class="kt">int32_t</span> <span class="n">size</span><span class="p">;</span>
-    <span class="kt">uint32_t</span> <span class="n">time</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_header</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">time</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag header"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">char</span><span class="o">*</span> <span class="n">data</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">size</span><span class="p">];</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">srs_freepa</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag data"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">char</span> <span class="n">pps</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_previous_tag_size</span><span class="p">(</span><span class="n">pps</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read pts"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">int</span> <span class="n">stream_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="n">SrsCommonMessage</span><span class="o">*</span> <span class="n">msg</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">srs_rtmp_create_msg</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"create message"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="o">*</span><span class="n">pmsg</span> <span class="o">=</span> <span class="n">msg</span><span class="p">;</span>
-
-    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>可以看到首先读取 tag_header，然后从header 中获取 tag size 开始读取指定size 的tag data，<code class="language-plaintext highlighter-rouge">SrsFlvDecoder::read_tag_data()</code> ==» <code class="language-plaintext highlighter-rouge">SrsHttpFileReader:read()</code></p>
-
-<p>可以看到在 <code class="language-plaintext highlighter-rouge">SrsHttpFileReader::read(void* buf, size_t count, ssize_t* pnread)</code> 中其会持续的尝试去接收指定 size 大小的数据，直到接收完整，或者 io 报错，源码如下：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsHttpFileReader</span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="kt">ssize_t</span><span class="o">*</span> <span class="n">pnread</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="n">http</span><span class="o">-&gt;</span><span class="n">eof</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
-    <span class="p">}</span>
-    
-    <span class="kt">int</span> <span class="n">total_read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">total_read</span> <span class="o">&lt;</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">count</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">ssize_t</span> <span class="n">nread</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">http</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">buf</span> <span class="o">+</span> <span class="n">total_read</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">count</span> <span class="o">-</span> <span class="n">total_read</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">nread</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read"</span><span class="p">);</span>
-        <span class="p">}</span>
-        
-        <span class="k">if</span> <span class="p">(</span><span class="n">nread</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
-            <span class="k">break</span><span class="p">;</span>
-        <span class="p">}</span>
-        
-        <span class="n">srs_assert</span><span class="p">(</span><span class="n">nread</span><span class="p">);</span>
-        <span class="n">total_read</span> <span class="o">+=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">nread</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="n">pnread</span><span class="p">)</span> <span class="p">{</span>
-        <span class="o">*</span><span class="n">pnread</span> <span class="o">=</span> <span class="n">total_read</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p><strong>结论：</strong> 当前 srs 使用的是帧级别的转发模式，没有实现分片的透明转发。</p>
+<p>重新执行 <code class="language-plaintext highlighter-rouge">go run</code> <code class="language-plaintext highlighter-rouge">go build</code> 问题解决。</p>
 
 
             <div class="post-copyright">
@@ -358,15 +275,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 直播回源优化 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/optimize-back-to-source.html" class="cplink">https://gbcpp.github.io/notes/optimize-back-to-source.html</a></p>
+              <p><span>本文标题：</span>《 golang 问题记录 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/golang-issues.html" class="cplink">https://gbcpp.github.io/notes/golang-issues.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化内容')">优化内容</a><ul><li><a onclick="scrollToAdjust('流程图')">流程图</a></li><li><a onclick="scrollToAdjust('优点')">优点</a></li><li><a onclick="scrollToAdjust('缺点')">缺点</a></li><li><a onclick="scrollToAdjust('flv-格式')">FLV 格式</a></li></ul></li><li><a onclick="scrollToAdjust('srs-现状')">SRS 现状</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('环境问题')">环境问题</a><ul><li><a onclick="scrollToAdjust('missing-go.sum-entry-for-module')">missing go.sum entry for module</a></li></ul></li></ul>
         </div>
       </div>
       
@@ -420,25 +337,13 @@
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/notes/golang-issues.html" class="read-next-link" aria-label="golang 问题记录"></a>
-          <section>
-            <span>golang 问题记录</span>
-            <p>    记录 Golang 学习、开发过程中的一些疑难杂症。</p>
-          </section>
-          
-          <div class="filter"></div>
-          <img src="/assets/img/shan.jpg" alt="">
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/notes/tcp-optimize-livestream-scene.html" class="read-next-link" aria-label="直播场景TCP秒开优化"></a>
+          <a href="/notes/optimize-back-to-source.html" class="read-next-link" aria-label="直播回源优化"></a>
             <section>
-              <span>直播场景TCP秒开优化</span>
-              <p>  当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现在拨测节点 Player 与边缘节点之间的...</p>
+              <span>直播回源优化</span>
+              <p>  该文档主要考虑的是针对需要回源时秒开的优化。</p>
             </section>
             
             <div class="filter"></div>
@@ -457,7 +362,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2025-01-20 00:00:00 +0000',
+      id: '2025-01-21 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -670,7 +575,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-20-optimize-back-to-source.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-21-golang-issues.md")
           .then((response) => {
             return response.json();
           })

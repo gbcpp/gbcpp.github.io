@@ -5,9 +5,58 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 22 Jan 2025 09:20:26 +0000</pubDate>
-    <lastBuildDate>Wed, 22 Jan 2025 09:20:26 +0000</lastBuildDate>
+    <pubDate>Thu, 23 Jan 2025 15:18:55 +0000</pubDate>
+    <lastBuildDate>Thu, 23 Jan 2025 15:18:55 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
+    
+      <item>
+        <title>golang 问题记录</title>
+        <description>&lt;p&gt;  &lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;记录 Golang 学习、开发过程中的一些疑难杂症。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;环境问题&quot;&gt;环境问题&lt;/h1&gt;
+
+&lt;h2 id=&quot;missing-gosum-entry-for-module&quot;&gt;missing go.sum entry for module&lt;/h2&gt;
+
+&lt;p&gt;曾经编译过的代码出现类似如下的错误 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;missing go.sum entry for module&lt;/code&gt;，各种依赖缺失的 mod，如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;base/file.go:10:2: missing go.sum entry for module providing package github.com/astaxie/beego/logs; to add:
+	go mod download github.com/astaxie/beego
+base/name_generate.go:6:2: missing go.sum entry for module providing package github.com/google/uuid (imported by ben/base); to add:
+	go get ben/base
+helpers/data_analysis/base/bar_base.go:6:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/charts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/metrics.go:9:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/components (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/opts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;解决办法&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go mod tidy&lt;/code&gt; 来整理依赖，该命令有如下作用：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;删除不需要的依赖包&lt;/li&gt;
+  &lt;li&gt;下载新的依赖包&lt;/li&gt;
+  &lt;li&gt;更新 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go.sum&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;重新执行 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go run&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go build&lt;/code&gt; 问题解决。&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 21 Jan 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/notes/golang-issues.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/golang-issues.html</guid>
+        
+        <category>Life</category>
+        
+        
+        <category>Notes</category>
+        
+      </item>
     
       <item>
         <title>直播回源优化</title>
@@ -1348,120 +1397,6 @@ WebTransport over HTTP3 需要基于 QUIC 传输参数，这样可以通过 HTTP
         
         
         <category>Protocol</category>
-        
-      </item>
-    
-      <item>
-        <title>NeoVim 安装配置记录</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;安装配置 NeoVim，体验一下，对比 VSCode 谁更强大。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;windows-wsl-ubuntu&quot;&gt;Windows WSL Ubuntu&lt;/h2&gt;
-
-&lt;p&gt;  WSL 下 Ubuntu 子系统的安装与原生的 Ubuntu 系统安装有所不同，主要是字体的配置方式上有所区别。&lt;/p&gt;
-
-&lt;h3 id=&quot;install-neovim&quot;&gt;Install NeoVim&lt;/h3&gt;
-
-&lt;p&gt;  我选择手动下载 NeoVim，这样可以安装官方最新版本，这里选择目前官方的最新版本 0.10.0，依次执行以下命令：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; ~/tools
-&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ~/tools
-wget https://github.com/neovim/neovim/releases/download/v0.10.0/nvim-linux64.tar.gz
-&lt;span class=&quot;nb&quot;&gt;tar &lt;/span&gt;xzf nvim-linux64.tar.gz
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;上面下载的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nvim-linux64.tar.gz&lt;/code&gt; 为 NeoVim 的二进制包，可直接运行，可以将上述解压的 NeoVim 中的 bin 目录添加到系统环境变量 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PATH&lt;/code&gt;中，或者为 NeoVim 在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/usr/bin&lt;/code&gt;目录下添加一个软连接：&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo ln&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; ~/tools/nvim-linux64/bin/nvim /usr/bin/nvim
-
-&lt;span class=&quot;c&quot;&gt;# 可通过执行以下命令进行校验&lt;/span&gt;
-nvim &lt;span class=&quot;nt&quot;&gt;--version&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;neovim-configuration&quot;&gt;NeoVim Configuration&lt;/h3&gt;
-
-&lt;p&gt;  使用 NeoVim 一个很大的门槛就是前期各种 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Plugins&lt;/code&gt;的配置，目前有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lazyVim&lt;/code&gt;将很多易用的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Plugins&lt;/code&gt;打包在了一起，做到了开箱即用。&lt;/p&gt;
-
-&lt;p&gt;将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LazyVim&lt;/code&gt; 下载并解压到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NeoVim&lt;/code&gt;的配置目录下，启动 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NeoVim&lt;/code&gt;便会自动安装了。&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 直接 clone 代码到 neovim 的配置文件目录下&lt;/span&gt;
-git clone https://github.com/LazyVim/starter ~/.config/nvim
-
-&lt;span class=&quot;c&quot;&gt;# 启动 nvim，自动开始安装&lt;/span&gt;
-nvim
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;安装完成后，使用 nvim 随便打开一个目录可以看到 NeoTree 中的图标全是小方块，即乱码：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/nerofont_0.png&quot; alt=&quot;NeroFont0&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;继续以下操作，安装所有符号等宽展示的字体。&lt;/p&gt;
-
-&lt;h3 id=&quot;install-nerd-font&quot;&gt;Install Nerd Font&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://www.nerdfonts.com/&quot;&gt;Nerd Font&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;选择下载 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;JetBrainsMono Font&lt;/code&gt; 字体，在 Windows 中解压缩后，可以看到内部全是后缀为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.ttf&lt;/code&gt; 的文件，选中后，右键 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;安装&lt;/code&gt; 即安装成功。&lt;/p&gt;
-
-&lt;h3 id=&quot;windows-terminal-配置-mono-字体&quot;&gt;Windows Terminal 配置 Mono 字体&lt;/h3&gt;
-
-&lt;p&gt;我的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;windows terminal&lt;/code&gt; 版本如下 ：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/win_terminal.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;该版本没有 UI 的配置界面，通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;settings.json&lt;/code&gt; 进行配置，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;profiles&lt;/code&gt; 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;defaults&lt;/code&gt; 配置中添加 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fontFace&lt;/code&gt; 字段指定字体，如下：&lt;/p&gt;
-
-&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nl&quot;&gt;&quot;defaults&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-   &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;Put&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;settings&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;here&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;that&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;you&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;want&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;all&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;profiles.&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-   &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;fontFace&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;JetBrainsMono Nerd Font Mono&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-
-&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;....&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;配置成功后，重启 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;windows terminal&lt;/code&gt;，通过 NeoVim 打开上一次的目录，查看图标显示已正常：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/nerofont_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;mac&quot;&gt;Mac&lt;/h2&gt;
-
-&lt;h2 id=&quot;ubuntu&quot;&gt;Ubuntu&lt;/h2&gt;
-
-&lt;h2 id=&quot;常用功能介绍&quot;&gt;常用功能介绍&lt;/h2&gt;
-
-&lt;h3 id=&quot;窗口管理&quot;&gt;窗口管理&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;打开内置控制台，执行命令，这是比较常用的场景，不需要切换窗口，快捷键 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl + L&lt;/code&gt;，目录定位在当前路径，不是当前被打开的目录：&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/nvim_console.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;关闭亦是使用该快捷键。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;切换光标在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NeoTree&lt;/code&gt; 和代码窗口中，使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl + h|l|j|k&lt;/code&gt;，即是 nvim 中移动光标位置的快捷键加上 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl&lt;/code&gt; 键便是上下左右切换窗口的快捷键。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;快捷键引导&quot;&gt;快捷键引导&lt;/h3&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Normal&lt;/code&gt;模式下输入空格键弹出功能菜单，均可按照快捷键说明进行操作，功能菜单有多层，退格键可返回，Esc 键退出。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/nvim_menu.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 01 Jan 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/neovim.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/neovim.html</guid>
-        
-        <category>develop</category>
-        
-        
-        <category>notes</category>
         
       </item>
     

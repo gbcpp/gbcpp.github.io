@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "golang 问题记录",
+    "tags"     : "Life",
+    "url"      : "/notes/golang-issues.html"
+  } ,
+
+  {
     "title"    : "直播回源优化",
     "tags"     : "Life",
     "url"      : "/notes/optimize-back-to-source.html"

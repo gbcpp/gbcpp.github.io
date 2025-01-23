@@ -1,4 +1,37 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-22T09:20:26+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-23T15:18:55+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<blockquote>
+  <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
+</blockquote>
+
+<h1 id="环境问题">环境问题</h1>
+
+<h2 id="missing-gosum-entry-for-module">missing go.sum entry for module</h2>
+
+<p>曾经编译过的代码出现类似如下的错误 <code class="language-plaintext highlighter-rouge">missing go.sum entry for module</code>，各种依赖缺失的 mod，如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>base/file.go:10:2: missing go.sum entry for module providing package github.com/astaxie/beego/logs; to add:
+	go mod download github.com/astaxie/beego
+base/name_generate.go:6:2: missing go.sum entry for module providing package github.com/google/uuid (imported by ben/base); to add:
+	go get ben/base
+helpers/data_analysis/base/bar_base.go:6:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/charts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/metrics.go:9:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/components (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/opts (imported by ben/helpers/data_analysis/base); to add:
+	go get ben/helpers/data_analysis/base
+</code></pre></div></div>
+
+<p><strong>解决办法</strong></p>
+
+<p>使用 <code class="language-plaintext highlighter-rouge">go mod tidy</code> 来整理依赖，该命令有如下作用：</p>
+
+<ul>
+  <li>删除不需要的依赖包</li>
+  <li>下载新的依赖包</li>
+  <li>更新 <code class="language-plaintext highlighter-rouge">go.sum</code></li>
+</ul>
+
+<p>重新执行 <code class="language-plaintext highlighter-rouge">go run</code> <code class="language-plaintext highlighter-rouge">go build</code> 问题解决。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[   记录 Golang 学习、开发过程中的一些疑难杂症。]]></summary></entry><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
   <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
 </blockquote>
 
@@ -1196,21 +1229,4 @@ Session ID 可用于解复用 Streams 和 Datagrams 以判断属于不同的 Web
 <p>WebTransport over HTTP3 满足所有对 WebTransport 协议施加的所有安全要求，由于 Client 有可能不被信任，所以提供了一个client-server 通信的安全框架。
 WebTransport over HTTP3 需要基于 QUIC 传输参数，这样可以通过 HTTP3 server 的支持来避免潜在的协议混淆带来的攻击；它还需要使用 Origin header，为服务器提供拒绝访问非源自于 Web 客户端的不被信任的 origin。</p>
 
-<p>就像通过 HTTP3 传输的 HTTP 流量一样，WebTransport 流量汇集不同的来源到同一个链接中，不同的源代表不同的信任域，意味着需要在同一个链接上应对不同的潜在的攻击，一种潜在的攻击是耗尽所有资源，因为所有的传输共享拥塞控制和流量控制，单个客户端大量使用这些资源可能会导致其它传输被终止。所以用户代理应该实施一个公平的方案，以确保链接内的每个传输可以获得可控的合理资源份额，这适用于数据发送和创建新流操作。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[本文主要翻译自https://datatracker.ietf.org/doc/html/draft-vvv-webtransport-http3 ，如有错误请指正。]]></summary></entry><entry><title type="html">Blog title</title><link href="https://gbcpp.github.io/notes/blog-templete.html" rel="alternate" type="text/html" title="Blog title" /><published>2024-01-01T00:00:00+00:00</published><updated>2024-01-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/blog-templete</id><content type="html" xml:base="https://gbcpp.github.io/notes/blog-templete.html"><![CDATA[<blockquote>
-  <p>人们对学习的态度分为三种类型：犯人、过客和探索者。</p>
-</blockquote>
-
-<h2 id="犯人">犯人</h2>
-
-<p>  他们可能视学习为一种负担或义务，而不是一种机会或乐趣。他们可能觉得被迫学习，而不是出于内心的愿望或对知识的渴望。这种态度可能会限制他们的学习潜力，因为他们可能无法全身心投入。</p>
-
-<h2 id="过客">过客</h2>
-
-<p>  他们可能对学习有一种漠不关心的态度，只是偶尔参与，没有持续的投入或深度的参与。他们可能在学习中得到一些知识，但可能无法充分利用学习的潜力，因为他们没有深入研究或投入足够的时间。</p>
-
-<h2 id="探索者">探索者</h2>
-
-<p>  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。</p>
-
-<h2 id="总结">总结</h2>
-<p>  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[人们对学习的态度分为三种类型：犯人、过客和探索者。]]></summary></entry></feed>
+<p>就像通过 HTTP3 传输的 HTTP 流量一样，WebTransport 流量汇集不同的来源到同一个链接中，不同的源代表不同的信任域，意味着需要在同一个链接上应对不同的潜在的攻击，一种潜在的攻击是耗尽所有资源，因为所有的传输共享拥塞控制和流量控制，单个客户端大量使用这些资源可能会导致其它传输被终止。所以用户代理应该实施一个公平的方案，以确保链接内的每个传输可以获得可控的合理资源份额，这适用于数据发送和创建新流操作。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[本文主要翻译自https://datatracker.ietf.org/doc/html/draft-vvv-webtransport-http3 ，如有错误请指正。]]></summary></entry></feed>
