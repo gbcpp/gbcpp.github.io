@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-26T10:18:22+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-26T10:23:40+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
 <blockquote>
   <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
@@ -600,7 +600,7 @@ rtt min/avg/max/mdev = 102.763/103.307/103.550/0.322 ms
   <li>在远端进行拉流（100.100.32.108）：</li>
 </ul>
 
-<p> $emsp;拉取播放 10秒左右即可。</p>
+<p>  拉取播放 10秒左右即可。</p>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ffplay http://100.100.57.20:8080/ztest/A123.flv\?domain\=h3.xxx.com
 </code></pre></div></div>
 
