@@ -468,7 +468,7 @@ sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_10
 
 - 在远端进行拉流（100.100.32.108）：
 
-&emsp;$emsp;拉取播放 10秒左右即可。
+&emsp;&emsp;拉取播放 10秒左右即可。
 ```
 ffplay http://100.100.57.20:8080/ztest/A123.flv\?domain\=h3.xxx.com
 ```
