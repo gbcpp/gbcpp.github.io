@@ -193,13 +193,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  9.4k  字
+              本文总共  11.8k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 27 分钟
+              阅读全文大约需要 34 分钟
             </span>
             
               <span class="post-meta-item">
@@ -403,7 +403,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 最后一列 <code class="language-plaintext highlighter-rouge">Trans</code> 表示的便是在测试的这段时间内平均每秒钟可以执行了多少次请求，即 0.79 次，相当于 Qps，越大说明效率越高。</p>
 </blockquote>
 
-<h1 id="tcp-优化记录">TCP 优化记录：</h1>
+<h1 id="tcp-内核参数优化">TCP 内核参数优化：</h1>
 
 <p><a href="https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt" rel="nofollow" target="_blank" class="extlinks">内核网络参数说明</a></p>
 
@@ -638,6 +638,117 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 <p>在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大。
 暂无有其它对与直播场景首开有明显影响的参数。</p>
 
+<h1 id="路由优化记录">路由优化记录</h1>
+
+<p>直播片源选用 3.4Mbps 的码率，播放器选择 ffplay 进行拉取，在发送端（直播服务器）通过 tcpdump 抓包，对比查看发送 1MB 数据所耗费的时间线，这里是局域网环境，所以 lastmile 的带宽不是瓶颈。</p>
+
+<p>Tcp 的 initcwnd 默认值为 10，倘若设置过大会造成对网络的冲击，根据经验选择<code class="language-plaintext highlighter-rouge">默认配置 10</code> 与 <code class="language-plaintext highlighter-rouge">40</code> 两者之间进行对比。</p>
+
+<h2 id="环境准备-1">环境准备</h2>
+
+<p>首先在发送端直播服务器上为指定网卡增加 100ms 的主动延迟，以放大数据影响，方便对比结果。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 增加 100ms 的固定延迟
+$ sudo tc qdisc change dev eno1 root netem delay 100ms
+  
+# ping 验证
+$ ping 100.100.32.108
+PING 100.100.32.108 (100.100.32.108) 56(84) bytes of data.
+64 bytes from 100.100.32.108: icmp_seq=1 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=2 ttl=63 time=103 ms
+64 bytes from 100.100.32.108: icmp_seq=3 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=4 ttl=63 time=103 ms
+^C
+--- 100.100.32.108 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3003ms
+rtt min/avg/max/mdev = 102.763/103.307/103.550/0.322 ms
+</code></pre></div></div>
+
+<h2 id="case1">Case1</h2>
+
+<blockquote>
+  <p>未修改 tcp initcwnd 的测试场景。</p>
+</blockquote>
+
+<ul>
+  <li>在发送端（直播服务器）测抓包：
+    <div class="language-plaintext highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code>sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_10cwnd_100msdelay.pcap
+</code></pre></div>    </div>
+  </li>
+  <li>在远端进行拉流（100.100.32.108）：</li>
+</ul>
+
+<p> $emsp;拉取播放 10秒左右即可。</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ffplay http://100.100.57.20:8080/ztest/A123.flv\?domain\=h3.xxx.com
+</code></pre></div></div>
+
+<ul>
+  <li>Wireshark 分析：</li>
+</ul>
+
+<p>  可以看到如下截图，接收 1 * 10^6 即1MB的数据时大约耗时在 900ms。
+<img src="/assets/img/blog/tcp_10cwnd_100ms.png" alt="TCP 10 INITCWND 分析图"></p>
+
+<h2 id="case2">Case2</h2>
+
+<p>调整 initcwnd 为 40，通过 ip route 进行调整。</p>
+
+<ul>
+  <li>首先通过 <code class="language-plaintext highlighter-rouge">sudo ip route show</code> 进行查看：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 10
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 10
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 10
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+</code></pre></div></div>
+
+<ul>
+  <li>然后依次对各 route 进行配置：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo ip route change 100.100.56.254 dev eno1 scope link initcwnd 40
+sudo ip route change via 100.100.56.254 dev eno1  initcwnd 40
+sudo ip route change 100.100.56.0/23 dev eno1 proto static scope link  initcwnd 40
+</code></pre></div></div>
+
+<ul>
+  <li>配置后如下：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 40
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 40
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 40
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+</code></pre></div></div>
+
+<ul>
+  <li>在发送端（直播服务器）测抓包</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_40cwnd_100msdelay.pcap
+</code></pre></div></div>
+
+<ul>
+  <li>Wireshark 分析</li>
+</ul>
+
+<p>  可以看到 init cwnd 为 40 后，在 tcp 的慢启动状态发包变得很激进，接收端接收 1MB 的数据大约为 550ms，节省了大约 350ms，大约 3 个 rtt 的时间。
+<img src="/assets/img/blog/tcp_40cwnd_100ms.png" alt="TCP 40 INITCWND 分析图"></p>
+
+<h2 id="结论-1">结论</h2>
+
+<p>  如上，调整 INITCWND 为 40后，在秒开数据为 1MB 的场景中，大约可为秒开节省 3 个左右的 rtt 时间，下一步可以在线上进行初步的验证，可逐步放开该值为 20、30、40，在数据不断的优化的情况下降低调整风险，逐步实现优化。</p>
+
             <div class="post-copyright">
               <p>
                 <span>版权声明：</span>
@@ -660,7 +771,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化验证')">优化验证</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a><ul><li><a onclick="scrollToAdjust('tc-配置')">TC 配置</a></li><li><a onclick="scrollToAdjust('netperf')">NetPerf</a></li></ul></li><li><a onclick="scrollToAdjust('默认配置benchmark')">默认配置Benchmark</a></li></ul></li><li><a onclick="scrollToAdjust('tcp-优化记录')">TCP 优化记录：</a><ul><li><a onclick="scrollToAdjust('内核参数配置')">内核参数配置</a></li><li><a onclick="scrollToAdjust('优化内容')">优化内容</a><ul><li><a onclick="scrollToAdjust('bbr')">BBR</a></li></ul></li><li><a onclick="scrollToAdjust('结论')">结论</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('现状')">现状</a></li><li><a onclick="scrollToAdjust('优化验证')">优化验证</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a><ul><li><a onclick="scrollToAdjust('tc-配置')">TC 配置</a></li><li><a onclick="scrollToAdjust('netperf')">NetPerf</a></li></ul></li><li><a onclick="scrollToAdjust('默认配置benchmark')">默认配置Benchmark</a></li></ul></li><li><a onclick="scrollToAdjust('tcp-内核参数优化')">TCP 内核参数优化：</a><ul><li><a onclick="scrollToAdjust('内核参数配置')">内核参数配置</a></li><li><a onclick="scrollToAdjust('优化内容')">优化内容</a><ul><li><a onclick="scrollToAdjust('bbr')">BBR</a></li></ul></li><li><a onclick="scrollToAdjust('结论')">结论</a></li></ul></li><li><a onclick="scrollToAdjust('路由优化记录')">路由优化记录</a><ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a></li><li><a onclick="scrollToAdjust('case1')">Case1</a></li><li><a onclick="scrollToAdjust('case2')">Case2</a></li><li><a onclick="scrollToAdjust('结论')">结论</a></li></ul></li></ul>
         </div>
       </div>
       

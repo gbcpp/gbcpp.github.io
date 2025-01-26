@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 23 Jan 2025 15:18:55 +0000</pubDate>
-    <lastBuildDate>Thu, 23 Jan 2025 15:18:55 +0000</lastBuildDate>
+    <pubDate>Sun, 26 Jan 2025 10:18:22 +0000</pubDate>
+    <lastBuildDate>Sun, 26 Jan 2025 10:18:22 +0000</lastBuildDate>
     <generator>Jekyll v4.3.4</generator>
     
       <item>
@@ -370,7 +370,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 最后一列 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Trans&lt;/code&gt; 表示的便是在测试的这段时间内平均每秒钟可以执行了多少次请求，即 0.79 次，相当于 Qps，越大说明效率越高。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h1 id=&quot;tcp-优化记录&quot;&gt;TCP 优化记录：&lt;/h1&gt;
+&lt;h1 id=&quot;tcp-内核参数优化&quot;&gt;TCP 内核参数优化：&lt;/h1&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt&quot;&gt;内核网络参数说明&lt;/a&gt;&lt;/p&gt;
 
@@ -604,6 +604,116 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 &lt;p&gt;在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大。
 暂无有其它对与直播场景首开有明显影响的参数。&lt;/p&gt;
+
+&lt;h1 id=&quot;路由优化记录&quot;&gt;路由优化记录&lt;/h1&gt;
+
+&lt;p&gt;直播片源选用 3.4Mbps 的码率，播放器选择 ffplay 进行拉取，在发送端（直播服务器）通过 tcpdump 抓包，对比查看发送 1MB 数据所耗费的时间线，这里是局域网环境，所以 lastmile 的带宽不是瓶颈。&lt;/p&gt;
+
+&lt;p&gt;Tcp 的 initcwnd 默认值为 10，倘若设置过大会造成对网络的冲击，根据经验选择&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;默认配置 10&lt;/code&gt; 与 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;40&lt;/code&gt; 两者之间进行对比。&lt;/p&gt;
+
+&lt;h2 id=&quot;环境准备-1&quot;&gt;环境准备&lt;/h2&gt;
+
+&lt;p&gt;首先在发送端直播服务器上为指定网卡增加 100ms 的主动延迟，以放大数据影响，方便对比结果。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 增加 100ms 的固定延迟
+$ sudo tc qdisc change dev eno1 root netem delay 100ms
+  
+# ping 验证
+$ ping 100.100.32.108
+PING 100.100.32.108 (100.100.32.108) 56(84) bytes of data.
+64 bytes from 100.100.32.108: icmp_seq=1 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=2 ttl=63 time=103 ms
+64 bytes from 100.100.32.108: icmp_seq=3 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=4 ttl=63 time=103 ms
+^C
+--- 100.100.32.108 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3003ms
+rtt min/avg/max/mdev = 102.763/103.307/103.550/0.322 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;case1&quot;&gt;Case1&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;未修改 tcp initcwnd 的测试场景。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在发送端（直播服务器）测抓包：
+    &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_10cwnd_100msdelay.pcap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;在远端进行拉流（100.100.32.108）：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt; $emsp;拉取播放 10秒左右即可。&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ffplay http://100.100.57.20:8080/ztest/A123.flv\?domain\=h3.xxx.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Wireshark 分析：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;  可以看到如下截图，接收 1 * 10^6 即1MB的数据时大约耗时在 900ms。
+&lt;img src=&quot;/assets/img/blog/tcp_10cwnd_100ms.png&quot; alt=&quot;TCP 10 INITCWND 分析图&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;case2&quot;&gt;Case2&lt;/h2&gt;
+
+&lt;p&gt;调整 initcwnd 为 40，通过 ip route 进行调整。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;首先通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo ip route show&lt;/code&gt; 进行查看：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 10
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 10
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 10
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;然后依次对各 route 进行配置：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo ip route change 100.100.56.254 dev eno1 scope link initcwnd 40
+sudo ip route change via 100.100.56.254 dev eno1  initcwnd 40
+sudo ip route change 100.100.56.0/23 dev eno1 proto static scope link  initcwnd 40
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;配置后如下：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 40
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 40
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 40
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在发送端（直播服务器）测抓包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_40cwnd_100msdelay.pcap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Wireshark 分析&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;  可以看到 init cwnd 为 40 后，在 tcp 的慢启动状态发包变得很激进，接收端接收 1MB 的数据大约为 550ms，节省了大约 350ms，大约 3 个 rtt 的时间。
+&lt;img src=&quot;/assets/img/blog/tcp_40cwnd_100ms.png&quot; alt=&quot;TCP 40 INITCWND 分析图&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;结论-1&quot;&gt;结论&lt;/h2&gt;
+
+&lt;p&gt;  如上，调整 INITCWND 为 40后，在秒开数据为 1MB 的场景中，大约可为秒开节省 3 个左右的 rtt 时间，下一步可以在线上进行初步的验证，可逐步放开该值为 20、30、40，在数据不断的优化的情况下降低调整风险，逐步实现优化。&lt;/p&gt;
 </description>
         <pubDate>Fri, 10 Jan 2025 00:00:00 +0000</pubDate>
         <link>https://gbcpp.github.io/notes/tcp-optimize-livestream-scene.html</link>

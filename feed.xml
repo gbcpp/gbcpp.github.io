@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-23T15:18:55+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.4">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-01-26T10:18:22+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
 <blockquote>
   <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
@@ -325,7 +325,7 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 最后一列 <code class="language-plaintext highlighter-rouge">Trans</code> 表示的便是在测试的这段时间内平均每秒钟可以执行了多少次请求，即 0.79 次，相当于 Qps，越大说明效率越高。</p>
 </blockquote>
 
-<h1 id="tcp-优化记录">TCP 优化记录：</h1>
+<h1 id="tcp-内核参数优化">TCP 内核参数优化：</h1>
 
 <p><a href="https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt">内核网络参数说明</a></p>
 
@@ -558,7 +558,117 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 <h2 id="结论">结论</h2>
 
 <p>在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大。
-暂无有其它对与直播场景首开有明显影响的参数。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><category term="Protocol" /><summary type="html"><![CDATA[当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上存在比较大的问题，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(HTTP-FLV），并且 Player 位于第三方平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接参数，尽量加快 TCP 的建连和数据下发的速度。]]></summary></entry><entry><title type="html">Ubuntu24.04 配置静态 IP</title><link href="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html" rel="alternate" type="text/html" title="Ubuntu24.04 配置静态 IP" /><published>2025-01-08T00:00:00+00:00</published><updated>2025-01-08T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/ubuntu24.04-static-ip</id><content type="html" xml:base="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html"><![CDATA[<blockquote>
+暂无有其它对与直播场景首开有明显影响的参数。</p>
+
+<h1 id="路由优化记录">路由优化记录</h1>
+
+<p>直播片源选用 3.4Mbps 的码率，播放器选择 ffplay 进行拉取，在发送端（直播服务器）通过 tcpdump 抓包，对比查看发送 1MB 数据所耗费的时间线，这里是局域网环境，所以 lastmile 的带宽不是瓶颈。</p>
+
+<p>Tcp 的 initcwnd 默认值为 10，倘若设置过大会造成对网络的冲击，根据经验选择<code class="language-plaintext highlighter-rouge">默认配置 10</code> 与 <code class="language-plaintext highlighter-rouge">40</code> 两者之间进行对比。</p>
+
+<h2 id="环境准备-1">环境准备</h2>
+
+<p>首先在发送端直播服务器上为指定网卡增加 100ms 的主动延迟，以放大数据影响，方便对比结果。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 增加 100ms 的固定延迟
+$ sudo tc qdisc change dev eno1 root netem delay 100ms
+  
+# ping 验证
+$ ping 100.100.32.108
+PING 100.100.32.108 (100.100.32.108) 56(84) bytes of data.
+64 bytes from 100.100.32.108: icmp_seq=1 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=2 ttl=63 time=103 ms
+64 bytes from 100.100.32.108: icmp_seq=3 ttl=63 time=104 ms
+64 bytes from 100.100.32.108: icmp_seq=4 ttl=63 time=103 ms
+^C
+--- 100.100.32.108 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3003ms
+rtt min/avg/max/mdev = 102.763/103.307/103.550/0.322 ms
+</code></pre></div></div>
+
+<h2 id="case1">Case1</h2>
+
+<blockquote>
+  <p>未修改 tcp initcwnd 的测试场景。</p>
+</blockquote>
+
+<ul>
+  <li>在发送端（直播服务器）测抓包：
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_10cwnd_100msdelay.pcap
+</code></pre></div>    </div>
+  </li>
+  <li>在远端进行拉流（100.100.32.108）：</li>
+</ul>
+
+<p> $emsp;拉取播放 10秒左右即可。</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ffplay http://100.100.57.20:8080/ztest/A123.flv\?domain\=h3.xxx.com
+</code></pre></div></div>
+
+<ul>
+  <li>Wireshark 分析：</li>
+</ul>
+
+<p>  可以看到如下截图，接收 1 * 10^6 即1MB的数据时大约耗时在 900ms。
+<img src="/assets/img/blog/tcp_10cwnd_100ms.png" alt="TCP 10 INITCWND 分析图" /></p>
+
+<h2 id="case2">Case2</h2>
+
+<p>调整 initcwnd 为 40，通过 ip route 进行调整。</p>
+
+<ul>
+  <li>首先通过 <code class="language-plaintext highlighter-rouge">sudo ip route show</code> 进行查看：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 10
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 10
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 10
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+</code></pre></div></div>
+
+<ul>
+  <li>然后依次对各 route 进行配置：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo ip route change 100.100.56.254 dev eno1 scope link initcwnd 40
+sudo ip route change via 100.100.56.254 dev eno1  initcwnd 40
+sudo ip route change 100.100.56.0/23 dev eno1 proto static scope link  initcwnd 40
+</code></pre></div></div>
+
+<ul>
+  <li>配置后如下：</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ~$ sudo ip route show
+default via 100.100.56.254 dev eno1 initcwnd 40
+default via 100.100.56.254 dev eno1 proto static metric 100
+default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
+100.100.56.0/23 dev eno1 proto static scope link initcwnd 40
+100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
+100.100.56.254 dev eno1 scope link initcwnd 40
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+</code></pre></div></div>
+
+<ul>
+  <li>在发送端（直播服务器）测抓包</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_40cwnd_100msdelay.pcap
+</code></pre></div></div>
+
+<ul>
+  <li>Wireshark 分析</li>
+</ul>
+
+<p>  可以看到 init cwnd 为 40 后，在 tcp 的慢启动状态发包变得很激进，接收端接收 1MB 的数据大约为 550ms，节省了大约 350ms，大约 3 个 rtt 的时间。
+<img src="/assets/img/blog/tcp_40cwnd_100ms.png" alt="TCP 40 INITCWND 分析图" /></p>
+
+<h2 id="结论-1">结论</h2>
+
+<p>  如上，调整 INITCWND 为 40后，在秒开数据为 1MB 的场景中，大约可为秒开节省 3 个左右的 rtt 时间，下一步可以在线上进行初步的验证，可逐步放开该值为 20、30、40，在数据不断的优化的情况下降低调整风险，逐步实现优化。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><category term="Protocol" /><summary type="html"><![CDATA[当前公司直播项目拨测的秒开指标远未达到预期，经过数据对比和分析，发现在拨测节点 Player 与边缘节点之间的 Lastmile 网络质量上存在比较大的问题，由于目前 Player 的拉流协议使用的是基于 TCP 的标准协议(HTTP-FLV），并且 Player 位于第三方平台，不受控制，所以重点只能通过单边优化公司边缘节点与 Player 之间的 TCP 连接参数，尽量加快 TCP 的建连和数据下发的速度。]]></summary></entry><entry><title type="html">Ubuntu24.04 配置静态 IP</title><link href="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html" rel="alternate" type="text/html" title="Ubuntu24.04 配置静态 IP" /><published>2025-01-08T00:00:00+00:00</published><updated>2025-01-08T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/ubuntu24.04-static-ip</id><content type="html" xml:base="https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html"><![CDATA[<blockquote>
   <p>公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。</p>
 </blockquote>
 
