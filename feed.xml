@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-02-05T04:02:18+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-02-05T06:15:31+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
 <blockquote>
   <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
@@ -593,7 +593,12 @@ tcp_fastopen 配置项说明：</p>
 
 <h2 id="结论">结论</h2>
 
-<p>在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大；3、开启 tcp_fastopen 需要开启 server 测，至少为 2。</p>
+<p>在目前环境中的内核配置中，对首开有明显影响的只有三个参数：</p>
+<ul>
+  <li>1、BBR 的拥塞算法；</li>
+  <li>2、TCP 的 send buffer 最大值要足够大；</li>
+  <li>3、开启 tcp_fastopen 需要开启 server 测，至少为 2。</li>
+</ul>
 
 <h1 id="路由优化记录">路由优化记录</h1>
 
