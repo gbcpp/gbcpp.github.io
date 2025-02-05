@@ -376,6 +376,8 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 可以看到在开启了 bbr 拥塞算法后，`Trans` 由 0.79 升到了 1.06，有了明显的提升。
 但是实际优化数据不会这么明显，因为线上环境我们只能开启 server 测的 bbr，而无法控制 client 同时开启。
 
+### SocketBuffer
+
 ```bash
 $ sysctl -a | egrep "rmem|wmem|adv_win|moderate"
 net.core.rmem_default = 327680
@@ -425,10 +427,44 @@ bytes  Bytes  bytes    bytes   secs.    per sec
 
 可以看到之前配置了 64KB 的 send buffer 后，Trans 由 1.59 下降到了 1.16，有明显的下降，但是上述配置是将 min、default、max 均全部强行配置为 64KB，失去了动态伸缩的能力，如果仅配置 default 为 64KB，不限制最大值，则不受影响。
 
+### tcp_fastopen
+
+在上述配置中，tcp_fastopen 配置为 1，即仅开启 Client 的 fastopen，而未开启 server 测的 fastopen，不是最佳配置，需要调整为 3 同时开启 client 和 server 测的 fastopen。
+tcp_fastopen 配置项说明：
+
+```
+tcp_fastopen - INTEGER
+	Enable TCP Fast Open (RFC7413) to send and accept data in the opening
+	SYN packet.
+
+	The client support is enabled by flag 0x1 (on by default). The client
+	then must use sendmsg() or sendto() with the MSG_FASTOPEN flag,
+	rather than connect() to send data in SYN.
+
+	The server support is enabled by flag 0x2 (off by default). Then
+	either enable for all listeners with another flag (0x400) or
+	enable individual listeners via TCP_FASTOPEN socket option with
+	the option value being the length of the syn-data backlog.
+
+	The values (bitmap) are
+
+	=====  ======== ======================================================
+	  0x1  (client) enables sending data in the opening SYN on the client.
+	  0x2  (server) enables the server support, i.e., allowing data in
+			a SYN packet to be accepted and passed to the
+			application before 3-way handshake finishes.
+	  0x4  (client) send data in the opening SYN regardless of cookie
+			availability and without a cookie option.
+	0x200  (server) accept data-in-SYN w/o any cookie option present.
+	0x400  (server) enable all listeners to support Fast Open by
+			default without explicit TCP_FASTOPEN socket option.
+	=====  ======== ======================================================
+
+```
+
 ## 结论
 
-在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大。
-暂无有其它对与直播场景首开有明显影响的参数。
+在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大；3、开启 tcp_fastopen 需要开启 server 测，至少为 2。
 
 # 路由优化记录
 
@@ -534,3 +570,4 @@ sudo tcpdump -i eno1 -s 1500 tcp and host 100.100.32.108 and port 8080 -w tcp_40
 ## 结论
 
 &emsp;&emsp;如上，调整 INITCWND 为 40后，在秒开数据为 1MB 的场景中，大约可为秒开节省 3 个左右的 rtt 时间，下一步可以在线上进行初步的验证，可逐步放开该值为 20、30、40，在数据不断的优化的情况下降低调整风险，逐步实现优化。
+
