@@ -464,7 +464,10 @@ tcp_fastopen - INTEGER
 
 ## 结论
 
-在目前环境中的内核配置中，对首开有明显影响的只有两个参数：1、BBR 的拥塞算法；2、TCP 的 send buffer 最大值要足够大；3、开启 tcp_fastopen 需要开启 server 测，至少为 2。
+在目前环境中的内核配置中，对首开有明显影响的只有三个参数：
+- 1、BBR 的拥塞算法；
+- 2、TCP 的 send buffer 最大值要足够大；
+- 3、开启 tcp_fastopen 需要开启 server 测，至少为 2。
 
 # 路由优化记录
 
