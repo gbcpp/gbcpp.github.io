@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>golang 问题记录 - Mr Chen</title>
+    <title>HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="golang 问题记录">
-    <meta name="keywords"  content="Life">
+    <meta name="description" content="HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录">
+    <meta name="keywords"  content="Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="golang 问题记录 - Mr Chen">
+    <meta property="og:title" content="HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/notes/golang-issues.html">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/blog-templete-copy.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/blog-templete-copy.html">
     
-    
-    <meta property="og:next_url" content="/notes/optimize-back-to-source.html">
+    <meta property="og:next_url" content="/notes/golang-issues.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-01-21 00:00:00 +0000" />
+    <meta property="post-date" content="2025-02-24 00:00:00 +0000" />
     
     
     
@@ -162,11 +160,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Life" class="post-tag">Life</a>
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
             
           
         </div>
-        <h1>golang 问题记录</h1>
+        <h1>HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="25-01-21">
+          <time class="post-meta-item" datetime="25-02-24">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="25-01-21">
+          <time class="post-meta-item" datetime="25-02-24">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.1k  字
+              本文总共  1.9k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 4 分钟
+              阅读全文大约需要 6 分钟
             </span>
             
               <span class="post-meta-item">
@@ -217,8 +215,6 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">go 常见问题记事本</h2>
-      
 
       
       
@@ -226,41 +222,91 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <p>  </p>
-<blockquote>
-  <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
-</blockquote>
+            <h2 id="问题描述">问题描述</h2>
 
-<h1 id="环境问题">环境问题</h1>
+<p>  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。</p>
 
-<h2 id="missing-gosum-entry-for-module">missing go.sum entry for module</h2>
+<h2 id="排查过程">排查过程</h2>
 
-<p>曾经编译过的代码出现类似如下的错误 <code class="language-plaintext highlighter-rouge">missing go.sum entry for module</code>，各种依赖缺失的 mod，如下：</p>
+<h3 id="协议对比">协议对比</h3>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>base/file.go:10:2: missing go.sum entry for module providing package github.com/astaxie/beego/logs; to add:
-	go mod download github.com/astaxie/beego
-base/name_generate.go:6:2: missing go.sum entry for module providing package github.com/google/uuid (imported by ben/base); to add:
-	go get ben/base
-helpers/data_analysis/base/bar_base.go:6:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/charts (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-helpers/data_analysis/base/metrics.go:9:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/components (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/opts (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-</code></pre></div></div>
+<p>在指定的 iPhone 设备上通过后台控制、确认播放端使用的 HTTP 版本，明确在正常的网络环境下使用 TCP 的播放效果要明显优于基于 UDP 的 HTTP3，明显问题现象。</p>
 
-<p><strong>解决办法</strong></p>
+<h3 id="mtu-问题">MTU 问题</h3>
 
-<p>使用 <code class="language-plaintext highlighter-rouge">go mod tidy</code> 来整理依赖，该命令有如下作用：</p>
+<p>通过打开 quic-go 中的 debug log，看到播放端在出现卡顿时，出现大概率的 <code class="language-plaintext highlighter-rouge">lost packet</code>，怀疑是 quic-go 的 MTU 探测问题，探测到错误的 max packet size 导致发送了过大的数据包触发的 IP 分片导致的丢失。</p>
+
+<p>  。。。。。。   此处省略一万字，debug 排查 guic-go 中的 MTU 探测模块代码逻辑简单、清晰，没有代码问题。</p>
+
+<p>那么如果将 quic-go 中的 MTU 探测关闭，让其一直固定使用 initial 的 max packet size：1252，会有问题吗？</p>
+
+<p>通过 quic-go 的配置 <code class="language-plaintext highlighter-rouge">DisablePathMTUDiscovery</code> 将其置为 <code class="language-plaintext highlighter-rouge">true</code>, 其默认为 <code class="language-plaintext highlighter-rouge">false</code>，进行测试验证后，发现卡顿现象消失了，可以明确问题就是 MTU 的问题了，链路上发送了超过实际 MTU 大小的数据，触发的 IP 分片导致大量的丢包，从而出现的卡顿。</p>
+
+<h3 id="抓包验证">抓包验证</h3>
+
+<p>依然开启 quic-go 的 MTU-Discorver 功能: <code class="language-plaintext highlighter-rouge">DisablePathMTUDiscovery</code> 将其置为 <code class="language-plaintext highlighter-rouge">false</code>。</p>
 
 <ul>
-  <li>删除不需要的依赖包</li>
-  <li>下载新的依赖包</li>
-  <li>更新 <code class="language-plaintext highlighter-rouge">go.sum</code>
-</li>
+  <li>Server 测抓包</li>
 </ul>
 
-<p>重新执行 <code class="language-plaintext highlighter-rouge">go run</code> <code class="language-plaintext highlighter-rouge">go build</code> 问题解决。</p>
+<p>Server 测通过 <code class="language-plaintext highlighter-rouge">tcpdump</code> 抓包即可，命令： <code class="language-plaintext highlighter-rouge">tcpdump -i any -s 1500 udp src port 4443 -v</code> 抓取自己从 HTTP3 端口 4443 发送方向的数据包，重点是查看数据包的大小是否有在本地发送时出现切包的情况。</p>
+
+<ul>
+  <li>iPhone 设备测抓包</li>
+</ul>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">xcode</code> 工具集中的 <code class="language-plaintext highlighter-rouge">rvictl</code> 结合 <code class="language-plaintext highlighter-rouge">wireshark</code> 进行抓包。</p>
+
+<p>首先 Mac 上需要安装 <code class="language-plaintext highlighter-rouge">xcode</code> 开发工具，将 iPhone 连接 Mac 后，通过 xcode 查看该 iPhone 设备的 Identifier ID，在 <code class="language-plaintext highlighter-rouge">xcode</code> 的 <code class="language-plaintext highlighter-rouge">window</code> 菜单 ==<code class="language-plaintext highlighter-rouge">》Device</code> 选项 进行查看：</p>
+
+<p><img src="/assets/img/blog/xcode-identifier.png" alt="获取 iPhone ID"></p>
+
+<p><strong>启动虚拟网卡：</strong></p>
+
+<p>Terminal 中命令启动：<code class="language-plaintext highlighter-rouge">rvictl -s 00008130-00012C163EC2001C </code>，如果失败，会有 <code class="language-plaintext highlighter-rouge">FAILED</code> 的输出提示。</p>
+
+<p><strong>启动 WireShark：</strong></p>
+
+<p>需要 <code class="language-plaintext highlighter-rouge">root </code>权限，从 Terminal 中进行启动： <code class="language-plaintext highlighter-rouge">sudo wireshark</code>，选择网卡 <strong>rvi</strong> 网卡进行抓取，可以添加过滤条件，如：<code class="language-plaintext highlighter-rouge">udp.port == 4443</code></p>
+
+<ul>
+  <li>复现抓包</li>
+</ul>
+
+<p>手机测通过 HTTP3 拉流复现后，分别查看 Server 和 iPhone 测的抓包结果进行分析：</p>
+
+<p>下图可以看到server 在发送 1400+ 的数据包的时候，是未分片且带有 <code class="language-plaintext highlighter-rouge">DF</code> flag 的，<strong>server 发送的所有数据包均是如此</strong>：</p>
+
+<p><img src="/assets/img/blog/server-quic-capture0.png" alt="Server 抓包截图（未切片）"></p>
+
+<p>iPhone 测抓包可以看到首先收到的 1400+ 的 数据包是带有 <code class="language-plaintext highlighter-rouge">DF</code> flag 的，同时也没有进行切片，如下图：</p>
+
+<p><img src="/assets/img/blog/client-quic-capture.png" alt="iPhone 抓包1（首先无分片）"></p>
+
+<p>但是在后面很快就出现了 IP 分片，且去除了 DF flag 的数据包，iPhone 测只能接收到一半的数据包：</p>
+
+<p><img src="/assets/img/blog/client-quic-capture2.png" alt="iPhone 抓包2（被分片）"></p>
+
+<blockquote>
+  <p>注意：该问题在仅在我司的 Wifi 网络环境下存在，4G/5G 网络条件下不存在。</p>
+</blockquote>
+
+<h2 id="结论">结论</h2>
+
+<p>   通过上述抓包可以看到是因为链路中某个路由设备对 MTU 大于 1400 的数据包进行了强行切片，分成了 2 片进行发送，这里存在两个问题：</p>
+
+<p>1、该路由设备放行了前面一小部分大于 1400 的数据包，接收端接收并 Ack 给了发送端，导致发送端的 Mtu 探测模块爬升到了更高的值，但是后面该路由设备又对 1400+ 的数据包改变了策略，不允许通过，而 quic-go 中的 mtu 探测模块又没有向下探测 mtu 的能力，导致业务遇到该场景必死无疑。</p>
+
+<p>2、发送端发送的数据包已经明确设置了 <code class="language-plaintext highlighter-rouge">DF</code> 即 <code class="language-plaintext highlighter-rouge">Don't fragment</code> 的 flag，路由设备在收到超过自己 MTU 设备时应该直接丢掉，而非先进行放行，然后强行忽略 DF flag 进行切片转发，让接收端产生误判。</p>
+
+<p>   对比抓取其它使用 HTTP3/QUIC 协议的 APP 数据包，比如油管的短视频和直播，可以看到其并未向上探测 MTU，使用的是固定的 1250 这样的一个 MTU 大小。</p>
+
+<p>   使用 1300 以内的 MTU 大小是网络兼容性最好选择，但是会牺牲一定的服务器网络数据包处理的性能，像 Google 这样的 APP 亦是如此。如果需要追求极致性能，还有一个解决方案，那就是为 MTU 探测模块增加向下探测的能力，比如这种场景，已经探测到了 1400 的大小，但是后续路由器开启切片导致大量的丢包，协议内部开始向下探测 MTU 大小，或者重新从 1000/1200 开始探测即可。</p>
+
+<h2 id="后续">后续</h2>
+
+<p>   无</p>
 
 
             <div class="post-copyright">
@@ -277,15 +323,15 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 golang 问题记录 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/golang-issues.html" class="cplink">https://gbcpp.github.io/notes/golang-issues.html</a></p>
+              <p><span>本文标题：</span>《 HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/blog-templete-copy.html" class="cplink">https://gbcpp.github.io/notes/blog-templete-copy.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('环境问题')">环境问题</a><ul><li><a onclick="scrollToAdjust('missing-go.sum-entry-for-module')">missing go.sum entry for module</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('问题描述')">问题描述</a></li><li><a onclick="scrollToAdjust('排查过程')">排查过程</a><ul><li><a onclick="scrollToAdjust('协议对比')">协议对比</a></li><li><a onclick="scrollToAdjust('mtu-问题')">MTU 问题</a></li><li><a onclick="scrollToAdjust('抓包验证')">抓包验证</a></li></ul></li><li><a onclick="scrollToAdjust('结论')">结论</a></li><li><a onclick="scrollToAdjust('后续')">后续</a></li></ul>
         </div>
       </div>
       
@@ -339,25 +385,13 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/notes/blog-templete-copy.html" class="read-next-link" aria-label="HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录"></a>
-          <section>
-            <span>HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录</span>
-            <p>问题描述</p>
-          </section>
-          
-          <div class="filter"></div>
-          <img src="/assets/img/shan.jpg" alt="">
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/notes/optimize-back-to-source.html" class="read-next-link" aria-label="直播回源优化"></a>
+          <a href="/notes/golang-issues.html" class="read-next-link" aria-label="golang 问题记录"></a>
             <section>
-              <span>直播回源优化</span>
-              <p>  该文档主要考虑的是针对需要回源时秒开的优化。</p>
+              <span>golang 问题记录</span>
+              <p>    记录 Golang 学习、开发过程中的一些疑难杂症。</p>
             </section>
             
             <div class="filter"></div>
@@ -376,7 +410,7 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
   
   <script>
     var gitalk = new Gitalk({
-      id: '2025-01-21 00:00:00 +0000',
+      id: '2025-02-24 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -589,7 +623,7 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2025-01-21-golang-issues.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/notes/2020-01-01-blog-templete copy.md")
           .then((response) => {
             return response.json();
           })
