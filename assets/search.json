@@ -1,8 +1,8 @@
 [
   {
-    "title"    : "HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录",
+    "title"    : "HTTP3/QUIC 在部分iPhone设备下卡顿问题排查",
     "tags"     : "Protocol",
-    "url"      : "/notes/blog-templete-copy.html"
+    "url"      : "/notes/quic-stuck-on-iphone.html"
   } ,
 
   {
