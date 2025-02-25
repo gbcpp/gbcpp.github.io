@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-02-25T02:57:35+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title><link href="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html" rel="alternate" type="text/html" title="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查" /><published>2025-02-24T00:00:00+00:00</published><updated>2025-02-24T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/quic-stuck-on-iphone</id><content type="html" xml:base="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html"><![CDATA[<h2 id="问题描述">问题描述</h2>
-
-<p>  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-02-25T02:59:49+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title><link href="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html" rel="alternate" type="text/html" title="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查" /><published>2025-02-24T00:00:00+00:00</published><updated>2025-02-24T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/quic-stuck-on-iphone</id><content type="html" xml:base="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html"><![CDATA[<blockquote>
+  <p>  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。</p>
+</blockquote>
 
 <h2 id="排查过程">排查过程</h2>
 
@@ -82,7 +82,7 @@
 
 <h2 id="后续">后续</h2>
 
-<p>   无</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[问题描述]]></summary></entry><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<p>   无</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。]]></summary></entry><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
 <blockquote>
   <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
