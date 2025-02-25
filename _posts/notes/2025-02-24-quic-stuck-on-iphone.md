@@ -1,10 +1,10 @@
 ---
 layout: post
-title: 'HTTP3/QUIC 在 个别 iPhone 下卡顿问题排查记录'
+title: 'HTTP3/QUIC 在部分iPhone设备下卡顿问题排查'
 subtitle: 
 date: 2025-02-24
 author: Mr Chen
-cover: '/assets/img/shan.jpg'
+# cover: '/assets/img/shan.jpg'
 categories: Notes
 tags: 
 - Protocol
