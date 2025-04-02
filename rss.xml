@@ -5,9 +5,81 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 25 Feb 2025 02:59:49 +0000</pubDate>
-    <lastBuildDate>Tue, 25 Feb 2025 02:59:49 +0000</lastBuildDate>
+    <pubDate>Wed, 02 Apr 2025 07:54:29 +0000</pubDate>
+    <lastBuildDate>Wed, 02 Apr 2025 07:54:29 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>Mac Env Fix</title>
+        <description>&lt;!--
+ * @Author: Eddie gbao1987@163.com
+ * @Date: 2025-04-02 15:38:32
+ * @LastEditors: Eddie gbao1987@163.com
+ * @LastEditTime: 2025-04-02 15:52:59
+ * @FilePath: /gbcpp.github.io/_posts/notes/2020-01-01-blog-templete copy.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+--&gt;
+&lt;hr /&gt;
+&lt;p&gt;layout: post
+title: ‘Mac 系统环境配置异常记录’
+subtitle: 
+date: 2025-04-02
+author: Mr Chen
+cover: ‘/assets/img/shan.jpg’
+categories: Notes
+tags:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;h2 id=&quot;life&quot;&gt;Life&lt;/h2&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;mac-下-vscode-和-cursor-ide-的-vim-插件长按键不生效&quot;&gt;Mac 下 VSCode 和 Cursor IDE 的 vim 插件长按键不生效&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;VSCode&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 标准版 VSCode&lt;/span&gt;
+defaults write com.microsoft.VSCode ApplePressAndHoldEnabled &lt;span class=&quot;nt&quot;&gt;-bool&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# VSCode Insider 版&lt;/span&gt;
+defaults write com.microsoft.VSCodeInsiders ApplePressAndHoldEnabled &lt;span class=&quot;nt&quot;&gt;-bool&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# VS Codium&lt;/span&gt;
+defaults write com.vscodium ApplePressAndHoldEnabled &lt;span class=&quot;nt&quot;&gt;-bool&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# VS Codium Exploration 用户&lt;/span&gt;
+defaults write com.microsoft.VSCodeExploration ApplePressAndHoldEnabled &lt;span class=&quot;nt&quot;&gt;-bool&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 全局设置（慎用）&lt;/span&gt;
+defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHoldEnabled
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Cursor&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;虽然 Cursor 也是基于 VSCode，但是需要额外的配置才行。&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;defaults write &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;osascript &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;id of app &quot;Cursor&quot;&apos;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; ApplePressAndHoldEnabled &lt;span class=&quot;nt&quot;&gt;-bool&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;上述命令执行完后，均需要重启 IDE。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+</description>
+        <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/mac-env-fix.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/mac-env-fix.html</guid>
+        
+        
+      </item>
     
       <item>
         <title>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title>
@@ -1438,39 +1510,6 @@ vhost __defaultVhost__ {
         <guid isPermaLink="true">https://gbcpp.github.io/notes/learning-cpp-notes.html</guid>
         
         <category>C++</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>面向学习的三种人</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;人们对学习的态度分为三种类型：犯人、过客和探索者&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;1-犯人&quot;&gt;1. 犯人&lt;/h2&gt;
-
-&lt;p&gt;  他们可能视学习为一种负担或义务，而不是一种机会或乐趣。他们可能觉得被迫学习，而不是出于内心的愿望或对知识的渴望。这种态度可能会限制他们的学习潜力，因为他们可能无法全身心投入。&lt;/p&gt;
-
-&lt;h2 id=&quot;2-过客&quot;&gt;2. 过客&lt;/h2&gt;
-
-&lt;p&gt;  他们可能对学习有一种漠不关心的态度，只是偶尔参与，没有持续的投入或深度的参与。他们可能在学习中得到一些知识，但可能无法充分利用学习的潜力，因为他们没有深入研究或投入足够的时间。&lt;/p&gt;
-
-&lt;h2 id=&quot;3-探索者&quot;&gt;3. 探索者&lt;/h2&gt;
-
-&lt;p&gt;  他们热衷于学习，对新知识充满好奇心，愿意花时间和精力去探索和理解。他们可能会从学习中得到最大的收益，因为他们的态度使他们能够深入学习，发现新的想法和观点。&lt;/p&gt;
-
-&lt;h2 id=&quot;总结&quot;&gt;总结&lt;/h2&gt;
-&lt;p&gt;  这三种类型并不是固定不变的，人们可以改变自己对待学习的态度。但实际上，一个人在不同的时间或面对不同的主题时，可能会表现出这三种不同的态度。&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 02 Apr 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/learning-oriented.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/learning-oriented.html</guid>
-        
-        <category>Life</category>
         
         
         <category>Notes</category>

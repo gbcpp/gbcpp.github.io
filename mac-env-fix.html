@@ -1,0 +1,62 @@
+<!--
+ * @Author: Eddie gbao1987@163.com
+ * @Date: 2025-04-02 15:38:32
+ * @LastEditors: Eddie gbao1987@163.com
+ * @LastEditTime: 2025-04-02 15:52:59
+ * @FilePath: /gbcpp.github.io/_posts/notes/2020-01-01-blog-templete copy.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<hr />
+<p>layout: post
+title: ‘Mac 系统环境配置异常记录’
+subtitle: 
+date: 2025-04-02
+author: Mr Chen
+cover: ‘/assets/img/shan.jpg’
+categories: Notes
+tags:</p>
+<ul>
+  <li>
+    <h2 id="life">Life</h2>
+  </li>
+</ul>
+
+<blockquote>
+  <p>整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。</p>
+</blockquote>
+
+<h1 id="mac-下-vscode-和-cursor-ide-的-vim-插件长按键不生效">Mac 下 VSCode 和 Cursor IDE 的 vim 插件长按键不生效</h1>
+
+<ul>
+  <li>VSCode</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 标准版 VSCode</span>
+defaults write com.microsoft.VSCode ApplePressAndHoldEnabled <span class="nt">-bool</span> <span class="nb">false</span>
+
+<span class="c"># VSCode Insider 版</span>
+defaults write com.microsoft.VSCodeInsiders ApplePressAndHoldEnabled <span class="nt">-bool</span> <span class="nb">false</span>
+
+<span class="c"># VS Codium</span>
+defaults write com.vscodium ApplePressAndHoldEnabled <span class="nt">-bool</span> <span class="nb">false</span>
+
+<span class="c"># VS Codium Exploration 用户</span>
+defaults write com.microsoft.VSCodeExploration ApplePressAndHoldEnabled <span class="nt">-bool</span> <span class="nb">false</span>
+
+<span class="c"># 全局设置（慎用）</span>
+defaults delete <span class="nt">-g</span> ApplePressAndHoldEnabled
+</code></pre></div></div>
+
+<ul>
+  <li>Cursor</li>
+</ul>
+
+<p>虽然 Cursor 也是基于 VSCode，但是需要额外的配置才行。</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>defaults write <span class="s2">"</span><span class="si">$(</span>osascript <span class="nt">-e</span> <span class="s1">'id of app "Cursor"'</span><span class="si">)</span><span class="s2">"</span> ApplePressAndHoldEnabled <span class="nt">-bool</span> <span class="nb">false</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>上述命令执行完后，均需要重启 IDE。</p>
+</blockquote>
+

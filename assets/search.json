@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "Mac Env Fix",
+    "tags"     : "",
+    "url"      : "/mac-env-fix.html"
+  } ,
+
+  {
     "title"    : "HTTP3/QUIC 在部分iPhone设备下卡顿问题排查",
     "tags"     : "Protocol",
     "url"      : "/notes/quic-stuck-on-iphone.html"
