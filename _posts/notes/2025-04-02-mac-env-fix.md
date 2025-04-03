@@ -1,11 +1,3 @@
-<!--
- * @Author: Eddie gbao1987@163.com
- * @Date: 2025-04-02 15:38:32
- * @LastEditors: Eddie gbao1987@163.com
- * @LastEditTime: 2025-04-02 15:52:59
- * @FilePath: /gbcpp.github.io/_posts/notes/2020-01-01-blog-templete copy.md
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
 ---
 layout: post
 title: 'Mac 系统环境配置异常记录'
