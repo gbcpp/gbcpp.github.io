@@ -5,36 +5,13 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 02 Apr 2025 07:54:29 +0000</pubDate>
-    <lastBuildDate>Wed, 02 Apr 2025 07:54:29 +0000</lastBuildDate>
+    <pubDate>Thu, 03 Apr 2025 06:39:41 +0000</pubDate>
+    <lastBuildDate>Thu, 03 Apr 2025 06:39:41 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
-        <title>Mac Env Fix</title>
-        <description>&lt;!--
- * @Author: Eddie gbao1987@163.com
- * @Date: 2025-04-02 15:38:32
- * @LastEditors: Eddie gbao1987@163.com
- * @LastEditTime: 2025-04-02 15:52:59
- * @FilePath: /gbcpp.github.io/_posts/notes/2020-01-01-blog-templete copy.md
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
---&gt;
-&lt;hr /&gt;
-&lt;p&gt;layout: post
-title: ‘Mac 系统环境配置异常记录’
-subtitle: 
-date: 2025-04-02
-author: Mr Chen
-cover: ‘/assets/img/shan.jpg’
-categories: Notes
-tags:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h2 id=&quot;life&quot;&gt;Life&lt;/h2&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
+        <title>Mac 系统环境配置异常记录</title>
+        <description>&lt;blockquote&gt;
   &lt;p&gt;整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -75,9 +52,13 @@ defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHo
 
 </description>
         <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/mac-env-fix.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/mac-env-fix.html</guid>
+        <link>https://gbcpp.github.io/notes/mac-env-fix.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/mac-env-fix.html</guid>
         
+        <category>Life</category>
+        
+        
+        <category>Notes</category>
         
       </item>
     

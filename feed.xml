@@ -1,27 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-04-02T07:54:29+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Mac Env Fix</title><link href="https://gbcpp.github.io/mac-env-fix.html" rel="alternate" type="text/html" title="Mac Env Fix" /><published>2025-04-02T00:00:00+00:00</published><updated>2025-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/mac-env-fix.html"><![CDATA[<!--
- * @Author: Eddie gbao1987@163.com
- * @Date: 2025-04-02 15:38:32
- * @LastEditors: Eddie gbao1987@163.com
- * @LastEditTime: 2025-04-02 15:52:59
- * @FilePath: /gbcpp.github.io/_posts/notes/2020-01-01-blog-templete copy.md
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
-<hr />
-<p>layout: post
-title: ‘Mac 系统环境配置异常记录’
-subtitle: 
-date: 2025-04-02
-author: Mr Chen
-cover: ‘/assets/img/shan.jpg’
-categories: Notes
-tags:</p>
-<ul>
-  <li>
-    <h2 id="life">Life</h2>
-  </li>
-</ul>
-
-<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-04-03T06:39:41+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Mac 系统环境配置异常记录</title><link href="https://gbcpp.github.io/notes/mac-env-fix.html" rel="alternate" type="text/html" title="Mac 系统环境配置异常记录" /><published>2025-04-02T00:00:00+00:00</published><updated>2025-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/notes/mac-env-fix.html"><![CDATA[<blockquote>
   <p>整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。</p>
 </blockquote>
 
@@ -58,7 +35,7 @@ defaults delete <span class="nt">-g</span> ApplePressAndHoldEnabled
 
 <blockquote>
   <p>上述命令执行完后，均需要重启 IDE。</p>
-</blockquote>]]></content><author><name>Mr Chen</name></author><summary type="html"><![CDATA[layout: post title: ‘Mac 系统环境配置异常记录’ subtitle: date: 2025-04-02 author: Mr Chen cover: ‘/assets/img/shan.jpg’ categories: Notes tags: Life]]></summary></entry><entry><title type="html">HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title><link href="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html" rel="alternate" type="text/html" title="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查" /><published>2025-02-24T00:00:00+00:00</published><updated>2025-02-24T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/quic-stuck-on-iphone</id><content type="html" xml:base="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html"><![CDATA[<blockquote>
+</blockquote>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。]]></summary></entry><entry><title type="html">HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title><link href="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html" rel="alternate" type="text/html" title="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查" /><published>2025-02-24T00:00:00+00:00</published><updated>2025-02-24T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/quic-stuck-on-iphone</id><content type="html" xml:base="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html"><![CDATA[<blockquote>
   <p>  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。</p>
 </blockquote>
 
