@@ -5,9 +5,292 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 03 Apr 2025 06:39:41 +0000</pubDate>
-    <lastBuildDate>Thu, 03 Apr 2025 06:39:41 +0000</lastBuildDate>
+    <pubDate>Wed, 21 May 2025 14:03:47 +0000</pubDate>
+    <lastBuildDate>Wed, 21 May 2025 14:03:47 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>Install bcc on ubuntu22.04</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;环境准备&quot;&gt;环境准备&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;su
+apt update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt upgrade &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 安装必要依赖&lt;/span&gt;
+apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; bison build-essential cmake flex git libedit-dev &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  libfl-dev python3-distutils
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;安装内核头文件&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;bcc 需要依赖 Linux 内核的头文件，在 orb 虚拟机下，通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uname -r&lt;/code&gt; 获取到的内核版本有特殊的后缀，无法直接安装。
+如我的 orb 虚拟机：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root@ubuntu22:~/tools# &lt;span class=&quot;nb&quot;&gt;uname&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt;
+6.13.7-orbstack-00283-g9d1400e7e9c6
+
+&lt;span class=&quot;c&quot;&gt;# 通过 apt install lin ux-headers-$(uname -r) 是查找不到对应的安装包的&lt;/span&gt;
+root@ubuntu22:~/tools# apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; linux-header-&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;uname&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
+E: Couldn&lt;span class=&quot;s1&quot;&gt;&apos;t find any package by glob &apos;&lt;/span&gt;linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6&lt;span class=&quot;s1&quot;&gt;&apos;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;如何通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt install linux-headers-$(uname -r)&lt;/code&gt; 安装报错，则可以通过安装通用内核头文件版本进行替代：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; linux-headers-generic
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;源码编译步骤&quot;&gt;源码编译步骤&lt;/h2&gt;
+
+&lt;h3 id=&quot;获取源码&quot;&gt;获取源码&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone https://github.com/iovisor/bcc.git
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;bcc
+git checkout v0.34.0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;编译&quot;&gt;编译&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;mkdir &lt;/span&gt;build&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;build
+cmake ..
+make
+make &lt;span class=&quot;nb&quot;&gt;install
+&lt;/span&gt;cmake &lt;span class=&quot;nt&quot;&gt;-DPYTHON_CMD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;python3 ..
+&lt;span class=&quot;nb&quot;&gt;pushd &lt;/span&gt;src/python/
+make
+make &lt;span class=&quot;nb&quot;&gt;install
+popd&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;验证安装&quot;&gt;验证安装&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 依然在 bcc/build 目录下，执行  ./examples/cpp/HelloWorld 输出如下内容即表示编译安装 c++版本可以正常运行&lt;/span&gt;
+root@:~/workspace/tools/bcc/build# ./examples/cpp/HelloWorld
+Starting HelloWorld with BCC 0.34.0+1f63ae6e
+           &amp;lt;...&amp;gt;-357844  &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;002] ....1 1312511.496364: bpf_trace_printk: Hello, World! Here I did a sys_clone call!
+
+
+&lt;span class=&quot;c&quot;&gt;# 验证 python 工具是否可用，输出如下内容标识正常可用&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;base&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# python3 ../examples/hello_world.py
+b&lt;span class=&quot;s1&quot;&gt;&apos;           &amp;lt;...&amp;gt;-356665  [000] ....1 1312599.534997: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;           &amp;lt;...&amp;gt;-3542460 [008] ....1 1312599.535595: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;         flannel-3542460 [008] ....1 1312599.535643: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;         flannel-3542460 [008] ....1 1312599.535675: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;           &amp;lt;...&amp;gt;-3542462 [011] ....1 1312599.535707: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;     cri-dockerd-356665  [000] ....1 1312599.536306: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;           &amp;lt;...&amp;gt;-3542465 [008] ....1 1312599.536762: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;         portmap-3542465 [008] ....1 1312599.536807: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt;
+b&lt;span class=&quot;s1&quot;&gt;&apos;         portmap-3542465 [008] ....1 1312599.536850: bpf_trace_printk: Hello, World!&apos;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;常见问题&quot;&gt;常见问题&lt;/h2&gt;
+
+&lt;h3 id=&quot;找不到lbbccsoo-中某个符号&quot;&gt;找不到lbbcc.so.o 中某个符号&lt;/h3&gt;
+
+&lt;p&gt;执行 hello_world.py 脚本输出报错类似如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;AttributeError: /lib/x86_64-linux-gnu/libbcc.so.0: undefined symbol: bpf_module_create_b
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;原因为 python3 中加载以来的 libbcc.so 版本与编译安装的不匹配导致，将 bcc/build 中生成的对 python3 进行覆盖即可：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 进入 bcc/build 目录&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;cp&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-rf&lt;/span&gt; ./src/python/bcc-python3/bcc/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; /usr/lib/python3/dist-packages/bcc/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;找不到-asmtypesh-头文件&quot;&gt;找不到 asm/types.h 头文件&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+In file included from &amp;lt;built-in&amp;gt;:2:
+In file included from /virtual/include/bcc/bpf.h:12:
+In file included from include/linux/types.h:6:
+include/uapi/linux/types.h:5:10: fatal error: &lt;span class=&quot;s1&quot;&gt;&apos;asm/types.h&apos;&lt;/span&gt; file not found
+&lt;span class=&quot;c&quot;&gt;#include &amp;lt;asm/types.h&amp;gt;&lt;/span&gt;
+         ^~~~~~~~~~~~~
+1 error generated.
+Traceback &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;most recent call last&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
+  File &lt;span class=&quot;s2&quot;&gt;&quot;/usr/share/bcc/examples/hello_world.py&quot;&lt;/span&gt;, line 12, &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &amp;lt;module&amp;gt;
+    BPF&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&apos;int kprobe__sys_clone(void *ctx) { bpf_trace_printk(&quot;Hello, World!\\n&quot;); return 0; }&apos;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.trace_print&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &lt;span class=&quot;s2&quot;&gt;&quot;/usr/lib/python3/dist-packages/bcc/__init__.py&quot;&lt;/span&gt;, line 505, &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;__init__
+    raise Exception&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Failed to compile BPF module %s&quot;&lt;/span&gt; % &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;src_file or &lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;text&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+Exception: Failed to compile BPF module &amp;lt;text&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;内存泄漏检测&quot;&gt;内存泄漏检测&lt;/h2&gt;
+
+&lt;h3 id=&quot;示例代码&quot;&gt;示例代码&lt;/h3&gt;
+
+&lt;p&gt;命名为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;test.cpp&lt;/code&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;iostream&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;vector&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
+&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g_vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;memory_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 故意泄漏内存&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;111&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;delete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;g_vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;push_back&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ptr2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__PRETTY_FUNCTION__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;my_func&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;memory_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 模拟内存泄漏&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;my_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;auto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;itor&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g_vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;itor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;静态编译链接方式检测&quot;&gt;静态编译链接方式检测&lt;/h3&gt;
+
+&lt;p&gt;使用静态方式进行编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;g++ &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-static&lt;/span&gt; test.cpp &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; test.exe
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;生成的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;test.exe&lt;/code&gt; 二进制文件无任何依赖，所以系统调用的一些接口符号均在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;test.exe&lt;/code&gt; 文件中。&lt;/p&gt;
+
+&lt;p&gt;通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;memleak&lt;/code&gt; 进行检测(需要 root 权限)：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# -O 为指定符号文件； -p 为指定进程的 ID&lt;/span&gt;
+memleak &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; test.exe &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;pid&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;输出内容：&lt;/em&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;base&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# ps &lt;span class=&quot;nt&quot;&gt;-aef&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep test
+&lt;/span&gt;root     3553018 3552090  0 21:56 pts/0    00:00:00 ./test.exe
+root     3553054 3357603  0 21:56 pts/10   00:00:00 &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;auto &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;base&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# memleak-bpfcc &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; /root/workspace/debug/test.exe &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 3553018
+Attaching to pid 3553018, Ctrl+C to quit.
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;21:56:42] Top 10 stacks with outstanding allocations:
+	555 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;5 allocations from stack
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x33 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		my_func&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;int&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x14 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		main+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		__libc_start_call_main+0x6a &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;21:56:47] Top 10 stacks with outstanding allocations:
+	256 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;1 allocations from stack
+		operator new&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x1c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::allocator_traits&amp;lt;std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::allocate&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&amp;amp;, unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x2c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::_Vector_base&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::_M_allocate&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		void std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::_M_realloc_insert&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&amp;gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;__gnu_cxx::__normal_iterator&amp;lt;char&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt;, std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;, char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x95 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::push_back&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x7c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x60 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		my_func&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;int&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x14 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		main+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		__libc_start_call_main+0x6a &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+	1110 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;10 allocations from stack
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x33 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		my_func&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;int&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x14 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		main+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		__libc_start_call_main+0x6a &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;21:56:52] Top 10 stacks with outstanding allocations:
+	256 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;1 allocations from stack
+		operator new&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x1c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::allocator_traits&amp;lt;std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::allocate&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&amp;amp;, unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x2c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::_Vector_base&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::_M_allocate&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;unsigned long&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		void std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::_M_realloc_insert&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&amp;gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;__gnu_cxx::__normal_iterator&amp;lt;char&lt;span class=&quot;k&quot;&gt;**&lt;/span&gt;, std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;, char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x95 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		std::vector&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;, std::allocator&amp;lt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;::push_back&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;char&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; const&amp;amp;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x7c &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x60 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		my_func&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;int&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x14 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		main+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		__libc_start_call_main+0x6a &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+	1665 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;15 allocations from stack
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x33 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		my_func&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;int&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;+0x14 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		main+0x2e &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+		__libc_start_call_main+0x6a &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;每 10 秒钟输出一次，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Top 10 stacks with outstanding allocations:&lt;/code&gt; 下面为内存申请且未释放的前 10 个堆栈信息。&lt;/p&gt;
+
+&lt;h3 id=&quot;非静态编译链接方式检测&quot;&gt;非静态编译链接方式检测&lt;/h3&gt;
+
+&lt;p&gt;使用非静态方式进行编译：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;g++ &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; test.cpp &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; test.exe
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;生成的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;test.exe&lt;/code&gt; 二进制文件有系统标准库依赖，如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;base&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; root@:~/workspace/debug# ldd test.exe
+	linux-vdso.so.1 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007fffab6d7000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	libstdc++.so.6 &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; /lib/x86_64-linux-gnu/libstdc++.so.6 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007f3ca7fb6000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	libc.so.6 &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; /lib/x86_64-linux-gnu/libc.so.6 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007f3ca7d8d000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	libm.so.6 &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; /lib/x86_64-linux-gnu/libm.so.6 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007f3ca7ca6000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	/lib64/ld-linux-x86-64.so.2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007f3ca81f3000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	libgcc_s.so.1 &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; /lib/x86_64-linux-gnu/libgcc_s.so.1 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0x00007f3ca7c86000&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;我们要动态追踪的系统调用 malloc、free 等在 libc.so 中，所以通过 -O 指定的符号文件在 /lib/x86_64-linux-gnu/libc.so.6 中。&lt;/p&gt;
+
+&lt;p&gt;通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;memleak&lt;/code&gt; 进行检测(需要 root 权限)：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# -O 为指定符号文件； -p 为指定进程的 ID&lt;/span&gt;
+memleak &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; /lib/x86_64-linux-gnu/libc.so.6 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;pid&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;输出内容：&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;同静态编译链接方式内容。&lt;/p&gt;
+
+&lt;h2 id=&quot;参考资料&quot;&gt;参考资料&lt;/h2&gt;
+
+&lt;p&gt;BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md&lt;/p&gt;
+</description>
+        <pubDate>Wed, 21 May 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/notes/install-bcc.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/install-bcc.html</guid>
+        
+        <category>bcc</category>
+        
+        <category>ebpf</category>
+        
+        
+        <category>Notes</category>
+        
+      </item>
     
       <item>
         <title>Mac 系统环境配置异常记录</title>
@@ -1429,66 +1712,6 @@ vhost __defaultVhost__ {
         <pubDate>Tue, 11 Jun 2024 00:00:00 +0000</pubDate>
         <link>https://gbcpp.github.io/notes/print_stacktrace.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/notes/print_stacktrace.html</guid>
-        
-        <category>C++</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>温故而知新之-C++</title>
-        <description>&lt;h2 id=&quot;指针的退化及如何避免&quot;&gt;指针的退化及如何避免&lt;/h2&gt;
-
-&lt;p&gt;在C++中，”指针退化”是指当数组作为函数参数传递时，它会”退化”为指向第一个元素的指针。这是因为在C++中，数组并不知道它们自己的大小，所以当你把一个数组作为参数传递给一个函数时，函数并不知道这个数组的大小，只知道它的起始地址。&lt;/p&gt;
-
-&lt;p&gt;例如，假设你有一个函数&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;void foo(int arr[])&lt;/code&gt;，当你传递一个数组给这个函数时，例如&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int arr[10]; foo(arr);&lt;/code&gt;，函数&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foo&lt;/code&gt;实际上看到的是一个指向&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;arr&lt;/code&gt;的第一个元素的指针，而不是整个数组。&lt;/p&gt;
-
-&lt;p&gt;要防止指针退化，有几种方法：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;使用标准库容器，如&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;std::vector&lt;/code&gt;或&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;std::array&lt;/code&gt;。这些容器知道它们自己的大小，因此不会发生指针退化。例如： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;void foo(std::vector&amp;lt;int&amp;gt;&amp;amp; arr)&lt;/code&gt;。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;使用模板函数，使函数可以接受数组的引用，并且能够保留数组的大小信息。例如： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;template&amp;lt;size_t N&amp;gt; void foo(int (&amp;amp;arr)[N])&lt;/code&gt;。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;传递数组的大小作为另一个参数。例如： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;void foo(int* arr, size_t size)&lt;/code&gt;。这样，即使数组退化为指针，函数仍然可以知道数组的大小。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;引用与指针的区别&quot;&gt;引用与指针的区别&lt;/h2&gt;
-
-&lt;p&gt;在C++中，指针和引用都可以用于间接引用其他对象。然而，它们在语法和行为上有一些关键的不同：&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;
-    &lt;p&gt;初始化：引用在创建时需要初始化，并且一旦初始化后就不能改变引用的目标，也就是说它始终引用最初赋给它的对象。而指针可以在任何时间指向任何对象或者NULL。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;空值：指针可以为NULL，表示它不指向任何对象。而引用必须始终引用一个有效的对象，不能有NULL引用。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;间接访问：使用指针时，需要使用解引用运算符(*)来访问它指向的对象，而引用则可以像普通变量那样直接使用。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;支持的操作：指针支持更多的操作，例如指针算术（即增加或减少指针的值，以指向内存中的不同位置）。引用则不能进行这种操作。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;内存占用：引用实际上并不占用任何内存，它只是一个别名。而指针是一个实际的变量，它占用内存空间并存储一个地址值。&lt;/p&gt;
-    &lt;blockquote&gt;
-      &lt;p&gt;但引用在程序中并不是不占用任何字节，引用本质上就是一个常量指针（constant pointer）。它在内存中占据的空间和指针一样，通常是 4 字节（在 32 位系统）或 8 字节（在 64 位系统）。然而，引用本身并不存储任何值，它只是一个别名，代表它引用的对象。在某些优化的情况下，如果引用没有被用作一个对象的别名（也就是说，它被直接用于访问该对象），编译器可能会优化掉引用，使其不占用任何内存空间。但是，这种优化并不是在所有情况下都会发生。所以，说引用不占用内存空间并不完全准确，实际情况取决于编译器的优化和引用的使用方式。&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。&lt;/p&gt;
-</description>
-        <pubDate>Fri, 12 Apr 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/learning-cpp-notes.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/learning-cpp-notes.html</guid>
         
         <category>C++</category>
         

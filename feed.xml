@@ -1,4 +1,270 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-04-03T06:39:41+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Mac 系统环境配置异常记录</title><link href="https://gbcpp.github.io/notes/mac-env-fix.html" rel="alternate" type="text/html" title="Mac 系统环境配置异常记录" /><published>2025-04-02T00:00:00+00:00</published><updated>2025-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/notes/mac-env-fix.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-05-21T14:03:47+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Install bcc on ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc on ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
+  <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
+</blockquote>
+
+<h2 id="环境准备">环境准备</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>su
+apt update <span class="o">&amp;&amp;</span> apt upgrade <span class="nt">-y</span>
+
+<span class="c"># 安装必要依赖</span>
+apt <span class="nb">install</span> <span class="nt">-y</span> bison build-essential cmake flex git libedit-dev <span class="se">\</span>
+  libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev <span class="se">\</span>
+  libfl-dev python3-distutils
+</code></pre></div></div>
+
+<ul>
+  <li><strong>安装内核头文件</strong></li>
+</ul>
+
+<p>bcc 需要依赖 Linux 内核的头文件，在 orb 虚拟机下，通过 <code class="language-plaintext highlighter-rouge">uname -r</code> 获取到的内核版本有特殊的后缀，无法直接安装。
+如我的 orb 虚拟机：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ubuntu22:~/tools# <span class="nb">uname</span> <span class="nt">-r</span>
+6.13.7-orbstack-00283-g9d1400e7e9c6
+
+<span class="c"># 通过 apt install lin ux-headers-$(uname -r) 是查找不到对应的安装包的</span>
+root@ubuntu22:~/tools# apt <span class="nb">install</span> <span class="nt">-y</span> linux-header-<span class="si">$(</span><span class="nb">uname</span> <span class="nt">-r</span><span class="si">)</span>
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
+E: Couldn<span class="s1">'t find any package by glob '</span>linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6<span class="s1">'
+</span></code></pre></div></div>
+
+<p>如何通过 <code class="language-plaintext highlighter-rouge">apt install linux-headers-$(uname -r)</code> 安装报错，则可以通过安装通用内核头文件版本进行替代：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nb">install</span> <span class="nt">-y</span> linux-headers-generic
+</code></pre></div></div>
+
+<h2 id="源码编译步骤">源码编译步骤</h2>
+
+<h3 id="获取源码">获取源码</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/iovisor/bcc.git
+<span class="nb">cd </span>bcc
+git checkout v0.34.0
+</code></pre></div></div>
+
+<h3 id="编译">编译</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>build<span class="p">;</span> <span class="nb">cd </span>build
+cmake ..
+make
+make <span class="nb">install
+</span>cmake <span class="nt">-DPYTHON_CMD</span><span class="o">=</span>python3 ..
+<span class="nb">pushd </span>src/python/
+make
+make <span class="nb">install
+popd</span>
+</code></pre></div></div>
+
+<h3 id="验证安装">验证安装</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 依然在 bcc/build 目录下，执行  ./examples/cpp/HelloWorld 输出如下内容即表示编译安装 c++版本可以正常运行</span>
+root@:~/workspace/tools/bcc/build# ./examples/cpp/HelloWorld
+Starting HelloWorld with BCC 0.34.0+1f63ae6e
+           &lt;...&gt;-357844  <span class="o">[</span>002] ....1 1312511.496364: bpf_trace_printk: Hello, World! Here I did a sys_clone call!
+
+
+<span class="c"># 验证 python 工具是否可用，输出如下内容标识正常可用</span>
+<span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# python3 ../examples/hello_world.py
+b<span class="s1">'           &lt;...&gt;-356665  [000] ....1 1312599.534997: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542460 [008] ....1 1312599.535595: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         flannel-3542460 [008] ....1 1312599.535643: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         flannel-3542460 [008] ....1 1312599.535675: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542462 [011] ....1 1312599.535707: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'     cri-dockerd-356665  [000] ....1 1312599.536306: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542465 [008] ....1 1312599.536762: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536807: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536850: bpf_trace_printk: Hello, World!'</span>
+</code></pre></div></div>
+
+<h2 id="常见问题">常见问题</h2>
+
+<h3 id="找不到lbbccsoo-中某个符号">找不到lbbcc.so.o 中某个符号</h3>
+
+<p>执行 hello_world.py 脚本输出报错类似如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AttributeError: /lib/x86_64-linux-gnu/libbcc.so.0: undefined symbol: bpf_module_create_b
+</code></pre></div></div>
+
+<p>原因为 python3 中加载以来的 libbcc.so 版本与编译安装的不匹配导致，将 bcc/build 中生成的对 python3 进行覆盖即可：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 进入 bcc/build 目录</span>
+<span class="nb">cp</span> <span class="nt">-rf</span> ./src/python/bcc-python3/bcc/<span class="k">*</span> /usr/lib/python3/dist-packages/bcc/
+</code></pre></div></div>
+
+<h3 id="找不到-asmtypesh-头文件">找不到 asm/types.h 头文件</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py<span class="o">)</span>
+In file included from &lt;built-in&gt;:2:
+In file included from /virtual/include/bcc/bpf.h:12:
+In file included from include/linux/types.h:6:
+include/uapi/linux/types.h:5:10: fatal error: <span class="s1">'asm/types.h'</span> file not found
+<span class="c">#include &lt;asm/types.h&gt;</span>
+         ^~~~~~~~~~~~~
+1 error generated.
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+  File <span class="s2">"/usr/share/bcc/examples/hello_world.py"</span>, line 12, <span class="k">in</span> &lt;module&gt;
+    BPF<span class="o">(</span><span class="nv">text</span><span class="o">=</span><span class="s1">'int kprobe__sys_clone(void *ctx) { bpf_trace_printk("Hello, World!\\n"); return 0; }'</span><span class="o">)</span>.trace_print<span class="o">()</span>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File <span class="s2">"/usr/lib/python3/dist-packages/bcc/__init__.py"</span>, line 505, <span class="k">in </span>__init__
+    raise Exception<span class="o">(</span><span class="s2">"Failed to compile BPF module %s"</span> % <span class="o">(</span>src_file or <span class="s2">"&lt;text&gt;"</span><span class="o">))</span>
+Exception: Failed to compile BPF module &lt;text&gt;
+</code></pre></div></div>
+
+<blockquote>
+  <p>在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。</p>
+</blockquote>
+
+<h2 id="内存泄漏检测">内存泄漏检测</h2>
+
+<h3 id="示例代码">示例代码</h3>
+
+<p>命名为 <code class="language-plaintext highlighter-rouge">test.cpp</code>。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp">
+</span>
+<span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">*&gt;</span> <span class="n">g_vec</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">memory_test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span> <span class="c1">// 故意泄漏内存</span>
+    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr2</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">111</span><span class="p">);</span>
+    <span class="k">delete</span><span class="p">[]</span> <span class="n">ptr</span><span class="p">;</span>
+    <span class="n">g_vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ptr2</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">__PRETTY_FUNCTION__</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">my_func</span> <span class="p">(</span><span class="kt">int</span> <span class="n">num</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">num</span><span class="p">;</span>
+  <span class="n">memory_test</span><span class="p">();</span>
+  <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// 模拟内存泄漏</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">my_func</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">itor</span> <span class="o">:</span> <span class="n">g_vec</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">free</span><span class="p">(</span><span class="n">itor</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="静态编译链接方式检测">静态编译链接方式检测</h3>
+
+<p>使用静态方式进行编译：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ <span class="nt">-g</span> <span class="nt">-static</span> test.cpp <span class="nt">-o</span> test.exe
+</code></pre></div></div>
+
+<p>生成的 <code class="language-plaintext highlighter-rouge">test.exe</code> 二进制文件无任何依赖，所以系统调用的一些接口符号均在 <code class="language-plaintext highlighter-rouge">test.exe</code> 文件中。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">memleak</code> 进行检测(需要 root 权限)：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># -O 为指定符号文件； -p 为指定进程的 ID</span>
+memleak <span class="nt">-O</span> test.exe <span class="nt">-p</span> <span class="k">${</span><span class="nv">pid</span><span class="k">}</span>
+</code></pre></div></div>
+
+<p><em>输出内容：</em></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# ps <span class="nt">-aef</span> | <span class="nb">grep test
+</span>root     3553018 3552090  0 21:56 pts/0    00:00:00 ./test.exe
+root     3553054 3357603  0 21:56 pts/10   00:00:00 <span class="nb">grep</span> <span class="nt">--color</span><span class="o">=</span>auto <span class="nb">test</span>
+<span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# memleak-bpfcc <span class="nt">-O</span> /root/workspace/debug/test.exe <span class="nt">-p</span> 3553018
+Attaching to pid 3553018, Ctrl+C to quit.
+<span class="o">[</span>21:56:42] Top 10 stacks with outstanding allocations:
+	555 bytes <span class="k">in </span>5 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+<span class="o">[</span>21:56:47] Top 10 stacks with outstanding allocations:
+	256 bytes <span class="k">in </span>1 allocations from stack
+		operator new<span class="o">(</span>unsigned long<span class="o">)</span>+0x1c <span class="o">[</span>test.exe]
+		std::allocator_traits&lt;std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::allocate<span class="o">(</span>std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span>&amp;, unsigned long<span class="o">)</span>+0x2c <span class="o">[</span>test.exe]
+		std::_Vector_base&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_allocate<span class="o">(</span>unsigned long<span class="o">)</span>+0x2e <span class="o">[</span>test.exe]
+		void std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_realloc_insert&lt;char<span class="k">*</span> const&amp;&gt;<span class="o">(</span>__gnu_cxx::__normal_iterator&lt;char<span class="k">**</span>, std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>, char<span class="k">*</span> const&amp;<span class="o">)</span>+0x95 <span class="o">[</span>test.exe]
+		std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::push_back<span class="o">(</span>char<span class="k">*</span> const&amp;<span class="o">)</span>+0x7c <span class="o">[</span>test.exe]
+		memory_test<span class="o">()</span>+0x60 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+	1110 bytes <span class="k">in </span>10 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+<span class="o">[</span>21:56:52] Top 10 stacks with outstanding allocations:
+	256 bytes <span class="k">in </span>1 allocations from stack
+		operator new<span class="o">(</span>unsigned long<span class="o">)</span>+0x1c <span class="o">[</span>test.exe]
+		std::allocator_traits&lt;std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::allocate<span class="o">(</span>std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span>&amp;, unsigned long<span class="o">)</span>+0x2c <span class="o">[</span>test.exe]
+		std::_Vector_base&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_allocate<span class="o">(</span>unsigned long<span class="o">)</span>+0x2e <span class="o">[</span>test.exe]
+		void std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_realloc_insert&lt;char<span class="k">*</span> const&amp;&gt;<span class="o">(</span>__gnu_cxx::__normal_iterator&lt;char<span class="k">**</span>, std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>, char<span class="k">*</span> const&amp;<span class="o">)</span>+0x95 <span class="o">[</span>test.exe]
+		std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::push_back<span class="o">(</span>char<span class="k">*</span> const&amp;<span class="o">)</span>+0x7c <span class="o">[</span>test.exe]
+		memory_test<span class="o">()</span>+0x60 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+	1665 bytes <span class="k">in </span>15 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+</code></pre></div></div>
+
+<p>每 10 秒钟输出一次，<code class="language-plaintext highlighter-rouge">Top 10 stacks with outstanding allocations:</code> 下面为内存申请且未释放的前 10 个堆栈信息。</p>
+
+<h3 id="非静态编译链接方式检测">非静态编译链接方式检测</h3>
+
+<p>使用非静态方式进行编译：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ <span class="nt">-g</span> test.cpp <span class="nt">-o</span> test.exe
+</code></pre></div></div>
+
+<p>生成的 <code class="language-plaintext highlighter-rouge">test.exe</code> 二进制文件有系统标准库依赖，如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>base<span class="o">)</span> root@:~/workspace/debug# ldd test.exe
+	linux-vdso.so.1 <span class="o">(</span>0x00007fffab6d7000<span class="o">)</span>
+	libstdc++.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libstdc++.so.6 <span class="o">(</span>0x00007f3ca7fb6000<span class="o">)</span>
+	libc.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="o">(</span>0x00007f3ca7d8d000<span class="o">)</span>
+	libm.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libm.so.6 <span class="o">(</span>0x00007f3ca7ca6000<span class="o">)</span>
+	/lib64/ld-linux-x86-64.so.2 <span class="o">(</span>0x00007f3ca81f3000<span class="o">)</span>
+	libgcc_s.so.1 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libgcc_s.so.1 <span class="o">(</span>0x00007f3ca7c86000<span class="o">)</span>
+</code></pre></div></div>
+
+<p>我们要动态追踪的系统调用 malloc、free 等在 libc.so 中，所以通过 -O 指定的符号文件在 /lib/x86_64-linux-gnu/libc.so.6 中。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">memleak</code> 进行检测(需要 root 权限)：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># -O 为指定符号文件； -p 为指定进程的 ID</span>
+memleak <span class="nt">-O</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="nt">-p</span> <span class="k">${</span><span class="nv">pid</span><span class="k">}</span>
+</code></pre></div></div>
+
+<p><em>输出内容：</em></p>
+
+<p>同静态编译链接方式内容。</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p>BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="bcc" /><category term="ebpf" /><summary type="html"><![CDATA[BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。]]></summary></entry><entry><title type="html">Mac 系统环境配置异常记录</title><link href="https://gbcpp.github.io/notes/mac-env-fix.html" rel="alternate" type="text/html" title="Mac 系统环境配置异常记录" /><published>2025-04-02T00:00:00+00:00</published><updated>2025-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/notes/mac-env-fix.html"><![CDATA[<blockquote>
   <p>整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。</p>
 </blockquote>
 
@@ -1280,49 +1546,4 @@ vhost __defaultVhost__ {
 <p><code class="language-plaintext highlighter-rouge">ldflags</code> 参数一定要指定 <code class="language-plaintext highlighter-rouge">-ldynamiclib</code> 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
 主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。</p>
 
-<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="C++" /><summary type="html"><![CDATA[将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。]]></summary></entry><entry><title type="html">温故而知新之-C++</title><link href="https://gbcpp.github.io/notes/learning-cpp-notes.html" rel="alternate" type="text/html" title="温故而知新之-C++" /><published>2024-04-12T00:00:00+00:00</published><updated>2024-04-12T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/learning-cpp-notes</id><content type="html" xml:base="https://gbcpp.github.io/notes/learning-cpp-notes.html"><![CDATA[<h2 id="指针的退化及如何避免">指针的退化及如何避免</h2>
-
-<p>在C++中，”指针退化”是指当数组作为函数参数传递时，它会”退化”为指向第一个元素的指针。这是因为在C++中，数组并不知道它们自己的大小，所以当你把一个数组作为参数传递给一个函数时，函数并不知道这个数组的大小，只知道它的起始地址。</p>
-
-<p>例如，假设你有一个函数<code class="language-plaintext highlighter-rouge">void foo(int arr[])</code>，当你传递一个数组给这个函数时，例如<code class="language-plaintext highlighter-rouge">int arr[10]; foo(arr);</code>，函数<code class="language-plaintext highlighter-rouge">foo</code>实际上看到的是一个指向<code class="language-plaintext highlighter-rouge">arr</code>的第一个元素的指针，而不是整个数组。</p>
-
-<p>要防止指针退化，有几种方法：</p>
-
-<ol>
-  <li>
-    <p>使用标准库容器，如<code class="language-plaintext highlighter-rouge">std::vector</code>或<code class="language-plaintext highlighter-rouge">std::array</code>。这些容器知道它们自己的大小，因此不会发生指针退化。例如： <code class="language-plaintext highlighter-rouge">void foo(std::vector&lt;int&gt;&amp; arr)</code>。</p>
-  </li>
-  <li>
-    <p>使用模板函数，使函数可以接受数组的引用，并且能够保留数组的大小信息。例如： <code class="language-plaintext highlighter-rouge">template&lt;size_t N&gt; void foo(int (&amp;arr)[N])</code>。</p>
-  </li>
-  <li>
-    <p>传递数组的大小作为另一个参数。例如： <code class="language-plaintext highlighter-rouge">void foo(int* arr, size_t size)</code>。这样，即使数组退化为指针，函数仍然可以知道数组的大小。</p>
-  </li>
-</ol>
-
-<h2 id="引用与指针的区别">引用与指针的区别</h2>
-
-<p>在C++中，指针和引用都可以用于间接引用其他对象。然而，它们在语法和行为上有一些关键的不同：</p>
-
-<ol>
-  <li>
-    <p>初始化：引用在创建时需要初始化，并且一旦初始化后就不能改变引用的目标，也就是说它始终引用最初赋给它的对象。而指针可以在任何时间指向任何对象或者NULL。</p>
-  </li>
-  <li>
-    <p>空值：指针可以为NULL，表示它不指向任何对象。而引用必须始终引用一个有效的对象，不能有NULL引用。</p>
-  </li>
-  <li>
-    <p>间接访问：使用指针时，需要使用解引用运算符(*)来访问它指向的对象，而引用则可以像普通变量那样直接使用。</p>
-  </li>
-  <li>
-    <p>支持的操作：指针支持更多的操作，例如指针算术（即增加或减少指针的值，以指向内存中的不同位置）。引用则不能进行这种操作。</p>
-  </li>
-  <li>
-    <p>内存占用：引用实际上并不占用任何内存，它只是一个别名。而指针是一个实际的变量，它占用内存空间并存储一个地址值。</p>
-    <blockquote>
-      <p>但引用在程序中并不是不占用任何字节，引用本质上就是一个常量指针（constant pointer）。它在内存中占据的空间和指针一样，通常是 4 字节（在 32 位系统）或 8 字节（在 64 位系统）。然而，引用本身并不存储任何值，它只是一个别名，代表它引用的对象。在某些优化的情况下，如果引用没有被用作一个对象的别名（也就是说，它被直接用于访问该对象），编译器可能会优化掉引用，使其不占用任何内存空间。但是，这种优化并不是在所有情况下都会发生。所以，说引用不占用内存空间并不完全准确，实际情况取决于编译器的优化和引用的使用方式。</p>
-    </blockquote>
-  </li>
-</ol>
-
-<p>总的来说，引用在某些情况下可以提供更简洁的语法，而指针则提供了更大的灵活性和控制能力。选择使用哪一个取决于具体的编程需求。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="C++" /><summary type="html"><![CDATA[指针的退化及如何避免]]></summary></entry></feed>
+<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="C++" /><summary type="html"><![CDATA[将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。]]></summary></entry></feed>

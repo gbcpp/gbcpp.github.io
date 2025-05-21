@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "Install bcc on ubuntu22.04",
+    "tags"     : "bcc ebpf",
+    "url"      : "/notes/install-bcc.html"
+  } ,
+
+  {
     "title"    : "Mac 系统环境配置异常记录",
     "tags"     : "Life",
     "url"      : "/notes/mac-env-fix.html"

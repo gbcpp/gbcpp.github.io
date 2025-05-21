@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install bcc on ubuntu22.04 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="Install bcc on ubuntu22.04">
+    <meta name="keywords"  content="bcc, ebpf">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Install bcc on ubuntu22.04 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/notes/install-bcc.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/notes/mac-env-fix.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-05-21 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default "
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#bcc" class="post-tag">bcc</a>
+            
+              <a href="/tags.html#ebpf" class="post-tag">ebpf</a>
+            
+          
+        </div>
+        <h1>Install bcc on ubuntu22.04</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-05-21">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="25-05-21">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  7.3k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 21 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+      <div class="filter"></div>
+        <div class="post-cover" style="background: url('/assets/img/shan.jpg') center no-repeat; background-size: cover;"></div>
+      
+    </header>
+    <div class="post-content visible">
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <blockquote>
+  <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
+</blockquote>
+
+<h2 id="环境准备">环境准备</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>su
+apt update <span class="o">&amp;&amp;</span> apt upgrade <span class="nt">-y</span>
+
+<span class="c"># 安装必要依赖</span>
+apt <span class="nb">install</span> <span class="nt">-y</span> bison build-essential cmake flex git libedit-dev <span class="se">\</span>
+  libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev <span class="se">\</span>
+  libfl-dev python3-distutils
+</code></pre></div></div>
+
+<ul>
+  <li><strong>安装内核头文件</strong></li>
+</ul>
+
+<p>bcc 需要依赖 Linux 内核的头文件，在 orb 虚拟机下，通过 <code class="language-plaintext highlighter-rouge">uname -r</code> 获取到的内核版本有特殊的后缀，无法直接安装。
+如我的 orb 虚拟机：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ubuntu22:~/tools# <span class="nb">uname</span> <span class="nt">-r</span>
+6.13.7-orbstack-00283-g9d1400e7e9c6
+
+<span class="c"># 通过 apt install lin ux-headers-$(uname -r) 是查找不到对应的安装包的</span>
+root@ubuntu22:~/tools# apt <span class="nb">install</span> <span class="nt">-y</span> linux-header-<span class="si">$(</span><span class="nb">uname</span> <span class="nt">-r</span><span class="si">)</span>
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
+E: Couldn<span class="s1">'t find any package by glob '</span>linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6<span class="s1">'
+</span></code></pre></div></div>
+
+<p>如何通过 <code class="language-plaintext highlighter-rouge">apt install linux-headers-$(uname -r)</code> 安装报错，则可以通过安装通用内核头文件版本进行替代：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nb">install</span> <span class="nt">-y</span> linux-headers-generic
+</code></pre></div></div>
+
+<h2 id="源码编译步骤">源码编译步骤</h2>
+
+<h3 id="获取源码">获取源码</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/iovisor/bcc.git
+<span class="nb">cd </span>bcc
+git checkout v0.34.0
+</code></pre></div></div>
+
+<h3 id="编译">编译</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>build<span class="p">;</span> <span class="nb">cd </span>build
+cmake ..
+make
+make <span class="nb">install
+</span>cmake <span class="nt">-DPYTHON_CMD</span><span class="o">=</span>python3 ..
+<span class="nb">pushd </span>src/python/
+make
+make <span class="nb">install
+popd</span>
+</code></pre></div></div>
+
+<h3 id="验证安装">验证安装</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 依然在 bcc/build 目录下，执行  ./examples/cpp/HelloWorld 输出如下内容即表示编译安装 c++版本可以正常运行</span>
+root@:~/workspace/tools/bcc/build# ./examples/cpp/HelloWorld
+Starting HelloWorld with BCC 0.34.0+1f63ae6e
+           &lt;...&gt;-357844  <span class="o">[</span>002] ....1 1312511.496364: bpf_trace_printk: Hello, World! Here I did a sys_clone call!
+
+
+<span class="c"># 验证 python 工具是否可用，输出如下内容标识正常可用</span>
+<span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# python3 ../examples/hello_world.py
+b<span class="s1">'           &lt;...&gt;-356665  [000] ....1 1312599.534997: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542460 [008] ....1 1312599.535595: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         flannel-3542460 [008] ....1 1312599.535643: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         flannel-3542460 [008] ....1 1312599.535675: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542462 [011] ....1 1312599.535707: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'     cri-dockerd-356665  [000] ....1 1312599.536306: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'           &lt;...&gt;-3542465 [008] ....1 1312599.536762: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536807: bpf_trace_printk: Hello, World!'</span>
+b<span class="s1">''</span>
+b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536850: bpf_trace_printk: Hello, World!'</span>
+</code></pre></div></div>
+
+<h2 id="常见问题">常见问题</h2>
+
+<h3 id="找不到lbbccsoo-中某个符号">找不到lbbcc.so.o 中某个符号</h3>
+
+<p>执行 hello_world.py 脚本输出报错类似如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AttributeError: /lib/x86_64-linux-gnu/libbcc.so.0: undefined symbol: bpf_module_create_b
+</code></pre></div></div>
+
+<p>原因为 python3 中加载以来的 libbcc.so 版本与编译安装的不匹配导致，将 bcc/build 中生成的对 python3 进行覆盖即可：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 进入 bcc/build 目录</span>
+<span class="nb">cp</span> <span class="nt">-rf</span> ./src/python/bcc-python3/bcc/<span class="k">*</span> /usr/lib/python3/dist-packages/bcc/
+</code></pre></div></div>
+
+<h3 id="找不到-asmtypesh-头文件">找不到 asm/types.h 头文件</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py<span class="o">)</span>
+In file included from &lt;built-in&gt;:2:
+In file included from /virtual/include/bcc/bpf.h:12:
+In file included from include/linux/types.h:6:
+include/uapi/linux/types.h:5:10: fatal error: <span class="s1">'asm/types.h'</span> file not found
+<span class="c">#include &lt;asm/types.h&gt;</span>
+         ^~~~~~~~~~~~~
+1 error generated.
+Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+  File <span class="s2">"/usr/share/bcc/examples/hello_world.py"</span>, line 12, <span class="k">in</span> &lt;module&gt;
+    BPF<span class="o">(</span><span class="nv">text</span><span class="o">=</span><span class="s1">'int kprobe__sys_clone(void *ctx) { bpf_trace_printk("Hello, World!\\n"); return 0; }'</span><span class="o">)</span>.trace_print<span class="o">()</span>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File <span class="s2">"/usr/lib/python3/dist-packages/bcc/__init__.py"</span>, line 505, <span class="k">in </span>__init__
+    raise Exception<span class="o">(</span><span class="s2">"Failed to compile BPF module %s"</span> % <span class="o">(</span>src_file or <span class="s2">"&lt;text&gt;"</span><span class="o">))</span>
+Exception: Failed to compile BPF module &lt;text&gt;
+</code></pre></div></div>
+
+<blockquote>
+  <p>在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。</p>
+</blockquote>
+
+<h2 id="内存泄漏检测">内存泄漏检测</h2>
+
+<h3 id="示例代码">示例代码</h3>
+
+<p>命名为 <code class="language-plaintext highlighter-rouge">test.cpp</code>。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp">
+</span>
+<span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">*&gt;</span> <span class="n">g_vec</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">memory_test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span> <span class="c1">// 故意泄漏内存</span>
+    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr2</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">111</span><span class="p">);</span>
+    <span class="k">delete</span><span class="p">[]</span> <span class="n">ptr</span><span class="p">;</span>
+    <span class="n">g_vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ptr2</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">__PRETTY_FUNCTION__</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">my_func</span> <span class="p">(</span><span class="kt">int</span> <span class="n">num</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">num</span><span class="p">;</span>
+  <span class="n">memory_test</span><span class="p">();</span>
+  <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// 模拟内存泄漏</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">my_func</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">itor</span> <span class="o">:</span> <span class="n">g_vec</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">free</span><span class="p">(</span><span class="n">itor</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="静态编译链接方式检测">静态编译链接方式检测</h3>
+
+<p>使用静态方式进行编译：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ <span class="nt">-g</span> <span class="nt">-static</span> test.cpp <span class="nt">-o</span> test.exe
+</code></pre></div></div>
+
+<p>生成的 <code class="language-plaintext highlighter-rouge">test.exe</code> 二进制文件无任何依赖，所以系统调用的一些接口符号均在 <code class="language-plaintext highlighter-rouge">test.exe</code> 文件中。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">memleak</code> 进行检测(需要 root 权限)：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># -O 为指定符号文件； -p 为指定进程的 ID</span>
+memleak <span class="nt">-O</span> test.exe <span class="nt">-p</span> <span class="k">${</span><span class="nv">pid</span><span class="k">}</span>
+</code></pre></div></div>
+
+<p><em>输出内容：</em></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# ps <span class="nt">-aef</span> | <span class="nb">grep test
+</span>root     3553018 3552090  0 21:56 pts/0    00:00:00 ./test.exe
+root     3553054 3357603  0 21:56 pts/10   00:00:00 <span class="nb">grep</span> <span class="nt">--color</span><span class="o">=</span>auto <span class="nb">test</span>
+<span class="o">(</span>base<span class="o">)</span> root@iZ2ze8gd919c5qtgeqbovnZ:~/workspace/tools/bcc/build# memleak-bpfcc <span class="nt">-O</span> /root/workspace/debug/test.exe <span class="nt">-p</span> 3553018
+Attaching to pid 3553018, Ctrl+C to quit.
+<span class="o">[</span>21:56:42] Top 10 stacks with outstanding allocations:
+	555 bytes <span class="k">in </span>5 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+<span class="o">[</span>21:56:47] Top 10 stacks with outstanding allocations:
+	256 bytes <span class="k">in </span>1 allocations from stack
+		operator new<span class="o">(</span>unsigned long<span class="o">)</span>+0x1c <span class="o">[</span>test.exe]
+		std::allocator_traits&lt;std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::allocate<span class="o">(</span>std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span>&amp;, unsigned long<span class="o">)</span>+0x2c <span class="o">[</span>test.exe]
+		std::_Vector_base&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_allocate<span class="o">(</span>unsigned long<span class="o">)</span>+0x2e <span class="o">[</span>test.exe]
+		void std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_realloc_insert&lt;char<span class="k">*</span> const&amp;&gt;<span class="o">(</span>__gnu_cxx::__normal_iterator&lt;char<span class="k">**</span>, std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>, char<span class="k">*</span> const&amp;<span class="o">)</span>+0x95 <span class="o">[</span>test.exe]
+		std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::push_back<span class="o">(</span>char<span class="k">*</span> const&amp;<span class="o">)</span>+0x7c <span class="o">[</span>test.exe]
+		memory_test<span class="o">()</span>+0x60 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+	1110 bytes <span class="k">in </span>10 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+<span class="o">[</span>21:56:52] Top 10 stacks with outstanding allocations:
+	256 bytes <span class="k">in </span>1 allocations from stack
+		operator new<span class="o">(</span>unsigned long<span class="o">)</span>+0x1c <span class="o">[</span>test.exe]
+		std::allocator_traits&lt;std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::allocate<span class="o">(</span>std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span>&amp;, unsigned long<span class="o">)</span>+0x2c <span class="o">[</span>test.exe]
+		std::_Vector_base&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_allocate<span class="o">(</span>unsigned long<span class="o">)</span>+0x2e <span class="o">[</span>test.exe]
+		void std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::_M_realloc_insert&lt;char<span class="k">*</span> const&amp;&gt;<span class="o">(</span>__gnu_cxx::__normal_iterator&lt;char<span class="k">**</span>, std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&gt;</span>, char<span class="k">*</span> const&amp;<span class="o">)</span>+0x95 <span class="o">[</span>test.exe]
+		std::vector&lt;char<span class="k">*</span>, std::allocator&lt;char<span class="k">*</span><span class="o">&gt;</span> <span class="o">&gt;</span>::push_back<span class="o">(</span>char<span class="k">*</span> const&amp;<span class="o">)</span>+0x7c <span class="o">[</span>test.exe]
+		memory_test<span class="o">()</span>+0x60 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+	1665 bytes <span class="k">in </span>15 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+		my_func<span class="o">(</span>int<span class="o">)</span>+0x14 <span class="o">[</span>test.exe]
+		main+0x2e <span class="o">[</span>test.exe]
+		__libc_start_call_main+0x6a <span class="o">[</span>test.exe]
+</code></pre></div></div>
+
+<p>每 10 秒钟输出一次，<code class="language-plaintext highlighter-rouge">Top 10 stacks with outstanding allocations:</code> 下面为内存申请且未释放的前 10 个堆栈信息。</p>
+
+<h3 id="非静态编译链接方式检测">非静态编译链接方式检测</h3>
+
+<p>使用非静态方式进行编译：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>g++ <span class="nt">-g</span> test.cpp <span class="nt">-o</span> test.exe
+</code></pre></div></div>
+
+<p>生成的 <code class="language-plaintext highlighter-rouge">test.exe</code> 二进制文件有系统标准库依赖，如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>base<span class="o">)</span> root@:~/workspace/debug# ldd test.exe
+	linux-vdso.so.1 <span class="o">(</span>0x00007fffab6d7000<span class="o">)</span>
+	libstdc++.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libstdc++.so.6 <span class="o">(</span>0x00007f3ca7fb6000<span class="o">)</span>
+	libc.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="o">(</span>0x00007f3ca7d8d000<span class="o">)</span>
+	libm.so.6 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libm.so.6 <span class="o">(</span>0x00007f3ca7ca6000<span class="o">)</span>
+	/lib64/ld-linux-x86-64.so.2 <span class="o">(</span>0x00007f3ca81f3000<span class="o">)</span>
+	libgcc_s.so.1 <span class="o">=&gt;</span> /lib/x86_64-linux-gnu/libgcc_s.so.1 <span class="o">(</span>0x00007f3ca7c86000<span class="o">)</span>
+</code></pre></div></div>
+
+<p>我们要动态追踪的系统调用 malloc、free 等在 libc.so 中，所以通过 -O 指定的符号文件在 /lib/x86_64-linux-gnu/libc.so.6 中。</p>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">memleak</code> 进行检测(需要 root 权限)：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># -O 为指定符号文件； -p 为指定进程的 ID</span>
+memleak <span class="nt">-O</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="nt">-p</span> <span class="k">${</span><span class="nv">pid</span><span class="k">}</span>
+</code></pre></div></div>
+
+<p><em>输出内容：</em></p>
+
+<p>同静态编译链接方式内容。</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p>BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md</p>
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 Install bcc on ubuntu22.04 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/notes/install-bcc.html" class="cplink">https://gbcpp.github.io/notes/install-bcc.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('环境准备')">环境准备</a></li><li><a onclick="scrollToAdjust('源码编译步骤')">源码编译步骤</a><ul><li><a onclick="scrollToAdjust('获取源码')">获取源码</a></li><li><a onclick="scrollToAdjust('编译')">编译</a></li><li><a onclick="scrollToAdjust('验证安装')">验证安装</a></li></ul></li><li><a onclick="scrollToAdjust('常见问题')">常见问题</a><ul><li><a onclick="scrollToAdjust('找不到lbbcc.so.o-中某个符号')">找不到lbbcc.so.o 中某个符号</a></li><li><a onclick="scrollToAdjust('找不到-asm/types.h-头文件')">找不到 asm/types.h 头文件</a></li></ul></li><li><a onclick="scrollToAdjust('内存泄漏检测')">内存泄漏检测</a><ul><li><a onclick="scrollToAdjust('示例代码')">示例代码</a></li><li><a onclick="scrollToAdjust('静态编译链接方式检测')">静态编译链接方式检测</a></li><li><a onclick="scrollToAdjust('非静态编译链接方式检测')">非静态编译链接方式检测</a></li></ul></li><li><a onclick="scrollToAdjust('参考资料')">参考资料</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/notes/mac-env-fix.html" class="read-next-link" aria-label="Mac 系统环境配置异常记录"></a>
+            <section>
+              <span>Mac 系统环境配置异常记录</span>
+              <p>  整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2025-05-21 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2025
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/bpf/2025-05-21-install-bcc.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
