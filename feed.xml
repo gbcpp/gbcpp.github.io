@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-05-21T14:03:47+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Install bcc on ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc on ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-05-29T07:58:49+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
   <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
 </blockquote>
 
@@ -10,7 +10,12 @@ apt update <span class="o">&amp;&amp;</span> apt upgrade <span class="nt">-y</sp
 <span class="c"># 安装必要依赖</span>
 apt <span class="nb">install</span> <span class="nt">-y</span> bison build-essential cmake flex git libedit-dev <span class="se">\</span>
   libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev <span class="se">\</span>
-  libfl-dev python3-distutils
+  libfl-dev python3-distutils pip zip arping netperf iperf3
+</code></pre></div></div>
+
+<p>确认 python 环境，安装必备包：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>setuptools
 </code></pre></div></div>
 
 <ul>
@@ -32,7 +37,7 @@ E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
 E: Couldn<span class="s1">'t find any package by glob '</span>linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6<span class="s1">'
 </span></code></pre></div></div>
 
-<p>如何通过 <code class="language-plaintext highlighter-rouge">apt install linux-headers-$(uname -r)</code> 安装报错，则可以通过安装通用内核头文件版本进行替代：</p>
+<p>如果通过 <code class="language-plaintext highlighter-rouge">apt install linux-headers-$(uname -r)</code> 安装报错，则可以通过安装通用内核头文件版本进行替代：</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nb">install</span> <span class="nt">-y</span> linux-headers-generic
 </code></pre></div></div>
@@ -47,6 +52,8 @@ git checkout v0.34.0
 </code></pre></div></div>
 
 <h3 id="编译">编译</h3>
+
+<p>依次执行如下命令：</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>build<span class="p">;</span> <span class="nb">cd </span>build
 cmake ..
@@ -90,6 +97,32 @@ b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536850: bpf_trac
 
 <h2 id="常见问题">常见问题</h2>
 
+<h3 id="cmake-时报-kernel-headers-kernelheaders_dir-notfound">cmake 时报 Kernel headers: KERNELHEADERS_DIR-NOTFOUND</h3>
+
+<p>cmake 找不到 <code class="language-plaintext highlighter-rouge">linux-headers</code> 目录，如果明确已经安装了，确依然报此问题，则在 <code class="language-plaintext highlighter-rouge">cmake ..</code> 时指定 <code class="language-plaintext highlighter-rouge">linux-headers-generic</code> 的安装目录即可，如：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cmake .. <span class="nt">-DKERNELHEADERS_DIR</span><span class="o">=</span><span class="s2">"/usr/include/x86_64-linux-gnu"</span>
+</code></pre></div></div>
+
+<h3 id="make-时报-python3-相关错误modulenotfounderror">make 时报 python3 相关错误：ModuleNotFoundError</h3>
+
+<p>如下：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Traceback <span class="o">(</span>most recent call last<span class="o">)</span>:
+  File <span class="s2">"/home/chengaoyuan/opensource/bcc/build/src/python/bcc-python3/setup.py"</span>, line 3, <span class="k">in</span> &lt;module&gt;
+    from setuptools import setup
+ModuleNotFoundError: No module named <span class="s1">'setuptools'</span>
+make[2]: <span class="k">***</span> <span class="o">[</span>src/python/CMakeFiles/bcc_py_python3.dir/build.make:84: src/python/bcc-python3/dist/bcc-0.34.0+d7667cf9.tar.gz] Error 1
+make[1]: <span class="k">***</span> <span class="o">[</span>CMakeFiles/Makefile2:1047: src/python/CMakeFiles/bcc_py_python3.dir/all] Error 2
+make: <span class="k">***</span> <span class="o">[</span>Makefile:146: all] Error 2
+</code></pre></div></div>
+
+<p>原因为系统的 Python 环境可能被自己折腾乱了，直接手动补充安装即可：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt <span class="nb">install</span> <span class="nt">-y</span> pip
+pip3 <span class="nb">install </span>setuptools
+</code></pre></div></div>
+
 <h3 id="找不到lbbccsoo-中某个符号">找不到lbbcc.so.o 中某个符号</h3>
 
 <p>执行 hello_world.py 脚本输出报错类似如下：</p>
@@ -103,7 +136,7 @@ b<span class="s1">'         portmap-3542465 [008] ....1 1312599.536850: bpf_trac
 <span class="nb">cp</span> <span class="nt">-rf</span> ./src/python/bcc-python3/bcc/<span class="k">*</span> /usr/lib/python3/dist-packages/bcc/
 </code></pre></div></div>
 
-<h3 id="找不到-asmtypesh-头文件">找不到 asm/types.h 头文件</h3>
+<h3 id="找不到-asmtypesh-头文件">找不到 <code class="language-plaintext highlighter-rouge">asm/types.h</code> 头文件</h3>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py<span class="o">)</span>
 In file included from &lt;built-in&gt;:2:
@@ -123,7 +156,9 @@ Exception: Failed to compile BPF module &lt;text&gt;
 </code></pre></div></div>
 
 <blockquote>
-  <p>在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。</p>
+  <p>在 orb 下的 ubuntu 虚拟机中遇到的，在 orbstack 的 ubuntu 下暂时未解决，网上找的解决方案基本是两种，可以尝试下，不过在我的 orbstack ubuntu 下不生效。
+1、主动link /usr/include/x86_64-linux-gnu/asm 到 /usr/include/asm，也就是软链接过去。
+2、另一种方案是通过安装 gcc-multilib 进行解决：apt-get install -y gcc-multilib。</p>
 </blockquote>
 
 <h2 id="内存泄漏检测">内存泄漏检测</h2>
@@ -139,7 +174,7 @@ Exception: Failed to compile BPF module &lt;text&gt;
 <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">*&gt;</span> <span class="n">g_vec</span><span class="p">;</span>
 
 <span class="kt">void</span> <span class="nf">memory_test</span><span class="p">()</span> <span class="p">{</span>
-    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span> <span class="c1">// 故意泄漏内存</span>
+    <span class="kt">char</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
     <span class="kt">char</span><span class="o">*</span> <span class="n">ptr2</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="mi">111</span><span class="p">);</span>
     <span class="k">delete</span><span class="p">[]</span> <span class="n">ptr</span><span class="p">;</span>
     <span class="n">g_vec</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">ptr2</span><span class="p">);</span>
@@ -261,6 +296,59 @@ memleak <span class="nt">-O</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="
 <p><em>输出内容：</em></p>
 
 <p>同静态编译链接方式内容。</p>
+
+<h3 id="精确定位行号">精确定位行号</h3>
+
+<p>有时候仅仅输出函数名称还不足够明确定位代码具体位置（如：函数体较长，存在多个申请内存的操作），那么就需要通过 <code class="language-plaintext highlighter-rouge">objdump</code> 和 <code class="language-plaintext highlighter-rouge">addr2line</code> 工具对函数地址进行解析。
+这两个工具需要安装 <code class="language-plaintext highlighter-rouge">binutils，安装： </code>apt-get install -y binutils`。</p>
+
+<p>例如需要排查上述一处 memory_test 中的一处内存泄漏：</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	555 bytes <span class="k">in </span>5 allocations from stack
+		memory_test<span class="o">()</span>+0x33 <span class="o">[</span>test.exe]
+</code></pre></div></div>
+
+<ul>
+  <li>首先通过 objdump 找到二进制中函数地址</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>objdump <span class="nt">-d</span> test.exe | <span class="nb">grep </span>memory_test
+0000000000404605 &lt;_Z11memory_testv&gt;:
+  404641:       74 0c                   je     40464f &lt;_Z11memory_testv+0x4a&gt;
+  40469e:       74 05                   je     4046a5 &lt;_Z11memory_testv+0xa0&gt;
+  4046b6:       e8 4a ff ff ff          call   404605 &lt;_Z11memory_testv&gt;
+000000000040481f &lt;_GLOBAL__sub_I__Z11memory_testv&gt;:
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">_Z11memory_testv</code> 为 <code class="language-plaintext highlighter-rouge">c++</code> 编译器为 <code class="language-plaintext highlighter-rouge">memory_test</code> 生成的修饰名，<code class="language-plaintext highlighter-rouge">_Z11</code> 表示这是一个函数，<code class="language-plaintext highlighter-rouge">v</code> 表示函数参数为空。
+找到 <code class="language-plaintext highlighter-rouge">memory_test</code> 的函数地址为<code class="language-plaintext highlighter-rouge">404605</code> ,内存泄漏位置的函数偏移为 <code class="language-plaintext highlighter-rouge">0x33，则内存地址为</code> <code class="language-plaintext highlighter-rouge">0x404605 + 0x33 = 0x404638</code>，所以具体的泄漏代码位置为：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>addr2line <span class="nt">-e</span> test.exe 0x404638
+/mnt/data/debug/test.cpp:9
+</code></pre></div></div>
+
+<blockquote>
+  <table>
+    <tbody>
+      <tr>
+        <td>通过 nm 也可以获取指定函数的地址，如： nm test.exe</td>
+        <td>grep memory_test</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="与-asanaddress-sanitizer-的区别">与 ASAN(Address Sanitizer) 的区别</h3>
+
+<p>通过 bcc 的 memleak 进行内存泄漏的检测，即可以对明显的 new/malloc 与 delete/free 的不对称进行检测，bcc 的 memleak 的主要优势在于可以在不重启进程，同时在不对进程造成任何性能影响的情况下，对内存进行检测。
+还有就是对类似示例代码中对 vector 不断的增加数据导致内存不断的增长，但实际数据并为泄漏，在程序退出时还会删除的这种场景是不同于 ASAN 的检测的（ASAN 不检测这种场景），这类问题反而是线上最难解决的内存泄漏的问题。</p>
+
+<p>但是 bcc 的 memleak 没有 ASAN 的内存越界、践踏的检测，所以在开发测试阶段应该用 ASAN 进行验证，及时找出内存的错误操作，消除 crash 的风险。</p>
+
+<h2 id="todo">TODO</h2>
+
+<p>1、 解决 orbstack 下 ubuntu 源码安装 bcc。</p>
+
+<p>2、 将 ubuntu 下源码编译安装的 bcc tools进行 dep 打包，实现一键安装。</p>
 
 <h2 id="参考资料">参考资料</h2>
 

@@ -5,12 +5,12 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 21 May 2025 14:03:47 +0000</pubDate>
-    <lastBuildDate>Wed, 21 May 2025 14:03:47 +0000</lastBuildDate>
+    <pubDate>Thu, 29 May 2025 07:58:49 +0000</pubDate>
+    <lastBuildDate>Thu, 29 May 2025 07:58:49 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
-        <title>Install bcc on ubuntu22.04</title>
+        <title>Install bcc and use memleak on Ubuntu22.04</title>
         <description>&lt;blockquote&gt;
   &lt;p&gt;BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -23,7 +23,12 @@ apt update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt u
 &lt;span class=&quot;c&quot;&gt;# 安装必要依赖&lt;/span&gt;
 apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; bison build-essential cmake flex git libedit-dev &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
   libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  libfl-dev python3-distutils
+  libfl-dev python3-distutils pip zip arping netperf iperf3
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;确认 python 环境，安装必备包：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pip3 &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;setuptools
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;ul&gt;
@@ -45,7 +50,7 @@ E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
 E: Couldn&lt;span class=&quot;s1&quot;&gt;&apos;t find any package by glob &apos;&lt;/span&gt;linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6&lt;span class=&quot;s1&quot;&gt;&apos;
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;如何通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt install linux-headers-$(uname -r)&lt;/code&gt; 安装报错，则可以通过安装通用内核头文件版本进行替代：&lt;/p&gt;
+&lt;p&gt;如果通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt install linux-headers-$(uname -r)&lt;/code&gt; 安装报错，则可以通过安装通用内核头文件版本进行替代：&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; linux-headers-generic
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -60,6 +65,8 @@ git checkout v0.34.0
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;编译&quot;&gt;编译&lt;/h3&gt;
+
+&lt;p&gt;依次执行如下命令：&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;mkdir &lt;/span&gt;build&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;build
 cmake ..
@@ -103,6 +110,32 @@ b&lt;span class=&quot;s1&quot;&gt;&apos;         portmap-3542465 [008] ....1 131
 
 &lt;h2 id=&quot;常见问题&quot;&gt;常见问题&lt;/h2&gt;
 
+&lt;h3 id=&quot;cmake-时报-kernel-headers-kernelheaders_dir-notfound&quot;&gt;cmake 时报 Kernel headers: KERNELHEADERS_DIR-NOTFOUND&lt;/h3&gt;
+
+&lt;p&gt;cmake 找不到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;linux-headers&lt;/code&gt; 目录，如果明确已经安装了，确依然报此问题，则在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmake ..&lt;/code&gt; 时指定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;linux-headers-generic&lt;/code&gt; 的安装目录即可，如：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cmake .. &lt;span class=&quot;nt&quot;&gt;-DKERNELHEADERS_DIR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/usr/include/x86_64-linux-gnu&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;make-时报-python3-相关错误modulenotfounderror&quot;&gt;make 时报 python3 相关错误：ModuleNotFoundError&lt;/h3&gt;
+
+&lt;p&gt;如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Traceback &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;most recent call last&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
+  File &lt;span class=&quot;s2&quot;&gt;&quot;/home/chengaoyuan/opensource/bcc/build/src/python/bcc-python3/setup.py&quot;&lt;/span&gt;, line 3, &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &amp;lt;module&amp;gt;
+    from setuptools import setup
+ModuleNotFoundError: No module named &lt;span class=&quot;s1&quot;&gt;&apos;setuptools&apos;&lt;/span&gt;
+make[2]: &lt;span class=&quot;k&quot;&gt;***&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;src/python/CMakeFiles/bcc_py_python3.dir/build.make:84: src/python/bcc-python3/dist/bcc-0.34.0+d7667cf9.tar.gz] Error 1
+make[1]: &lt;span class=&quot;k&quot;&gt;***&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;CMakeFiles/Makefile2:1047: src/python/CMakeFiles/bcc_py_python3.dir/all] Error 2
+make: &lt;span class=&quot;k&quot;&gt;***&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;Makefile:146: all] Error 2
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;原因为系统的 Python 环境可能被自己折腾乱了，直接手动补充安装即可：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apt &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; pip
+pip3 &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;setuptools
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
 &lt;h3 id=&quot;找不到lbbccsoo-中某个符号&quot;&gt;找不到lbbcc.so.o 中某个符号&lt;/h3&gt;
 
 &lt;p&gt;执行 hello_world.py 脚本输出报错类似如下：&lt;/p&gt;
@@ -116,7 +149,7 @@ b&lt;span class=&quot;s1&quot;&gt;&apos;         portmap-3542465 [008] ....1 131
 &lt;span class=&quot;nb&quot;&gt;cp&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-rf&lt;/span&gt; ./src/python/bcc-python3/bcc/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; /usr/lib/python3/dist-packages/bcc/
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;h3 id=&quot;找不到-asmtypesh-头文件&quot;&gt;找不到 asm/types.h 头文件&lt;/h3&gt;
+&lt;h3 id=&quot;找不到-asmtypesh-头文件&quot;&gt;找不到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;asm/types.h&lt;/code&gt; 头文件&lt;/h3&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
 In file included from &amp;lt;built-in&amp;gt;:2:
@@ -136,7 +169,9 @@ Exception: Failed to compile BPF module &amp;lt;text&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。&lt;/p&gt;
+  &lt;p&gt;在 orb 下的 ubuntu 虚拟机中遇到的，在 orbstack 的 ubuntu 下暂时未解决，网上找的解决方案基本是两种，可以尝试下，不过在我的 orbstack ubuntu 下不生效。
+1、主动link /usr/include/x86_64-linux-gnu/asm 到 /usr/include/asm，也就是软链接过去。
+2、另一种方案是通过安装 gcc-multilib 进行解决：apt-get install -y gcc-multilib。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h2 id=&quot;内存泄漏检测&quot;&gt;内存泄漏检测&lt;/h2&gt;
@@ -152,7 +187,7 @@ Exception: Failed to compile BPF module &amp;lt;text&amp;gt;
 &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;g_vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
 
 &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;memory_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 故意泄漏内存&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
     &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;111&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;delete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;g_vec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;push_back&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ptr2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
@@ -274,6 +309,59 @@ memleak &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; /lib/x86_64-linux-gnu/l
 &lt;p&gt;&lt;em&gt;输出内容：&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;同静态编译链接方式内容。&lt;/p&gt;
+
+&lt;h3 id=&quot;精确定位行号&quot;&gt;精确定位行号&lt;/h3&gt;
+
+&lt;p&gt;有时候仅仅输出函数名称还不足够明确定位代码具体位置（如：函数体较长，存在多个申请内存的操作），那么就需要通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;objdump&lt;/code&gt; 和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;addr2line&lt;/code&gt; 工具对函数地址进行解析。
+这两个工具需要安装 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;binutils，安装： &lt;/code&gt;apt-get install -y binutils`。&lt;/p&gt;
+
+&lt;p&gt;例如需要排查上述一处 memory_test 中的一处内存泄漏：&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;	555 bytes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;5 allocations from stack
+		memory_test&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;+0x33 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;test.exe]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;首先通过 objdump 找到二进制中函数地址&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;objdump &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; test.exe | &lt;span class=&quot;nb&quot;&gt;grep &lt;/span&gt;memory_test
+0000000000404605 &amp;lt;_Z11memory_testv&amp;gt;:
+  404641:       74 0c                   je     40464f &amp;lt;_Z11memory_testv+0x4a&amp;gt;
+  40469e:       74 05                   je     4046a5 &amp;lt;_Z11memory_testv+0xa0&amp;gt;
+  4046b6:       e8 4a ff ff ff          call   404605 &amp;lt;_Z11memory_testv&amp;gt;
+000000000040481f &amp;lt;_GLOBAL__sub_I__Z11memory_testv&amp;gt;:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_Z11memory_testv&lt;/code&gt; 为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;c++&lt;/code&gt; 编译器为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;memory_test&lt;/code&gt; 生成的修饰名，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_Z11&lt;/code&gt; 表示这是一个函数，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;v&lt;/code&gt; 表示函数参数为空。
+找到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;memory_test&lt;/code&gt; 的函数地址为&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;404605&lt;/code&gt; ,内存泄漏位置的函数偏移为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x33，则内存地址为&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x404605 + 0x33 = 0x404638&lt;/code&gt;，所以具体的泄漏代码位置为：&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;addr2line &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; test.exe 0x404638
+/mnt/data/debug/test.cpp:9
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;table&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;td&gt;通过 nm 也可以获取指定函数的地址，如： nm test.exe&lt;/td&gt;
+        &lt;td&gt;grep memory_test&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;与-asanaddress-sanitizer-的区别&quot;&gt;与 ASAN(Address Sanitizer) 的区别&lt;/h3&gt;
+
+&lt;p&gt;通过 bcc 的 memleak 进行内存泄漏的检测，即可以对明显的 new/malloc 与 delete/free 的不对称进行检测，bcc 的 memleak 的主要优势在于可以在不重启进程，同时在不对进程造成任何性能影响的情况下，对内存进行检测。
+还有就是对类似示例代码中对 vector 不断的增加数据导致内存不断的增长，但实际数据并为泄漏，在程序退出时还会删除的这种场景是不同于 ASAN 的检测的（ASAN 不检测这种场景），这类问题反而是线上最难解决的内存泄漏的问题。&lt;/p&gt;
+
+&lt;p&gt;但是 bcc 的 memleak 没有 ASAN 的内存越界、践踏的检测，所以在开发测试阶段应该用 ASAN 进行验证，及时找出内存的错误操作，消除 crash 的风险。&lt;/p&gt;
+
+&lt;h2 id=&quot;todo&quot;&gt;TODO&lt;/h2&gt;
+
+&lt;p&gt;1、 解决 orbstack 下 ubuntu 源码安装 bcc。&lt;/p&gt;
+
+&lt;p&gt;2、 将 ubuntu 下源码编译安装的 bcc tools进行 dep 打包，实现一键安装。&lt;/p&gt;
 
 &lt;h2 id=&quot;参考资料&quot;&gt;参考资料&lt;/h2&gt;
 
