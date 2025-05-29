@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Install bcc on ubuntu22.04'
+title: 'Install bcc and use memleak on Ubuntu22.04'
 subtitle: 
 date: 2025-05-21
 author: Mr Chen
@@ -24,8 +24,15 @@ apt update && apt upgrade -y
 # 安装必要依赖
 apt install -y bison build-essential cmake flex git libedit-dev \
   libllvm14 llvm-14-dev libclang-14-dev python3.11 zlib1g-dev libelf-dev \
-  libfl-dev python3-distutils
+  libfl-dev python3-distutils pip zip arping netperf iperf3
 ```
+
+确认 python 环境，安装必备包：
+
+```bash
+pip3 install setuptools
+```
+
 
 - **安装内核头文件**
 
@@ -45,7 +52,7 @@ E: Unable to locate package linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6
 E: Couldn't find any package by glob 'linux-header-6.13.7-orbstack-00283-g9d1400e7e9c6'
 ```
 
-如何通过 `apt install linux-headers-$(uname -r)` 安装报错，则可以通过安装通用内核头文件版本进行替代：
+如果通过 `apt install linux-headers-$(uname -r)` 安装报错，则可以通过安装通用内核头文件版本进行替代：
 
 ```bash
 apt install -y linux-headers-generic
@@ -62,6 +69,8 @@ git checkout v0.34.0
 ```
 
 ### 编译
+
+依次执行如下命令：
 
 ```bash
 mkdir build; cd build
@@ -107,6 +116,35 @@ b'         portmap-3542465 [008] ....1 1312599.536850: bpf_trace_printk: Hello, 
 
 ## 常见问题
 
+### cmake 时报 Kernel headers: KERNELHEADERS_DIR-NOTFOUND
+
+cmake 找不到 `linux-headers` 目录，如果明确已经安装了，确依然报此问题，则在 `cmake ..` 时指定 `linux-headers-generic` 的安装目录即可，如：
+
+```bash
+cmake .. -DKERNELHEADERS_DIR="/usr/include/x86_64-linux-gnu"
+```
+
+### make 时报 python3 相关错误：ModuleNotFoundError
+
+如下：
+
+```bash
+Traceback (most recent call last):
+  File "/home/chengaoyuan/opensource/bcc/build/src/python/bcc-python3/setup.py", line 3, in <module>
+    from setuptools import setup
+ModuleNotFoundError: No module named 'setuptools'
+make[2]: *** [src/python/CMakeFiles/bcc_py_python3.dir/build.make:84: src/python/bcc-python3/dist/bcc-0.34.0+d7667cf9.tar.gz] Error 1
+make[1]: *** [CMakeFiles/Makefile2:1047: src/python/CMakeFiles/bcc_py_python3.dir/all] Error 2
+make: *** [Makefile:146: all] Error 2
+```
+
+原因为系统的 Python 环境可能被自己折腾乱了，直接手动补充安装即可：
+
+```bash
+apt install -y pip
+pip3 install setuptools
+```
+
 ### 找不到lbbcc.so.o 中某个符号
 
 执行 hello_world.py 脚本输出报错类似如下：
@@ -122,7 +160,7 @@ AttributeError: /lib/x86_64-linux-gnu/libbcc.so.0: undefined symbol: bpf_module_
 cp -rf ./src/python/bcc-python3/bcc/* /usr/lib/python3/dist-packages/bcc/
 ```
 
-### 找不到 asm/types.h 头文件
+### 找不到 `asm/types.h` 头文件
 
 ```bash 
 root@ubuntu22:~/tools# /usr/share/bcc/examples/hello_world.py)
@@ -142,7 +180,9 @@ Traceback (most recent call last):
 Exception: Failed to compile BPF module <text>
 ```
 
->在 orb 下的 ubuntu 虚拟机中有遇到，且暂时一直待解决，网上其他人说的解决方案均不生效。
+> 在 orb 下的 ubuntu 虚拟机中遇到的，在 orbstack 的 ubuntu 下暂时未解决，网上找的解决方案基本是两种，可以尝试下，不过在我的 orbstack ubuntu 下不生效。
+> 1、主动link /usr/include/x86_64-linux-gnu/asm 到 /usr/include/asm，也就是软链接过去。
+> 2、另一种方案是通过安装 gcc-multilib 进行解决：apt-get install -y gcc-multilib。
 
 
 ## 内存泄漏检测
@@ -159,7 +199,7 @@ Exception: Failed to compile BPF module <text>
 static std::vector<char*> g_vec;
 
 void memory_test() {
-    char* ptr = new char[1024]; // 故意泄漏内存
+    char* ptr = new char[1024];
     char* ptr2 = (char *)malloc(111);
     delete[] ptr;
     g_vec.push_back(ptr2);
@@ -289,6 +329,55 @@ memleak -O /lib/x86_64-linux-gnu/libc.so.6 -p ${pid}
 *输出内容：*
 
 同静态编译链接方式内容。
+
+
+### 精确定位行号
+
+有时候仅仅输出函数名称还不足够明确定位代码具体位置（如：函数体较长，存在多个申请内存的操作），那么就需要通过 `objdump` 和 `addr2line` 工具对函数地址进行解析。
+这两个工具需要安装 `binutils，安装： `apt-get install -y binutils`。
+
+例如需要排查上述一处 memory_test 中的一处内存泄漏：
+```bash
+	555 bytes in 5 allocations from stack
+		memory_test()+0x33 [test.exe]
+```
+
+- 首先通过 objdump 找到二进制中函数地址
+
+```bash
+$ objdump -d test.exe | grep memory_test
+0000000000404605 <_Z11memory_testv>:
+  404641:       74 0c                   je     40464f <_Z11memory_testv+0x4a>
+  40469e:       74 05                   je     4046a5 <_Z11memory_testv+0xa0>
+  4046b6:       e8 4a ff ff ff          call   404605 <_Z11memory_testv>
+000000000040481f <_GLOBAL__sub_I__Z11memory_testv>:
+```
+
+`_Z11memory_testv` 为 `c++` 编译器为 `memory_test` 生成的修饰名，`_Z11` 表示这是一个函数，`v` 表示函数参数为空。
+找到 `memory_test` 的函数地址为`404605` ,内存泄漏位置的函数偏移为 `0x33，则内存地址为` `0x404605 + 0x33 = 0x404638`，所以具体的泄漏代码位置为：
+
+```bash
+$ addr2line -e test.exe 0x404638
+/mnt/data/debug/test.cpp:9
+```
+
+> 通过 nm 也可以获取指定函数的地址，如： nm test.exe | grep memory_test
+
+
+### 与 ASAN(Address Sanitizer) 的区别
+
+通过 bcc 的 memleak 进行内存泄漏的检测，即可以对明显的 new/malloc 与 delete/free 的不对称进行检测，bcc 的 memleak 的主要优势在于可以在不重启进程，同时在不对进程造成任何性能影响的情况下，对内存进行检测。
+还有就是对类似示例代码中对 vector 不断的增加数据导致内存不断的增长，但实际数据并为泄漏，在程序退出时还会删除的这种场景是不同于 ASAN 的检测的（ASAN 不检测这种场景），这类问题反而是线上最难解决的内存泄漏的问题。
+
+但是 bcc 的 memleak 没有 ASAN 的内存越界、践踏的检测，所以在开发测试阶段应该用 ASAN 进行验证，及时找出内存的错误操作，消除 crash 的风险。
+
+
+## TODO
+
+1、 解决 orbstack 下 ubuntu 源码安装 bcc。
+
+2、 将 ubuntu 下源码编译安装的 bcc tools进行 dep 打包，实现一键安装。
+
 
 ## 参考资料
 
