@@ -1,4 +1,326 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-05-29T07:58:49+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2025-09-21T12:27:02+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">RUT protocol design</title><link href="https://gbcpp.github.io/protocol/rut-protocol-design.html" rel="alternate" type="text/html" title="RUT protocol design" /><published>2025-09-21T00:00:00+00:00</published><updated>2025-09-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/rut-protocol-design</id><content type="html" xml:base="https://gbcpp.github.io/protocol/rut-protocol-design.html"><![CDATA[<h2 id="设计思想">设计思想</h2>
+
+<p>整体参考 quic，将协议格式在传输上进行分层，首先是 Packet 层，每次收发都是一个 Packet，比如用于握手建连的 InitialPacket 和建连后的 DataPacket。
+在 Packet 内，是第二层，即 Frame 层，比如包括承载应用层数据的 StreamFrame，以及协议内 CC 用于实时反馈的 FeedbackFrame 和 pingpong frame 等。</p>
+
+<h2 id="设计目标">设计目标</h2>
+
+<p>基于 UDP 实现一个更加高效和通用的数据传输协议，既能满足在 RTC 场景下的数据低延迟传输（尽量到达），也能满足在直播、文件传输、IM 等场景下的可靠传输，在一个链接内通过创建不同的 stream，实现同时支持 可靠 和 不可靠传输，实现 stream 的优先级控制，保证高优先级数据的优先传输。</p>
+
+<p>在协议内部整体通过自定义 Congestion contri algorithm 实现更优的数据传输速率的控制，在每条 stream 内使用不同的发送控制策略，以及 Fec 算法，以适配各种不同的应用场景。</p>
+
+<h2 id="协议设计">协议设计</h2>
+
+<blockquote>
+  <p>我们通过 <a href="https://github.com/luismartingarcia/protocol">该工具 protocol</a> 来设计协议的具体格式。</p>
+</blockquote>
+
+<h2 id="packet">Packet</h2>
+
+<p>Packet 主要分为两种，一种为在握手建连时的 InitialPacket，也可以认为是 HandshakePacket，在建链成功以后，便不再有此类数据包，后续全部使用 DataPacket，
+用于传输应用层的数据，以及协议内的反馈包。</p>
+
+<h3 id="packet-common-header">Packet Common Header</h3>
+
+<p>Packet Common Header 是所有 Packet 的通用包头，包括 InitialPacket 和 DataPacket。
+具体格式如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "type:1,connection_id:1,path_id:1,zero_rtt:1,cid_existence:1,reserved:3,pkt_no:24,connection_id:64,...:32"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|t|c|p|z|c|rese.|                     pkt_no                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                         connection_id                         +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                              ...                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+type：packet type,标识此包为 InitialPacket 还是 DataPacket，这里我们做如此约定：0: InitialPacket，1: DataPacket。
+connection_id: 此包的包头中是否存在 connection_id 字段, connection_id 是实现连接迁移功能的作用字段，但并不是每个包都必须要带。
+path_id: 在此 DataPacket 的 header 中是否存在 Patch Id 字段，用于开启 MultiPath 时标识数据属于哪一条 Path。
+zero_rtt: 标识是否为 0-RTT 的数据包，即在 0-RTT 的建链场景中，用于在三次握手尚未完成时，一端已经开始发送数据，以此 flag 告知对端该数据包合法，需先缓存，在三次握手完成后，不再携带此 flag。
+cid_existence: 该 Connection 在后续的连接中是否会使用 conenction id。
+reserved: 保留位，用于以后能力扩展。
+pkt_no：包序号，每次发送均递增。
+payload：各种 frames 的集合。
+</code></pre></div></div>
+
+<h3 id="initialpacket">InitialPacket</h3>
+<p>InitialPacket 用于初始化连接, 握手类似与 TCP 的3次握手，在在一次RTT中完成。</p>
+
+<p>如上约定，InitialPacket 的 Packet Common Header 中的 type 为 0，在 Packet Common Header 之后，才是该数据包，InitialPacket 的具体格式设计如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "version:7,sync:1,ack:1,rst:1,early_data:1,tags:1,reserved:10,acked_pkt_no:32,early_data_len:16,early_data:112,tag_count:8,tag_len:16,tag_data:40,tag_len:16,tag_data:58"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   version   |s|a|r|e|t|      reserved     |                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                acked_pkt_no               |   early_data_len  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           |                                                   |
++-+-+-+-+-+-+                                                   +
+|                                                               |
++                                                               +
+|                           early_data                          |
++                                           +-+-+-+-+-+-+-+-+-+-+
+|                                           |   tag_count   |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          tag_len          |                                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+
+|                  tag_data                 |      tag_len      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           |                                                   |
++-+-+-+-+-+-+                                                   +
+|                            tag_data                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+version：the corresponding protocol version, curently we use 1；
+s：SYN；
+a：ACK；
+r：RST；
+e：标识在该包中是否包含 early_data 数据段，如果包含则在后续的 data 中进行解析。
+t：标识在该包中是否包含自定义的 tags，如果包含则在后续的 data 中进行解析。
+</code></pre></div></div>
+
+<h3 id="datapacket">DataPacket</h3>
+<p>DataPacket encapsulates all kinds of Frames. Each DataPacket might contains one or more Frames.
+DataPacket 封装了所有类型的 Frames，且每个 DataPacket 可以包含多个/种 Frames（至少一个 Frame）。</p>
+
+<p>如上约定，DataPacket 的 Packet Common Header 中的 type 为 1，在 Packet Common Header 之后，才是该数据包，DataPacket 的具体格式设计如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "largest_acked_packet_num:24,path_id:4,frame_count:4,type:5,frame_length:11,frame_data:80,...:128,type:5,frame_length:11,frame_data:80"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            largest_acked_packet_num           |path_id|frame_.|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
++                           frame_data                          +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                                                               +
+|                                                               |
++                              ...                              +
+|                                                               |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
++                           frame_data                          +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+largest_acked_packet_num：本端从远端接收到的最大的 Ack Packet number。
+path_id: 当 Pcketet Common Header 中标识 path id 为 true 后，此字段有效，否则无效。
+frame_count：在该包的 payload 中种打包了多少个 Frame。
+</code></pre></div></div>
+
+<h2 id="frame">Frame</h2>
+
+<p>帧（Frame）是用来在连接建立后传输不同类型的消息的，比如应用层需要传输的数据，协议内部的统计、反馈数据等。</p>
+
+<h3 id="frame-common-header">Frame Common Header</h3>
+
+<p>Frame Common Header 是每个数据帧的统一包头。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "type:5,frame_length:11,...:48"
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                            ...                                |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+type: 帧类型
+frame_length：帧长度
+</code></pre></div></div>
+
+<p>暂时定义如下几种 Frame 类型：</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="n">FrameType</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span>
+  <span class="n">kStreamFrame</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="n">kAckFrame</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="n">kPingFrame</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="n">kCloseFrame</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+  <span class="n">kCongestionFeedbackFrame</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+  <span class="n">kControlFrame</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+  <span class="n">kPaddingFrame</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="n">kPathEventFrame</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="n">kMaxFrameType</span> <span class="o">=</span> <span class="mi">32</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h3 id="streamframe">StreamFrame</h3>
+<p>StreamFrame 用于承载传输应用层数据.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "stream_id:16,option:1,metadata:1,push:1,reserved:5,writer_flags:8,opt_len:10,opt:40,meta_len:10,meta:48,payload:116"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id           |o|m|p| reserved|  writer_flags |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      opt_len      |                    opt                    |
++-+-+-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                   |      meta_len     |       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+       +
+|                              meta                             |
++                       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                       |                                       |
++-+-+-+-+-+-+-+-+-+-+-+-+                                       +
+|                                                               |
++                                                               +
+|                            payload                            |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+stream_id: 流 Id，整个 connection 内唯一。
+option：标识是否携带有 option 数据，如果为 true，则后续 "opt_len" &amp; "opt" 字段均存在，用于传递 stream 内的自定义数据，用于协议内。
+metadata：标识是否携带有 metadata 数据，如果为 true，则后续 "meta_len" &amp; "meta" 字段有效，用于传递应用层为该 stream 指定的自定义数据。
+push: 标识该 frame 是否应该单独发送出去，而非与其它 Frame 组合发送。
+writer_flags: stream 使用的 writer 类型， stream 内部实现传输模式。
+reserved: no used
+</code></pre></div></div>
+
+<h3 id="ackframe">AckFrame</h3>
+
+<p>AckFrame 用于在接收端对接收的 DataPacket 进行反馈。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "ts:1,ack_delay:8,largest_observed_packet_number:24,largest_observed_recv_time:32,range_length:8,range_count:8,next_range_gap1:8,range_length1:8,...:48,next_range_gapN:8,range_lengthN:8,ts_count:8,delta_number1:8,delta_ms1:8,...:72,delta_numberN:8,delta_msN:8"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|t|   ack_delay   |        largest_observed_packet_number       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |                  largest_observed_recv_time                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |  range_length |  range_count  |next_range_gap1|range_length1|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |                             ...                             |
++-+                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                 |next_range_gapN|range_lengthN|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |    ts_count   | delta_number1 |   delta_ms1   |             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+             +
+|                                                               |
++                                                               +
+|                              ...                              |
++ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| | delta_numberN |   delta_msN   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+ts：表示数据中稍后是否会有数据包接收时间戳。
+ack_delay：Acking largest_observed_packet_number 这个包序号的延迟时间，单位 ms。
+largest_observed_packet_number：接收到最大的数据包序号。
+largest_observed_recv_time：接收到 |largest_observed_packet_number| 包的时间。
+range_count：the count of ranges;
+next_range_gap：the gap in packet number from last range to current range;
+range_length：the length of current range;
+ts_count：后续数据中包接收时间戳的数量。
+delta_number：从|largest_observed_packet_number|到当前包序号的差值。
+delta_ms：从|largest_observed_packet_number|收时间到当前包接收时间的差值。
+</code></pre></div></div>
+
+<h3 id="closeframe">CloseFrame</h3>
+
+<p>CloseFrame用于关闭特定的流或连接。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "stream_id:16,error_code:16,detail:64"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id           |           error_code          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                             detail                            +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+stream_id: 要关闭的流的ID，或使用0xFFFF来关闭连接。
+error_code：当前关闭操作的错误码
+detail：当前关闭操作的详细原因。
+</code></pre></div></div>
+
+<h3 id="congestionfeedbackframe">CongestionFeedbackFrame</h3>
+
+<p>CongestionFeedbackFrame用于向对端报告一些网络统计信息。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "reserved:8,lost_ratio:8,delta_from_begin_ms:32,estimated_bandwidth_kbps:16,total_sent_kbps:16,outgoing_stream_count:16,jitter95:16,queueing_time:16,stream_id1:16,sent_kbps1:16,...:48,stream_idN:16,sent_kbpsN:16"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    reserved   |   lost_ratio  |      delta_from_begin_ms      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |    estimated_bandwidth_kbps   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|        total_sent_kbps        |     outgoing_stream_count     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            jitter95           |         queueing_time         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id1          |           sent_kbps1          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                              ...                              |
++                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |           stream_idN          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           sent_kbpsN          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</code></pre></div></div>
+
+<h3 id="pingframe">PingFrame</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "kPing:5,frame_length:11"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  kPing  |     frame_length    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</code></pre></div></div>
+
+<h3 id="controlframe">ControlFrame</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "type:8,frame_id:16,stream_id:16,payload:56"
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      type     |            frame_id           |   stream_id   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               |                                               |
++-+-+-+-+-+-+-+-+                                               +
+|                            payload                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+type: 表示此控制帧的类型。
+frame_id: 表示此帧的ID，每个控制帧都有唯一的ID。
+stream_id: 表示此控制帧的流ID。
+payload: 表示此控制帧的载荷，长度包含在frame_length中。
+</code></pre></div></div>
+
+<table>
+  <tbody>
+    <tr>
+      <td>其中control frame 中的</td>
+      <td>type</td>
+      <td>暂先定义如下类型:</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="k">class</span> <span class="nc">ControlFrameType</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span>
+  <span class="n">kOptionFrame</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// 主要用作在传输过程中，对对端做远程的控制</span>
+
+  <span class="n">kMax</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+<span class="p">};</span>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><category term="RUT" /><summary type="html"><![CDATA[设计思想]]></summary></entry><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
   <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
 </blockquote>
 
@@ -1553,85 +1875,4 @@ vhost __defaultVhost__ {
 
 <h1 id="srs-支持sni和多证书">SRS 支持SNI和多证书</h1>
 
-<p>目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[SRS 版本]]></summary></entry><entry><title type="html">C++ 程序输出当前堆栈</title><link href="https://gbcpp.github.io/notes/print_stacktrace.html" rel="alternate" type="text/html" title="C++ 程序输出当前堆栈" /><published>2024-06-11T00:00:00+00:00</published><updated>2024-06-11T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/print_stacktrace</id><content type="html" xml:base="https://gbcpp.github.io/notes/print_stacktrace.html"><![CDATA[<p>将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
-互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。</p>
-
-<h2 id="头文件">头文件</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;cxxabi.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;execinfo.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
-#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
-</span></code></pre></div></div>
-
-<h2 id="源码">源码</h2>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Utils</span><span class="o">::</span><span class="n">PrintStackTrace</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxFrames</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="n">kMaxPrettyFunctionNameLength</span> <span class="o">=</span> <span class="mi">512</span><span class="p">;</span>
-
-  <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">oss</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="o">*</span><span class="n">addrlist</span><span class="p">[</span><span class="n">kMaxFrames</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
-
-  <span class="c1">// 获取当前堆栈中的地址</span>
-  <span class="kt">int</span> <span class="n">addrlen</span> <span class="o">=</span> <span class="n">backtrace</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addrlist</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">));</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">addrlen</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="s">""</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="s">"StackTraces: "</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-
-  <span class="c1">// 解析地址为函数名</span>
-  <span class="kt">char</span> <span class="o">**</span><span class="n">symbollist</span> <span class="o">=</span> <span class="n">backtrace_symbols</span><span class="p">(</span><span class="n">addrlist</span><span class="p">,</span> <span class="n">addrlen</span><span class="p">);</span>
-
-  <span class="c1">// 解析函数名的更多信息</span>
-  <span class="kt">size_t</span> <span class="n">funcNameSize</span> <span class="o">=</span> <span class="n">kMaxPrettyFunctionNameLength</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">funcName</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">char</span> <span class="o">*&gt;</span><span class="p">(</span><span class="n">malloc</span><span class="p">(</span><span class="n">funcNameSize</span><span class="p">));</span>
-
-  <span class="c1">// 跳过第一个元素（即本身）</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">addrlen</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginName</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">beginOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
-
-    <span class="c1">// 解析符号名称及偏移量</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span> <span class="o">++</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'('</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginName</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">'+'</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">beginOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-      <span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="o">*</span><span class="n">p</span> <span class="o">==</span> <span class="sc">')'</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">endOffset</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>
-        <span class="k">break</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">beginName</span> <span class="o">&amp;&amp;</span> <span class="n">beginOffset</span> <span class="o">&amp;&amp;</span> <span class="n">endOffset</span> <span class="o">&amp;&amp;</span> <span class="n">beginName</span> <span class="o">&lt;</span> <span class="n">beginOffset</span><span class="p">)</span> <span class="p">{</span>
-      <span class="o">*</span><span class="n">beginName</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">beginOffset</span><span class="o">++</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-      <span class="o">*</span><span class="n">endOffset</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
-
-      <span class="c1">// 解码并打印函数名称</span>
-      <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
-      <span class="kt">char</span> <span class="o">*</span><span class="n">ret</span> <span class="o">=</span>
-          <span class="n">abi</span><span class="o">::</span><span class="n">__cxa_demangle</span><span class="p">(</span><span class="n">beginName</span><span class="p">,</span> <span class="n">funcName</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">funcNameSize</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">status</span><span class="p">);</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">ret</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-      <span class="c1">// 如果无法解析，直接输出原始符号信息</span>
-      <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="n">symbollist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">funcName</span><span class="p">);</span>
-  <span class="n">free</span><span class="p">(</span><span class="n">symbollist</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<h2 id="编译">编译</h2>
-
-<p><code class="language-plaintext highlighter-rouge">ldflags</code> 参数一定要指定 <code class="language-plaintext highlighter-rouge">-ldynamiclib</code> 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
-主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。</p>
-
-<p>对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="C++" /><summary type="html"><![CDATA[将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。 互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。]]></summary></entry></feed>
+<p>目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[SRS 版本]]></summary></entry></feed>

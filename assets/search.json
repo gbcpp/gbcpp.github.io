@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "RUT protocol design",
+    "tags"     : "Protocol RUT",
+    "url"      : "/protocol/rut-protocol-design.html"
+  } ,
+
+  {
     "title"    : "Install bcc and use memleak on Ubuntu22.04",
     "tags"     : "bcc ebpf",
     "url"      : "/notes/install-bcc.html"

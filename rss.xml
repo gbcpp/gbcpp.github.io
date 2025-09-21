@@ -5,9 +5,348 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 29 May 2025 07:58:49 +0000</pubDate>
-    <lastBuildDate>Thu, 29 May 2025 07:58:49 +0000</lastBuildDate>
+    <pubDate>Sun, 21 Sep 2025 12:27:02 +0000</pubDate>
+    <lastBuildDate>Sun, 21 Sep 2025 12:27:02 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>RUT protocol design</title>
+        <description>&lt;h2 id=&quot;设计思想&quot;&gt;设计思想&lt;/h2&gt;
+
+&lt;p&gt;整体参考 quic，将协议格式在传输上进行分层，首先是 Packet 层，每次收发都是一个 Packet，比如用于握手建连的 InitialPacket 和建连后的 DataPacket。
+在 Packet 内，是第二层，即 Frame 层，比如包括承载应用层数据的 StreamFrame，以及协议内 CC 用于实时反馈的 FeedbackFrame 和 pingpong frame 等。&lt;/p&gt;
+
+&lt;h2 id=&quot;设计目标&quot;&gt;设计目标&lt;/h2&gt;
+
+&lt;p&gt;基于 UDP 实现一个更加高效和通用的数据传输协议，既能满足在 RTC 场景下的数据低延迟传输（尽量到达），也能满足在直播、文件传输、IM 等场景下的可靠传输，在一个链接内通过创建不同的 stream，实现同时支持 可靠 和 不可靠传输，实现 stream 的优先级控制，保证高优先级数据的优先传输。&lt;/p&gt;
+
+&lt;p&gt;在协议内部整体通过自定义 Congestion contri algorithm 实现更优的数据传输速率的控制，在每条 stream 内使用不同的发送控制策略，以及 Fec 算法，以适配各种不同的应用场景。&lt;/p&gt;
+
+&lt;h2 id=&quot;协议设计&quot;&gt;协议设计&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;我们通过 &lt;a href=&quot;https://github.com/luismartingarcia/protocol&quot;&gt;该工具 protocol&lt;/a&gt; 来设计协议的具体格式。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;packet&quot;&gt;Packet&lt;/h2&gt;
+
+&lt;p&gt;Packet 主要分为两种，一种为在握手建连时的 InitialPacket，也可以认为是 HandshakePacket，在建链成功以后，便不再有此类数据包，后续全部使用 DataPacket，
+用于传输应用层的数据，以及协议内的反馈包。&lt;/p&gt;
+
+&lt;h3 id=&quot;packet-common-header&quot;&gt;Packet Common Header&lt;/h3&gt;
+
+&lt;p&gt;Packet Common Header 是所有 Packet 的通用包头，包括 InitialPacket 和 DataPacket。
+具体格式如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;type:1,connection_id:1,path_id:1,zero_rtt:1,cid_existence:1,reserved:3,pkt_no:24,connection_id:64,...:32&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|t|c|p|z|c|rese.|                     pkt_no                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                         connection_id                         +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                              ...                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+type：packet type,标识此包为 InitialPacket 还是 DataPacket，这里我们做如此约定：0: InitialPacket，1: DataPacket。
+connection_id: 此包的包头中是否存在 connection_id 字段, connection_id 是实现连接迁移功能的作用字段，但并不是每个包都必须要带。
+path_id: 在此 DataPacket 的 header 中是否存在 Patch Id 字段，用于开启 MultiPath 时标识数据属于哪一条 Path。
+zero_rtt: 标识是否为 0-RTT 的数据包，即在 0-RTT 的建链场景中，用于在三次握手尚未完成时，一端已经开始发送数据，以此 flag 告知对端该数据包合法，需先缓存，在三次握手完成后，不再携带此 flag。
+cid_existence: 该 Connection 在后续的连接中是否会使用 conenction id。
+reserved: 保留位，用于以后能力扩展。
+pkt_no：包序号，每次发送均递增。
+payload：各种 frames 的集合。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;initialpacket&quot;&gt;InitialPacket&lt;/h3&gt;
+&lt;p&gt;InitialPacket 用于初始化连接, 握手类似与 TCP 的3次握手，在在一次RTT中完成。&lt;/p&gt;
+
+&lt;p&gt;如上约定，InitialPacket 的 Packet Common Header 中的 type 为 0，在 Packet Common Header 之后，才是该数据包，InitialPacket 的具体格式设计如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;version:7,sync:1,ack:1,rst:1,early_data:1,tags:1,reserved:10,acked_pkt_no:32,early_data_len:16,early_data:112,tag_count:8,tag_len:16,tag_data:40,tag_len:16,tag_data:58&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   version   |s|a|r|e|t|      reserved     |                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                acked_pkt_no               |   early_data_len  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           |                                                   |
++-+-+-+-+-+-+                                                   +
+|                                                               |
++                                                               +
+|                           early_data                          |
++                                           +-+-+-+-+-+-+-+-+-+-+
+|                                           |   tag_count   |   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          tag_len          |                                   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+
+|                  tag_data                 |      tag_len      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           |                                                   |
++-+-+-+-+-+-+                                                   +
+|                            tag_data                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+version：the corresponding protocol version, curently we use 1；
+s：SYN；
+a：ACK；
+r：RST；
+e：标识在该包中是否包含 early_data 数据段，如果包含则在后续的 data 中进行解析。
+t：标识在该包中是否包含自定义的 tags，如果包含则在后续的 data 中进行解析。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;datapacket&quot;&gt;DataPacket&lt;/h3&gt;
+&lt;p&gt;DataPacket encapsulates all kinds of Frames. Each DataPacket might contains one or more Frames.
+DataPacket 封装了所有类型的 Frames，且每个 DataPacket 可以包含多个/种 Frames（至少一个 Frame）。&lt;/p&gt;
+
+&lt;p&gt;如上约定，DataPacket 的 Packet Common Header 中的 type 为 1，在 Packet Common Header 之后，才是该数据包，DataPacket 的具体格式设计如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;largest_acked_packet_num:24,path_id:4,frame_count:4,type:5,frame_length:11,frame_data:80,...:128,type:5,frame_length:11,frame_data:80&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            largest_acked_packet_num           |path_id|frame_.|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
++                           frame_data                          +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                                                               +
+|                                                               |
++                              ...                              +
+|                                                               |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
++                           frame_data                          +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+largest_acked_packet_num：本端从远端接收到的最大的 Ack Packet number。
+path_id: 当 Pcketet Common Header 中标识 path id 为 true 后，此字段有效，否则无效。
+frame_count：在该包的 payload 中种打包了多少个 Frame。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;frame&quot;&gt;Frame&lt;/h2&gt;
+
+&lt;p&gt;帧（Frame）是用来在连接建立后传输不同类型的消息的，比如应用层需要传输的数据，协议内部的统计、反馈数据等。&lt;/p&gt;
+
+&lt;h3 id=&quot;frame-common-header&quot;&gt;Frame Common Header&lt;/h3&gt;
+
+&lt;p&gt;Frame Common Header 是每个数据帧的统一包头。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;type:5,frame_length:11,...:48&quot;
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   type  |     frame_length    |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                            ...                                |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+type: 帧类型
+frame_length：帧长度
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;暂时定义如下几种 Frame 类型：&lt;/p&gt;
+
+&lt;div class=&quot;language-c++ highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FrameType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kStreamFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kAckFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kPingFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kCloseFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kCongestionFeedbackFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kControlFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kPaddingFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kPathEventFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kMaxFrameType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;32&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;streamframe&quot;&gt;StreamFrame&lt;/h3&gt;
+&lt;p&gt;StreamFrame 用于承载传输应用层数据.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;stream_id:16,option:1,metadata:1,push:1,reserved:5,writer_flags:8,opt_len:10,opt:40,meta_len:10,meta:48,payload:116&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id           |o|m|p| reserved|  writer_flags |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      opt_len      |                    opt                    |
++-+-+-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                   |      meta_len     |       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+       +
+|                              meta                             |
++                       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                       |                                       |
++-+-+-+-+-+-+-+-+-+-+-+-+                                       +
+|                                                               |
++                                                               +
+|                            payload                            |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+stream_id: 流 Id，整个 connection 内唯一。
+option：标识是否携带有 option 数据，如果为 true，则后续 &quot;opt_len&quot; &amp;amp; &quot;opt&quot; 字段均存在，用于传递 stream 内的自定义数据，用于协议内。
+metadata：标识是否携带有 metadata 数据，如果为 true，则后续 &quot;meta_len&quot; &amp;amp; &quot;meta&quot; 字段有效，用于传递应用层为该 stream 指定的自定义数据。
+push: 标识该 frame 是否应该单独发送出去，而非与其它 Frame 组合发送。
+writer_flags: stream 使用的 writer 类型， stream 内部实现传输模式。
+reserved: no used
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;ackframe&quot;&gt;AckFrame&lt;/h3&gt;
+
+&lt;p&gt;AckFrame 用于在接收端对接收的 DataPacket 进行反馈。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;ts:1,ack_delay:8,largest_observed_packet_number:24,largest_observed_recv_time:32,range_length:8,range_count:8,next_range_gap1:8,range_length1:8,...:48,next_range_gapN:8,range_lengthN:8,ts_count:8,delta_number1:8,delta_ms1:8,...:72,delta_numberN:8,delta_msN:8&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|t|   ack_delay   |        largest_observed_packet_number       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |                  largest_observed_recv_time                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |  range_length |  range_count  |next_range_gap1|range_length1|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |                             ...                             |
++-+                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                 |next_range_gapN|range_lengthN|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| |    ts_count   | delta_number1 |   delta_ms1   |             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+             +
+|                                                               |
++                                                               +
+|                              ...                              |
++ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| | delta_numberN |   delta_msN   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+ts：表示数据中稍后是否会有数据包接收时间戳。
+ack_delay：Acking largest_observed_packet_number 这个包序号的延迟时间，单位 ms。
+largest_observed_packet_number：接收到最大的数据包序号。
+largest_observed_recv_time：接收到 |largest_observed_packet_number| 包的时间。
+range_count：the count of ranges;
+next_range_gap：the gap in packet number from last range to current range;
+range_length：the length of current range;
+ts_count：后续数据中包接收时间戳的数量。
+delta_number：从|largest_observed_packet_number|到当前包序号的差值。
+delta_ms：从|largest_observed_packet_number|收时间到当前包接收时间的差值。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;closeframe&quot;&gt;CloseFrame&lt;/h3&gt;
+
+&lt;p&gt;CloseFrame用于关闭特定的流或连接。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;stream_id:16,error_code:16,detail:64&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id           |           error_code          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
++                             detail                            +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+stream_id: 要关闭的流的ID，或使用0xFFFF来关闭连接。
+error_code：当前关闭操作的错误码
+detail：当前关闭操作的详细原因。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;congestionfeedbackframe&quot;&gt;CongestionFeedbackFrame&lt;/h3&gt;
+
+&lt;p&gt;CongestionFeedbackFrame用于向对端报告一些网络统计信息。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;reserved:8,lost_ratio:8,delta_from_begin_ms:32,estimated_bandwidth_kbps:16,total_sent_kbps:16,outgoing_stream_count:16,jitter95:16,queueing_time:16,stream_id1:16,sent_kbps1:16,...:48,stream_idN:16,sent_kbpsN:16&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    reserved   |   lost_ratio  |      delta_from_begin_ms      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |    estimated_bandwidth_kbps   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|        total_sent_kbps        |     outgoing_stream_count     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            jitter95           |         queueing_time         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           stream_id1          |           sent_kbps1          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                              ...                              |
++                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |           stream_idN          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           sent_kbpsN          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;pingframe&quot;&gt;PingFrame&lt;/h3&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;kPing:5,frame_length:11&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  kPing  |     frame_length    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;controlframe&quot;&gt;ControlFrame&lt;/h3&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./protocol &quot;type:8,frame_id:16,stream_id:16,payload:56&quot;
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      type     |            frame_id           |   stream_id   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               |                                               |
++-+-+-+-+-+-+-+-+                                               +
+|                            payload                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+type: 表示此控制帧的类型。
+frame_id: 表示此帧的ID，每个控制帧都有唯一的ID。
+stream_id: 表示此控制帧的流ID。
+payload: 表示此控制帧的载荷，长度包含在frame_length中。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;其中control frame 中的&lt;/td&gt;
+      &lt;td&gt;type&lt;/td&gt;
+      &lt;td&gt;暂先定义如下类型:&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class=&quot;language-c++ highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ControlFrameType&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kOptionFrame&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 主要用作在传输过程中，对对端做远程的控制&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;kMax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;256&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+</description>
+        <pubDate>Sun, 21 Sep 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/rut-protocol-design.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/rut-protocol-design.html</guid>
+        
+        <category>Protocol</category>
+        
+        <category>RUT</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
     
       <item>
         <title>Install bcc and use memleak on Ubuntu22.04</title>
@@ -1705,103 +2044,6 @@ vhost __defaultVhost__ {
         <guid isPermaLink="true">https://gbcpp.github.io/notes/srs-on-arm.html</guid>
         
         <category>Life</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>C++ 程序输出当前堆栈</title>
-        <description>&lt;p&gt;将当前程序运行时的堆栈信息输出到控制台，或者 Log 中，用于问题调查。
-互联网中找到的，使用均有内存问题，以下是修复后的版本，可正常运行在 Linux 下。&lt;/p&gt;
-
-&lt;h2 id=&quot;头文件&quot;&gt;头文件&lt;/h2&gt;
-
-&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;cxxabi.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
-#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;execinfo.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
-#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
-#include&lt;/span&gt; &lt;span class=&quot;cpf&quot;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span class=&quot;cp&quot;&gt;
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;源码&quot;&gt;源码&lt;/h2&gt;
-
-&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Utils&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PrintStackTrace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;constexpr&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kMaxFrames&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;128&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;constexpr&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kMaxPrettyFunctionNameLength&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;512&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ostringstream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;oss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addrlist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kMaxFrames&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
-
-  &lt;span class=&quot;c1&quot;&gt;// 获取当前堆栈中的地址&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addrlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;backtrace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addrlist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addrlist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addrlen&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;oss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;StackTraces: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-  &lt;span class=&quot;c1&quot;&gt;// 解析地址为函数名&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;symbollist&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;backtrace_symbols&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addrlist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addrlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-
-  &lt;span class=&quot;c1&quot;&gt;// 解析函数名的更多信息&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;funcNameSize&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kMaxPrettyFunctionNameLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;funcName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static_cast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;funcNameSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
-
-  &lt;span class=&quot;c1&quot;&gt;// 跳过第一个元素（即本身）&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;addrlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nullptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nullptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nullptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-    &lt;span class=&quot;c1&quot;&gt;// 解析符号名称及偏移量&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;symbollist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;(&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;+&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;)&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;endOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;endOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;\0&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginOffset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;\0&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endOffset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sc&quot;&gt;&apos;\0&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-
-      &lt;span class=&quot;c1&quot;&gt;// 解码并打印函数名称&lt;/span&gt;
-      &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;abi&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__cxa_demangle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;beginName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;funcName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;funcNameSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;oss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;// 如果无法解析，直接输出原始符号信息&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;oss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;symbollist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;endl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;funcName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;symbollist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;oss&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;编译&quot;&gt;编译&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ldflags&lt;/code&gt; 参数一定要指定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-ldynamiclib&lt;/code&gt; 告诉链接器将所有符号添加到动态符号表中。这使得运行时调试工具（如 GDB）和运行时函数（如 backtrace）可以访问这些符号。
-主要用于调试和诊断目的，以便在运行时能够获取更详细的堆栈信息和符号解析。&lt;/p&gt;
-
-&lt;p&gt;对性能几乎没有影响，但是由于增加了符号表信息，会增加包体大小。&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 11 Jun 2024 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/print_stacktrace.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/print_stacktrace.html</guid>
-        
-        <category>C++</category>
         
         
         <category>Notes</category>
