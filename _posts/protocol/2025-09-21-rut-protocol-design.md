@@ -281,15 +281,17 @@ detail：当前关闭操作的详细原因。
 CongestionFeedbackFrame用于向对端报告一些网络统计信息。
 
 ```
-./protocol "reserved:8,lost_ratio:8,delta_from_begin_ms:32,estimated_bandwidth_kbps:16,total_sent_kbps:16,outgoing_stream_count:16,jitter95:16,queueing_time:16,stream_id1:16,sent_kbps1:16,...:48,stream_idN:16,sent_kbpsN:16"
+./protocol "reserved:9,lost_ratio:7,delta_from_begin_ms:32,estimated_bandwidth_kbps:32,total_sent_kbps:32,outgoing_stream_count:16,jitter95:16,queueing_time:16,stream_id1:16,sent_kbps1:16,...:48,stream_idN:16,sent_kbpsN:16"
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    reserved   |   lost_ratio  |      delta_from_begin_ms      |
+|     reserved    |  lost_ratio |      delta_from_begin_ms      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                               |    estimated_bandwidth_kbps   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|        total_sent_kbps        |     outgoing_stream_count     |
+|                               |        total_sent_kbps        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |     outgoing_stream_count     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            jitter95           |         queueing_time         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -302,6 +304,17 @@ CongestionFeedbackFrame用于向对端报告一些网络统计信息。
 |           sent_kbpsN          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
+
+reserved: 保留位。
+lost_ratio: 本地统计的丢包率。
+delta_from_begin_ms: 发送此包时的链接时间。
+estimated_bandwidth_kbps: 自行探测到的带宽，需要高于 16bits，否则65Mbps的带宽会被截断。
+total_sent_kbps: 本链接共发送的数据量。
+outgoing_stream_count: 发送方向创建的流的数量。
+jitter95: 本端统计的 jitter95 指标。
+queueing_time: 本端发送队列中的数据带以当前 bwe 需要多久时间发送结束。
+stream_id1 和 sent_kbps1 用于标识每路流各自的发送速率。
+
 
 ### PingFrame
 ```
