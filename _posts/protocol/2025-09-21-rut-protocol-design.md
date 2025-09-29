@@ -303,7 +303,6 @@ CongestionFeedbackFrame用于向对端报告一些网络统计信息。
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |           sent_kbpsN          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-```
 
 reserved: 保留位。
 lost_ratio: 本地统计的丢包率。
@@ -314,6 +313,7 @@ outgoing_stream_count: 发送方向创建的流的数量。
 jitter95: 本端统计的 jitter95 指标。
 queueing_time: 本端发送队列中的数据带以当前 bwe 需要多久时间发送结束。
 stream_id1 和 sent_kbps1 用于标识每路流各自的发送速率。
+```
 
 
 ### PingFrame
