@@ -503,9 +503,8 @@ detail：当前关闭操作的详细原因。
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |           sent_kbpsN          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</code></pre></div></div>
 
-<p>reserved: 保留位。
+reserved: 保留位。
 lost_ratio: 本地统计的丢包率。
 delta_from_begin_ms: 发送此包时的链接时间。
 estimated_bandwidth_kbps: 自行探测到的带宽，需要高于 16bits，否则65Mbps的带宽会被截断。
@@ -513,7 +512,8 @@ total_sent_kbps: 本链接共发送的数据量。
 outgoing_stream_count: 发送方向创建的流的数量。
 jitter95: 本端统计的 jitter95 指标。
 queueing_time: 本端发送队列中的数据带以当前 bwe 需要多久时间发送结束。
-stream_id1 和 sent_kbps1 用于标识每路流各自的发送速率。</p>
+stream_id1 和 sent_kbps1 用于标识每路流各自的发送速率。
+</code></pre></div></div>
 
 <h3 id="pingframe">PingFrame</h3>
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./protocol "kPing:5,frame_length:11"
