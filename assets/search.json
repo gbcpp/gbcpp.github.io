@@ -1,11 +1,5 @@
 [
   {
-    "title"    : "crossdesk.rut.server.addr",
-    "tags"     : "",
-    "url"      : "/crossdesk-rut"
-  } ,
-
-  {
     "title"    : "RUT protocol design",
     "tags"     : "Protocol RUT",
     "url"      : "/protocol/rut-protocol-design.html"
