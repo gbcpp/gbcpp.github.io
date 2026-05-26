@@ -1,4 +1,261 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-03-20T11:58:10+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">RUT protocol design</title><link href="https://gbcpp.github.io/protocol/rut-protocol-design.html" rel="alternate" type="text/html" title="RUT protocol design" /><published>2025-09-21T00:00:00+00:00</published><updated>2025-09-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/rut-protocol-design</id><content type="html" xml:base="https://gbcpp.github.io/protocol/rut-protocol-design.html"><![CDATA[<h2 id="设计思想">设计思想</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-05-26T03:26:38+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">Probe Bandwidth</title><link href="https://gbcpp.github.io/protocol/probe-bandwidth.html" rel="alternate" type="text/html" title="Probe Bandwidth" /><published>2025-10-30T00:00:00+00:00</published><updated>2025-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/probe-bandwidth</id><content type="html" xml:base="https://gbcpp.github.io/protocol/probe-bandwidth.html"><![CDATA[<blockquote>
+  <p>带宽探测通过主动制造可控突发，去触达链路真实带宽上限，弥补被动拥塞控制「业务发多快、就只能看见多快」的盲区—，这是实时音视频场景里，敢于把码率拉满、又不至于把链路打爆的前提。</p>
+</blockquote>
+
+<h2 id="为什么需要主动探测">为什么需要主动探测</h2>
+
+<p>拥塞控制会根据 ACK 和丢包反馈调节发送速率，但它天然偏向跟着业务走,业务层发得慢，观测到的带宽就低；业务发得快，才更容易看到上限。</p>
+
+<p>但当业务本身偏保守（例如弱网主动降低码率甚至暂停发送）时，系统可能长期低估可用带宽。主动探测的价值在于：<strong>在合适时机注入一小段可控突发数据</strong>，用样本反推链路能力，再把结果反馈给上层做码率决策或 padding 目标调整。</p>
+
+<h2 id="1-整体架构图">1. 整体架构图</h2>
+
+<pre><code class="language-mermaid">flowchart TB
+    UP["上层业务 / 拥塞控制 / Pacer"]
+
+    subgraph COORD["协调层"]
+        direction TB
+        AGG1["最大目标速率聚合&lt;br/&gt;(用于告知上层做 padding)"]
+        AGG2["估计器窗长聚合&lt;br/&gt;(取所有会话最长间隔 × 倍数)"]
+        BWE["全局带宽估计器&lt;br/&gt;滑窗最大值"u
+    end
+
+    subgraph SESS["探测会话集合 (可多实例)"]
+        direction LR
+        S1["会话 #1&lt;br/&gt;独立节奏 + 本地滑窗"]
+        S2["会话 #2"]
+        SN["会话 #N"]
+    end
+
+    subgraph CQ["待发 Cluster 队列&lt;br/&gt;(每个会话各持一份)"]
+        Q1["Cluster Queue"]
+    end
+
+    UP -- 创建/销毁/订阅 --&gt; COORD
+    COORD -- 派发包事件/定时驱动 --&gt; SESS
+    S1 --&gt; Q1
+    S2 -.-&gt; Q1
+    SN -.-&gt; Q1
+    Q1 -- 发包工单 --&gt; UP
+    SESS -- 样本 --&gt; BWE
+    BWE -- 当前估计 --&gt; UP
+    AGG1 -- 通知 --&gt; UP
+</code></pre>
+
+<hr />
+
+<h2 id="2-单个探测会话状态机核心状态机">2. 单个探测会话状态机（核心状态机）</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction TB
+    [*] --&gt; Disabled : 初始 (未配置目标)
+
+    Disabled --&gt; EnabledIdle : 设置探测目标 (max &gt; 0)
+    EnabledIdle --&gt; Disabled : 清除目标 / 达会话上限
+
+    EnabledIdle --&gt; InterProbing : 定时器到点\n且闸门放行
+
+    state InterProbing {
+        direction TB
+        [*] --&gt; IntraSending
+
+        IntraSending --&gt; InterPause : cluster 发完\n(满包数 &amp; 满字节)\n或 1s 发送超时
+
+        InterPause --&gt; IntraSending : 继续升档\n(按指数缩放生成新 cluster)
+
+        InterPause --&gt; InterPause : 收到 ACK\n更新样本与本地滑窗
+    }
+
+    InterProbing --&gt; EnabledIdle : 本轮结束\n会话未到上限
+    InterProbing --&gt; Disabled : 本轮结束\n会话达上限
+
+- **Disabled**：未启用，不响应定时器与 ACK。
+- **EnabledIdle**：已设目标，等待下一轮触发。
+- **InterProbing**：一轮内默认约 4 档，每档对应一个 cluster；ACK 在暂停态更新样本与本地滑窗。
+
+---
+
+## 3. 启动会话前的闸门判断
+
+```mermaid
+flowchart TD
+    A([定时器到点]) --&gt; B{在拥塞控制慢启动期?}
+    B -- 是 --&gt; X([跳过本轮])
+    B -- 否 --&gt; C{近期标记为受限?}
+    C -- 是 --&gt; X
+    C -- 否 --&gt; D{拥塞控制允许探测?}
+    D -- 否 --&gt; X
+    D -- 是 --&gt; E{当前业务稳态带宽&lt;br/&gt;已 ≥ 目标上限?}
+    E -- 是 --&gt; X
+    E -- 否 --&gt; F([启动一轮 Inter-Probe])
+    X --&gt; Y([安排下次时间])
+</code></pre>
+
+<hr />
+
+<h2 id="4-单档-intra-probe-推进决策">4. 单档 Intra-Probe 推进决策</h2>
+
+<pre><code class="language-mermaid">flowchart TD
+    A([一档 cluster 发完&lt;br/&gt;样本陆续到齐]) --&gt; B{样本带宽 ≥&lt;br/&gt;目标上限 × 90%?}
+    B -- 是 --&gt; S([本轮成功结束])
+
+    B -- 否 --&gt; C{本轮已发完&lt;br/&gt;所有预设档位?}
+    C -- 是 --&gt; S
+
+    C -- 否 --&gt; D{样本带宽 ≥&lt;br/&gt;当前档目标 × 70%?}
+    D -- 否 --&gt; E([不再升档&lt;br/&gt;本轮提前结束])
+    D -- 是 --&gt; F([按指数缩放&lt;br/&gt;进入下一档])
+
+    F --&gt; G([生成新 cluster&lt;br/&gt;回到 IntraSending])
+    S --&gt; H([记录估计 → 调度下一轮])
+    E --&gt; H
+</code></pre>
+
+<hr />
+
+<h2 id="5-cluster-队列的子状态机">5. Cluster 队列的子状态机</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction LR
+    [*] --&gt; Inactive
+
+    Inactive --&gt; Active : 队列非空\n激活发送\n→ 通知上层"开始探测"
+
+    Active --&gt; Inactive : 满包数 &amp; 满字节\n或 1 秒发送超时\n→ 通知上层"停止探测"
+
+    Active --&gt; Inactive : 整体清理\n(会话重置)
+
+    note right of Active
+      每次发包累积：
+        包数 +1, 字节 += size
+      命中任一条件即出队
+    end note
+</code></pre>
+
+<hr />
+
+<h2 id="6-cluster-完整生命周期">6. Cluster 完整生命周期</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction TB
+    [*] --&gt; Created : 会话决定本档目标速率\n生成 cluster
+
+    Created --&gt; Queued : 入待发队列
+
+    Queued --&gt; Sending : 队列激活\n上层开始按目标速率发包
+
+    Sending --&gt; Done : 包数 &amp; 字节均达标
+    Sending --&gt; Aborted : 1 秒内未发完\n(pacer/业务在节流)
+
+    Done --&gt; Aggregating : 进入估计器\n累积 ACK / 接收时间戳
+
+    Aggregating --&gt; Settled : 样本足够\n产出有效带宽估计
+
+    Aggregating --&gt; Expired : 长时间无足够样本\n(超过聚合过期阈值)
+
+    Aborted --&gt; [*]
+    Settled --&gt; [*]
+    Expired --&gt; [*] : 触发兜底结算\n以当前最大样本作为结果
+</code></pre>
+
+<hr />
+
+<h2 id="7-带宽估计包列车融合流程">7. 带宽估计：包列车融合流程</h2>
+
+<pre><code class="language-mermaid">flowchart TB
+    P([每个 ACK / 接收事件]) --&gt; SPLIT{该包属于&lt;br/&gt;哪个 cluster?}
+    SPLIT --&gt; AC["定位该 cluster&lt;br/&gt;的聚合状态"]
+
+    AC --&gt; T1["发送列车&lt;br/&gt;(按发送时间锚)"]
+    AC --&gt; T2{有效接收时间?}
+    T2 -- 有 --&gt; T3["接收列车&lt;br/&gt;(按接收时间锚)"]
+    T2 -- 无 --&gt; T4["补偿器&lt;br/&gt;累计 bytes/cnt"]
+    T4 -.下次有效时合并.-&gt; T3
+    AC --&gt; T5["ACK 列车&lt;br/&gt;(按 ACK 时间锚)"]
+
+    T1 --&gt; V{三条列车&lt;br/&gt;是否同时有效?&lt;br/&gt;≥5包 &amp; ≥90%字节&lt;br/&gt;&amp; 间隔 ∈ 1ms~1s}
+    T3 --&gt; V
+    T5 --&gt; V
+
+    V -- 否 --&gt; Z([样本无效&lt;br/&gt;丢弃])
+    V -- 是 --&gt; R["对每条列车计算速率:&lt;br/&gt;剔除首尾包&lt;br/&gt;用'次新'时间作锚"]
+
+    R --&gt; M["样本 = min(&lt;br/&gt;  发送列车速率,&lt;br/&gt;  接收/ACK 列车速率&lt;br/&gt;)"]
+
+    M --&gt; W["写入全局滑窗最大值滤波器&lt;br/&gt;(窗长由协调者动态设)"]
+    W --&gt; OUT([对外输出当前估计])
+</code></pre>
+
+<hr />
+
+<h2 id="8-定时器主循环驱动一切的心跳">8. 定时器主循环（驱动一切的心跳）</h2>
+
+<pre><code class="language-mermaid">flowchart TD
+    T([周期定时器触发]) --&gt; A[协调者遍历所有会话]
+
+    A --&gt; B{会话已禁用?}
+    B -- 是 --&gt; NEXT[下一个会话]
+    B -- 否 --&gt; C[清理过期 cluster&lt;br/&gt;必要时兜底结算本轮]
+
+    C --&gt; D{到达&lt;br/&gt;下一轮起始时间?}
+    D -- 是 --&gt; E[执行闸门判断&lt;br/&gt;见 图 3]
+    E --&gt; F[启动本轮&lt;br/&gt;生成首档 cluster]
+    D -- 否 --&gt; G
+
+    F --&gt; G{到达&lt;br/&gt;下一档时间?}
+    G -- 是 --&gt; H[激活下一档 cluster]
+    G -- 否 --&gt; NEXT
+    H --&gt; NEXT
+
+    NEXT --&gt; I{所有会话遍历完?}
+    I -- 否 --&gt; A
+    I -- 是 --&gt; J[聚合最大目标速率&lt;br/&gt;聚合估计器窗长]
+    J --&gt; K[估计器自身定时维护&lt;br/&gt;滑窗向下衰减]
+    K --&gt; END([本次心跳结束])
+</code></pre>
+
+<hr />
+
+<h2 id="9-三类回调的总览时序角度">9. 三类回调的总览（时序角度）</h2>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant UP as 上层业务
+    participant C as 协调者
+    participant S as 探测会话
+    participant Q as Cluster 队列
+    participant E as 估计器
+
+    Note over C,S: 心跳：节奏驱动
+    UP-&gt;&gt;C: 周期心跳
+    C-&gt;&gt;S: 派发心跳
+    S-&gt;&gt;S: 通过闸门 → 启动一轮
+    S-&gt;&gt;Q: 生成首档 cluster
+    Q--&gt;&gt;S: 进入激活态
+    S--&gt;&gt;C: 当前目标速率上调
+    C--&gt;&gt;UP: 通知开始 padding 到 X
+
+    Note over UP,Q: 发包：业务侧驱动
+    UP-&gt;&gt;C: 业务包发出事件
+    C-&gt;&gt;S: 派发至各会话
+    S-&gt;&gt;Q: 累计包数/字节
+    alt 达标或超时
+        Q--&gt;&gt;S: cluster 出队
+        S--&gt;&gt;C: 本档目标速率清零/下调
+        C--&gt;&gt;UP: 通知调整 padding 目标
+    end
+
+    Note over UP,E: 反馈：对端 ACK 驱动
+    UP-&gt;&gt;C: ACK / 接收时间事件
+    C-&gt;&gt;S: 派发至处于评估期的会话
+    S-&gt;&gt;E: 提交样本输入
+    E--&gt;&gt;S: 返回当前样本速率
+    S-&gt;&gt;S: 更新本地滑窗 → 判定升档/结束
+    alt 本轮结束
+        S--&gt;&gt;C: 估计已更新
+        C--&gt;&gt;UP: 通知最新带宽估计
+    end
+</code></pre>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[带宽探测通过主动制造可控突发，去触达链路真实带宽上限，弥补被动拥塞控制「业务发多快、就只能看见多快」的盲区—，这是实时音视频场景里，敢于把码率拉满、又不至于把链路打爆的前提。]]></summary></entry><entry><title type="html">RUT protocol design</title><link href="https://gbcpp.github.io/protocol/rut-protocol-design.html" rel="alternate" type="text/html" title="RUT protocol design" /><published>2025-09-21T00:00:00+00:00</published><updated>2025-09-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/rut-protocol-design</id><content type="html" xml:base="https://gbcpp.github.io/protocol/rut-protocol-design.html"><![CDATA[<h2 id="设计思想">设计思想</h2>
 
 <p>整体参考 quic，将协议格式在传输上进行分层，首先是 Packet 层，每次收发都是一个 Packet，比如用于握手建连的 InitialPacket 和建连后的 DataPacket。
 在 Packet 内，是第二层，即 Frame 层，比如包括承载应用层数据的 StreamFrame，以及协议内 CC 用于实时反馈的 FeedbackFrame 和 pingpong frame 等。</p>
@@ -1760,131 +2017,4 @@ const TimerGranularity = 4 * time.Millisecond
 }
 </code></pre></div></div>
 
-<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry><entry><title type="html">移植裁剪 srs 到 ARMv64 系统设备</title><link href="https://gbcpp.github.io/notes/srs-on-arm.html" rel="alternate" type="text/html" title="移植裁剪 srs 到 ARMv64 系统设备" /><published>2025-01-05T00:00:00+00:00</published><updated>2025-01-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/srs-on-arm</id><content type="html" xml:base="https://gbcpp.github.io/notes/srs-on-arm.html"><![CDATA[<h1 id="srs-版本">SRS 版本</h1>
-
-<p>srs 源码选择较新的 stable 版本：v5.0-r3</p>
-
-<p><strong>代码拉取</strong></p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git clone --branch v5.0-r3 https://github.com/ossrs/srs.git
-</code></pre></div></div>
-
-<p><strong>编译</strong></p>
-
-<p>已知设备系统：ARMv8 指令集架构的 Debian，此次测试选择在 Debian 系统下部署 srs 服务进行测试。</p>
-
-<p>使用 docker 进行编译，首先保证开发机上有 docker 服务，编译命令会自行拉取 aarch64 专用编译镜像并编译：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd srs/trunk
-$ docker run -it --rm -v `pwd`:/srs -w /srs ossrs/srs:aarch64 \
-    bash -c "./configure --srt=off --rtc=off --ffmpeg-fit=off --static=on \
-        --sanitizer=off --sanitizer-static=off --sanitizer-log=off &amp;&amp; make -j4"
- 
-
-# 查看 srs 二进制文件
-$ ls -sh objs/srs
-</code></pre></div></div>
-
-<h1 id="测试环境">测试环境</h1>
-
-<p>基于当前测试条件，此次测试选择将 srs 服务部署在 Debian 系统的小盒子中进行测试。</p>
-
-<p>Debian 系统小盒子性能如下：</p>
-<ul>
-  <li>CPU：4 核 4 线程，主频 1.5GHz</li>
-  <li>Mem：2GB</li>
-  <li>Disk：8GB</li>
-</ul>
-
-<p>观众端：</p>
-
-<p>Mac 下 Shell 脚本启动 10 路 ffplay 进行播放，启动命令：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bash repeat_command.sh "ffplay https://ossrs.com:8088/live/livestream.flv"  10
-</code></pre></div></div>
-
-<p>repeat_command.sh 脚本：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash
- 
-if [ $# -lt 2 ]; then
-    echo "Usage: $0 &lt;command&gt; &lt;times&gt;"
-    exit 1
-fi
- 
-# 获取参数
-command=$1
-times=$2
- 
-# 检查 times 是否是数字
-if ! [[ $times =~ ^[0-9]+$ ]]; then
-    echo "Error: &lt;times&gt; must be a positive integer."
-    exit 1
-fi
- 
-# 循环执行命令
-for ((i=1; i&lt;=times; i++)); do
-    echo "Executing command '$command' in the background: iteration $i"
-    eval "$command &amp;"
-done
- 
-echo "All commands have been executed in the background."
-</code></pre></div></div>
-
-<h1 id="srs-配置">SRS 配置</h1>
-
-<p>使用了自签名证书 ossrs.com</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen              1935;
-max_connections     1000;
-daemon              off;
-srs_log_tank        console;
- 
-http_api {
-    enabled         on;
-    listen          1985;
-}
- 
-http_server {
-    enabled         on;
-    listen          8080;
-    dir             ./objs/nginx/html;
- 
-    https {
-        enabled on;
-        listen 8088;
-        key ./ossrs.key;
-        cert ./ossrs.crt;
-    }
-}
-vhost __defaultVhost__ {
-    http_remux {
-        enabled     on;
-        mount       [vhost]/[app]/[stream].flv;
-    }
-    ingest livestream {
-        enabled      on;
-        input {
-            type    stream;
-        url     http://100.100.34.14:8080/live/livestream.flv;
-        }
-        ffmpeg      ./objs/ffmpeg/bin/ffmpeg;
-        engine {
-            enabled          off;
-            output          rtmp://0.0.0.0:[port]/live/livestream?vhost=[vhost];
-        }
-    }
-}
-</code></pre></div></div>
-
-<h1 id="测试结果">测试结果</h1>
-
-<p>测试条件有限，目前仅测试了如下两种场景和数据，仅供参考。</p>
-
-<p>测试场景：为该 SRS 注入一路 stream 做为源，然后远端从该 SRS 通过 HTTPS-FLV 拉取十路该流。</p>
-
-<p><img src="/assets/img/blog/srs_perf.jpg" alt="" /></p>
-
-<h1 id="srs-支持sni和多证书">SRS 支持SNI和多证书</h1>
-
-<p>目前 srs 仅支持单个 HTTPS Server 的部署，需要自行扩展支持 SNI 的读取、选择指定证书下发的实现，TLS 封装代码在 SrsHttpxConn 类中。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[SRS 版本]]></summary></entry></feed>
+<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry></feed>

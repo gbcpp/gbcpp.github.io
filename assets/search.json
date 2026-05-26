@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "Probe Bandwidth",
+    "tags"     : "Protocol",
+    "url"      : "/protocol/probe-bandwidth.html"
+  } ,
+
+  {
     "title"    : "RUT protocol design",
     "tags"     : "Protocol RUT",
     "url"      : "/protocol/rut-protocol-design.html"

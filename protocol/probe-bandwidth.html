@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probe Bandwidth - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="Probe Bandwidth">
+    <meta name="keywords"  content="Protocol">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Probe Bandwidth - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/probe-bandwidth.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/protocol/rut-protocol-design.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-10-30 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+            
+          
+        </div>
+        <h1>Probe Bandwidth</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-10-30">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="25-10-30">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  4.4k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 13 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">带宽探测策略设计与实现</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <blockquote>
+  <p>带宽探测通过主动制造可控突发，去触达链路真实带宽上限，弥补被动拥塞控制「业务发多快、就只能看见多快」的盲区—，这是实时音视频场景里，敢于把码率拉满、又不至于把链路打爆的前提。</p>
+</blockquote>
+
+<h2 id="为什么需要主动探测">为什么需要主动探测</h2>
+
+<p>拥塞控制会根据 ACK 和丢包反馈调节发送速率，但它天然偏向跟着业务走,业务层发得慢，观测到的带宽就低；业务发得快，才更容易看到上限。</p>
+
+<p>但当业务本身偏保守（例如弱网主动降低码率甚至暂停发送）时，系统可能长期低估可用带宽。主动探测的价值在于：<strong>在合适时机注入一小段可控突发数据</strong>，用样本反推链路能力，再把结果反馈给上层做码率决策或 padding 目标调整。</p>
+
+<h2 id="1-整体架构图">1. 整体架构图</h2>
+
+<pre><code class="language-mermaid">flowchart TB
+    UP["上层业务 / 拥塞控制 / Pacer"]
+
+    subgraph COORD["协调层"]
+        direction TB
+        AGG1["最大目标速率聚合&lt;br/&gt;(用于告知上层做 padding)"]
+        AGG2["估计器窗长聚合&lt;br/&gt;(取所有会话最长间隔 × 倍数)"]
+        BWE["全局带宽估计器&lt;br/&gt;滑窗最大值"u
+    end
+
+    subgraph SESS["探测会话集合 (可多实例)"]
+        direction LR
+        S1["会话 #1&lt;br/&gt;独立节奏 + 本地滑窗"]
+        S2["会话 #2"]
+        SN["会话 #N"]
+    end
+
+    subgraph CQ["待发 Cluster 队列&lt;br/&gt;(每个会话各持一份)"]
+        Q1["Cluster Queue"]
+    end
+
+    UP -- 创建/销毁/订阅 --&gt; COORD
+    COORD -- 派发包事件/定时驱动 --&gt; SESS
+    S1 --&gt; Q1
+    S2 -.-&gt; Q1
+    SN -.-&gt; Q1
+    Q1 -- 发包工单 --&gt; UP
+    SESS -- 样本 --&gt; BWE
+    BWE -- 当前估计 --&gt; UP
+    AGG1 -- 通知 --&gt; UP
+</code></pre>
+
+<hr>
+
+<h2 id="2-单个探测会话状态机核心状态机">2. 单个探测会话状态机（核心状态机）</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction TB
+    [*] --&gt; Disabled : 初始 (未配置目标)
+
+    Disabled --&gt; EnabledIdle : 设置探测目标 (max &gt; 0)
+    EnabledIdle --&gt; Disabled : 清除目标 / 达会话上限
+
+    EnabledIdle --&gt; InterProbing : 定时器到点\n且闸门放行
+
+    state InterProbing {
+        direction TB
+        [*] --&gt; IntraSending
+
+        IntraSending --&gt; InterPause : cluster 发完\n(满包数 &amp; 满字节)\n或 1s 发送超时
+
+        InterPause --&gt; IntraSending : 继续升档\n(按指数缩放生成新 cluster)
+
+        InterPause --&gt; InterPause : 收到 ACK\n更新样本与本地滑窗
+    }
+
+    InterProbing --&gt; EnabledIdle : 本轮结束\n会话未到上限
+    InterProbing --&gt; Disabled : 本轮结束\n会话达上限
+
+- **Disabled**：未启用，不响应定时器与 ACK。
+- **EnabledIdle**：已设目标，等待下一轮触发。
+- **InterProbing**：一轮内默认约 4 档，每档对应一个 cluster；ACK 在暂停态更新样本与本地滑窗。
+
+---
+
+## 3. 启动会话前的闸门判断
+
+```mermaid
+flowchart TD
+    A([定时器到点]) --&gt; B{在拥塞控制慢启动期?}
+    B -- 是 --&gt; X([跳过本轮])
+    B -- 否 --&gt; C{近期标记为受限?}
+    C -- 是 --&gt; X
+    C -- 否 --&gt; D{拥塞控制允许探测?}
+    D -- 否 --&gt; X
+    D -- 是 --&gt; E{当前业务稳态带宽&lt;br/&gt;已 ≥ 目标上限?}
+    E -- 是 --&gt; X
+    E -- 否 --&gt; F([启动一轮 Inter-Probe])
+    X --&gt; Y([安排下次时间])
+</code></pre>
+
+<hr>
+
+<h2 id="4-单档-intra-probe-推进决策">4. 单档 Intra-Probe 推进决策</h2>
+
+<pre><code class="language-mermaid">flowchart TD
+    A([一档 cluster 发完&lt;br/&gt;样本陆续到齐]) --&gt; B{样本带宽 ≥&lt;br/&gt;目标上限 × 90%?}
+    B -- 是 --&gt; S([本轮成功结束])
+
+    B -- 否 --&gt; C{本轮已发完&lt;br/&gt;所有预设档位?}
+    C -- 是 --&gt; S
+
+    C -- 否 --&gt; D{样本带宽 ≥&lt;br/&gt;当前档目标 × 70%?}
+    D -- 否 --&gt; E([不再升档&lt;br/&gt;本轮提前结束])
+    D -- 是 --&gt; F([按指数缩放&lt;br/&gt;进入下一档])
+
+    F --&gt; G([生成新 cluster&lt;br/&gt;回到 IntraSending])
+    S --&gt; H([记录估计 → 调度下一轮])
+    E --&gt; H
+</code></pre>
+
+<hr>
+
+<h2 id="5-cluster-队列的子状态机">5. Cluster 队列的子状态机</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction LR
+    [*] --&gt; Inactive
+
+    Inactive --&gt; Active : 队列非空\n激活发送\n→ 通知上层"开始探测"
+
+    Active --&gt; Inactive : 满包数 &amp; 满字节\n或 1 秒发送超时\n→ 通知上层"停止探测"
+
+    Active --&gt; Inactive : 整体清理\n(会话重置)
+
+    note right of Active
+      每次发包累积：
+        包数 +1, 字节 += size
+      命中任一条件即出队
+    end note
+</code></pre>
+
+<hr>
+
+<h2 id="6-cluster-完整生命周期">6. Cluster 完整生命周期</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    direction TB
+    [*] --&gt; Created : 会话决定本档目标速率\n生成 cluster
+
+    Created --&gt; Queued : 入待发队列
+
+    Queued --&gt; Sending : 队列激活\n上层开始按目标速率发包
+
+    Sending --&gt; Done : 包数 &amp; 字节均达标
+    Sending --&gt; Aborted : 1 秒内未发完\n(pacer/业务在节流)
+
+    Done --&gt; Aggregating : 进入估计器\n累积 ACK / 接收时间戳
+
+    Aggregating --&gt; Settled : 样本足够\n产出有效带宽估计
+
+    Aggregating --&gt; Expired : 长时间无足够样本\n(超过聚合过期阈值)
+
+    Aborted --&gt; [*]
+    Settled --&gt; [*]
+    Expired --&gt; [*] : 触发兜底结算\n以当前最大样本作为结果
+</code></pre>
+
+<hr>
+
+<h2 id="7-带宽估计包列车融合流程">7. 带宽估计：包列车融合流程</h2>
+
+<pre><code class="language-mermaid">flowchart TB
+    P([每个 ACK / 接收事件]) --&gt; SPLIT{该包属于&lt;br/&gt;哪个 cluster?}
+    SPLIT --&gt; AC["定位该 cluster&lt;br/&gt;的聚合状态"]
+
+    AC --&gt; T1["发送列车&lt;br/&gt;(按发送时间锚)"]
+    AC --&gt; T2{有效接收时间?}
+    T2 -- 有 --&gt; T3["接收列车&lt;br/&gt;(按接收时间锚)"]
+    T2 -- 无 --&gt; T4["补偿器&lt;br/&gt;累计 bytes/cnt"]
+    T4 -.下次有效时合并.-&gt; T3
+    AC --&gt; T5["ACK 列车&lt;br/&gt;(按 ACK 时间锚)"]
+
+    T1 --&gt; V{三条列车&lt;br/&gt;是否同时有效?&lt;br/&gt;≥5包 &amp; ≥90%字节&lt;br/&gt;&amp; 间隔 ∈ 1ms~1s}
+    T3 --&gt; V
+    T5 --&gt; V
+
+    V -- 否 --&gt; Z([样本无效&lt;br/&gt;丢弃])
+    V -- 是 --&gt; R["对每条列车计算速率:&lt;br/&gt;剔除首尾包&lt;br/&gt;用'次新'时间作锚"]
+
+    R --&gt; M["样本 = min(&lt;br/&gt;  发送列车速率,&lt;br/&gt;  接收/ACK 列车速率&lt;br/&gt;)"]
+
+    M --&gt; W["写入全局滑窗最大值滤波器&lt;br/&gt;(窗长由协调者动态设)"]
+    W --&gt; OUT([对外输出当前估计])
+</code></pre>
+
+<hr>
+
+<h2 id="8-定时器主循环驱动一切的心跳">8. 定时器主循环（驱动一切的心跳）</h2>
+
+<pre><code class="language-mermaid">flowchart TD
+    T([周期定时器触发]) --&gt; A[协调者遍历所有会话]
+
+    A --&gt; B{会话已禁用?}
+    B -- 是 --&gt; NEXT[下一个会话]
+    B -- 否 --&gt; C[清理过期 cluster&lt;br/&gt;必要时兜底结算本轮]
+
+    C --&gt; D{到达&lt;br/&gt;下一轮起始时间?}
+    D -- 是 --&gt; E[执行闸门判断&lt;br/&gt;见 图 3]
+    E --&gt; F[启动本轮&lt;br/&gt;生成首档 cluster]
+    D -- 否 --&gt; G
+
+    F --&gt; G{到达&lt;br/&gt;下一档时间?}
+    G -- 是 --&gt; H[激活下一档 cluster]
+    G -- 否 --&gt; NEXT
+    H --&gt; NEXT
+
+    NEXT --&gt; I{所有会话遍历完?}
+    I -- 否 --&gt; A
+    I -- 是 --&gt; J[聚合最大目标速率&lt;br/&gt;聚合估计器窗长]
+    J --&gt; K[估计器自身定时维护&lt;br/&gt;滑窗向下衰减]
+    K --&gt; END([本次心跳结束])
+</code></pre>
+
+<hr>
+
+<h2 id="9-三类回调的总览时序角度">9. 三类回调的总览（时序角度）</h2>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant UP as 上层业务
+    participant C as 协调者
+    participant S as 探测会话
+    participant Q as Cluster 队列
+    participant E as 估计器
+
+    Note over C,S: 心跳：节奏驱动
+    UP-&gt;&gt;C: 周期心跳
+    C-&gt;&gt;S: 派发心跳
+    S-&gt;&gt;S: 通过闸门 → 启动一轮
+    S-&gt;&gt;Q: 生成首档 cluster
+    Q--&gt;&gt;S: 进入激活态
+    S--&gt;&gt;C: 当前目标速率上调
+    C--&gt;&gt;UP: 通知开始 padding 到 X
+
+    Note over UP,Q: 发包：业务侧驱动
+    UP-&gt;&gt;C: 业务包发出事件
+    C-&gt;&gt;S: 派发至各会话
+    S-&gt;&gt;Q: 累计包数/字节
+    alt 达标或超时
+        Q--&gt;&gt;S: cluster 出队
+        S--&gt;&gt;C: 本档目标速率清零/下调
+        C--&gt;&gt;UP: 通知调整 padding 目标
+    end
+
+    Note over UP,E: 反馈：对端 ACK 驱动
+    UP-&gt;&gt;C: ACK / 接收时间事件
+    C-&gt;&gt;S: 派发至处于评估期的会话
+    S-&gt;&gt;E: 提交样本输入
+    E--&gt;&gt;S: 返回当前样本速率
+    S-&gt;&gt;S: 更新本地滑窗 → 判定升档/结束
+    alt 本轮结束
+        S--&gt;&gt;C: 估计已更新
+        C--&gt;&gt;UP: 通知最新带宽估计
+    end
+</code></pre>
+
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 Probe Bandwidth 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/probe-bandwidth.html" class="cplink">https://gbcpp.github.io/protocol/probe-bandwidth.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('为什么需要主动探测')">为什么需要主动探测</a></li><li><a onclick="scrollToAdjust('1.-整体架构图')">1. 整体架构图</a></li><li><a onclick="scrollToAdjust('2.-单个探测会话状态机（核心状态机）')">2. 单个探测会话状态机（核心状态机）</a></li><li><a onclick="scrollToAdjust('4.-单档-intra-probe-推进决策')">4. 单档 Intra-Probe 推进决策</a></li><li><a onclick="scrollToAdjust('5.-cluster-队列的子状态机')">5. Cluster 队列的子状态机</a></li><li><a onclick="scrollToAdjust('6.-cluster-完整生命周期')">6. Cluster 完整生命周期</a></li><li><a onclick="scrollToAdjust('7.-带宽估计包列车融合流程')">7. 带宽估计：包列车融合流程</a></li><li><a onclick="scrollToAdjust('8.-定时器主循环（驱动一切的心跳）')">8. 定时器主循环（驱动一切的心跳）</a></li><li><a onclick="scrollToAdjust('9.-三类回调的总览（时序角度）')">9. 三类回调的总览（时序角度）</a></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/protocol/rut-protocol-design.html" class="read-next-link" aria-label="RUT protocol design"></a>
+            <section>
+              <span>RUT protocol design</span>
+              <p>设计思想</p>
+            </section>
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2025-10-30 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2026
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2025-10-15-probe-bandwidth.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
