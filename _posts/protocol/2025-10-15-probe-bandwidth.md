@@ -10,15 +10,16 @@ author: Mr Chen
 categories: Protocol
 tags: 
 - Protocol
+mermaid: true
 ---
 
-> 带宽探测通过主动制造可控突发，去触达链路真实带宽上限，弥补被动拥塞控制「业务发多快、就只能看见多快」的盲区—，这是实时音视频场景里，敢于把码率拉满、又不至于把链路打爆的前提。
+> 带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制**业务发多快、就只能看见多快**的盲区—，这是实时音视频以及移动网络场景里，尽量把码率拉满、又不至于把链路打爆的前提。
 
 ## 为什么需要主动探测
 
 拥塞控制会根据 ACK 和丢包反馈调节发送速率，但它天然偏向跟着业务走,业务层发得慢，观测到的带宽就低；业务发得快，才更容易看到上限。
 
-但当业务本身偏保守（例如弱网主动降低码率甚至暂停发送）时，系统可能长期低估可用带宽。主动探测的价值在于：**在合适时机注入一小段可控突发数据**，用样本反推链路能力，再把结果反馈给上层做码率决策或 padding 目标调整。
+然而业务方普遍的偏保守（例如在弱网下主动降低码率甚至暂停发送），系统可能长期低估可用带宽。主动探测的价值在于：**在合适时机注入一小段可控的突发数据**，用样本反推链路能力，再把结果反馈给上层做码率决策，最终获得真实的码率上限。
 
 ## 1. 整体架构图
 
@@ -30,7 +31,7 @@ flowchart TB
         direction TB
         AGG1["最大目标速率聚合<br/>(用于告知上层做 padding)"]
         AGG2["估计器窗长聚合<br/>(取所有会话最长间隔 × 倍数)"]
-        BWE["全局带宽估计器<br/>滑窗最大值"u
+        BWE["全局带宽估计器<br/>滑窗最大值"]
     end
 
     subgraph SESS["探测会话集合 (可多实例)"]
@@ -45,7 +46,7 @@ flowchart TB
     end
 
     UP -- 创建/销毁/订阅 --> COORD
-    COORD -- 派发包事件/定时驱动 --> SESS
+    COORD -- OnPacketSent|Timer --> SESS
     S1 --> Q1
     S2 -.-> Q1
     SN -.-> Q1
@@ -55,16 +56,20 @@ flowchart TB
     AGG1 -- 通知 --> UP
 ```
 
+![整体架构图](/assets/img/blog/probe-bandwidth/01-architecture.png)
+
+协调层 ProbeManager 聚合多个探测会话，统一维护全局带宽估计，并把最大目标速率、探测窗口时长等参数回传给上层；每个会话独立维护自己的探测节奏、本地滑窗和待发的 Cluster 队列。
+
 ---
 
 ## 2. 单个探测会话状态机（核心状态机）
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     direction TB
-    [*] --> Disabled : 初始 (未配置目标)
+    [*] --> Disabled : 初始 (未配置目标带宽)
 
-    Disabled --> EnabledIdle : 设置探测目标 (max > 0)
+    Disabled --> EnabledIdle : 设置探测目标带宽 (max > 0)
     EnabledIdle --> Disabled : 清除目标 / 达会话上限
 
     EnabledIdle --> InterProbing : 定时器到点\n且闸门放行
@@ -82,6 +87,19 @@ stateDiagram-v2
 
     InterProbing --> EnabledIdle : 本轮结束\n会话未到上限
     InterProbing --> Disabled : 本轮结束\n会话达上限
+
+    note right of Disabled
+      未启用：不接受定时器触发
+      不响应任何 ACK / 发包事件
+    end note
+
+    note right of InterProbing
+      一轮 inter-probe 内会按指数走若干档
+      默认 4 档，每档一个 cluster
+    end note
+```
+
+![单个探测会话状态机](/assets/img/blog/probe-bandwidth/02-session-state.png)
 
 - **Disabled**：未启用，不响应定时器与 ACK。
 - **EnabledIdle**：已设目标，等待下一轮触发。
@@ -105,9 +123,13 @@ flowchart TD
     X --> Y([安排下次时间])
 ```
 
+![启动会话前的闸门判断](/assets/img/blog/probe-bandwidth/03-gate.png)
+
+不是每个定时器到点都会探测。需同时满足：非慢启动、非近期受限、拥塞控制允许、且当前稳态带宽尚未达到目标上限。
+
 ---
 
-## 4. 单档 Intra-Probe 推进决策
+## 4. 单档 Intra-Probe 推进策略
 
 ```mermaid
 flowchart TD
@@ -126,12 +148,16 @@ flowchart TD
     E --> H
 ```
 
+![单档 Intra-Probe 推进决策](/assets/img/blog/probe-bandwidth/04-intra-probe.png)
+
+一档 cluster 发完且样本到齐后：达到目标上限 90% 则成功结束；已走完预设档位则结束；当前档不足 70% 则提前结束；否则按指数缩放进入下一档。
+
 ---
 
 ## 5. Cluster 队列的子状态机
 
 ```mermaid
-stateDiagram-v2
+stateDiagram
     direction LR
     [*] --> Inactive
 
@@ -147,6 +173,10 @@ stateDiagram-v2
       命中任一条件即出队
     end note
 ```
+
+![Cluster 队列的子状态机](/assets/img/blog/probe-bandwidth/05-cluster-queue.png)
+
+队列在「非激活 / 激活」间切换：有 cluster 待发则激活并通知上层开始探测；满包数且满字节，或 1 秒发送超时，则回到非激活并通知停止。
 
 ---
 
@@ -175,9 +205,13 @@ stateDiagram-v2
     Expired --> [*] : 触发兜底结算\n以当前最大样本作为结果
 ```
 
+![Cluster 完整生命周期](/assets/img/blog/probe-bandwidth/06-cluster-lifecycle.png)
+
+单个 cluster 从创建、入队、发送，到完成或中止，再进入估计器的聚合与结算；样本不足过久则过期，并以当前最大样本兜底。
+
 ---
 
-## 7. 带宽估计：包列车融合流程
+## 7. 带宽估计
 
 ```mermaid
 flowchart TB
@@ -203,6 +237,10 @@ flowchart TB
     M --> W["写入全局滑窗最大值滤波器<br/>(窗长由协调者动态设)"]
     W --> OUT([对外输出当前估计])
 ```
+
+![带宽估计](/assets/img/blog/probe-bandwidth/07-bandwidth-estimate.png)
+
+每个 ACK/接收事件按 cluster 归入聚合状态，在发送、接收、ACK 三条「列车」上分别建样本；三条同时有效时取各列车速率的最小值，再写入全局滑窗最大值滤波器。
 
 ---
 
@@ -232,6 +270,10 @@ flowchart TD
     J --> K[估计器自身定时维护<br/>滑窗向下衰减]
     K --> END([本次心跳结束])
 ```
+
+![定时器主循环](/assets/img/blog/probe-bandwidth/08-timer-loop.png)
+
+周期心跳驱动一切：遍历会话、清理过期 cluster、按节奏启动新一轮或激活下一档，最后聚合全局参数并维护估计器滑窗衰减。
 
 ---
 
@@ -277,3 +319,6 @@ sequenceDiagram
     end
 ```
 
+![三类回调的总览](/assets/img/blog/probe-bandwidth/09-callbacks.png)
+
+从时序上讲，探测由三类事件串联：**心跳**定节奏、**发包**执行 cluster、**ACK** 回填样本并驱动升档或结束。
