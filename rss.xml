@@ -5,12 +5,12 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 26 May 2026 07:46:03 +0000</pubDate>
-    <lastBuildDate>Tue, 26 May 2026 07:46:03 +0000</lastBuildDate>
+    <pubDate>Mon, 01 Jun 2026 08:07:33 +0000</pubDate>
+    <lastBuildDate>Mon, 01 Jun 2026 08:07:33 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
-        <title>Probe Bandwidth</title>
+        <title>私有协议带宽探测的设计与实现</title>
         <description>&lt;blockquote&gt;
   &lt;p&gt;带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制&lt;strong&gt;业务发多快、就只能看见多快&lt;/strong&gt;的盲区—，这是实时音视频以及移动网络场景里，尽量把码率拉满、又不至于把链路打爆的前提。&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -21,300 +21,75 @@
 
 &lt;p&gt;然而业务方普遍的偏保守（例如在弱网下主动降低码率甚至暂停发送），系统可能长期低估可用带宽。主动探测的价值在于：&lt;strong&gt;在合适时机注入一小段可控的突发数据&lt;/strong&gt;，用样本反推链路能力，再把结果反馈给上层做码率决策，最终获得真实的码率上限。&lt;/p&gt;
 
-&lt;h2 id=&quot;1-整体架构图&quot;&gt;1. 整体架构图&lt;/h2&gt;
+&lt;h2 id=&quot;整体架构图&quot;&gt;整体架构图&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TB
-    UP[&quot;上层业务 / 拥塞控制 / Pacer&quot;]
+&lt;p&gt;ProbeManager 聚合多个探测会话，统一维护全局带宽估计，并把最大目标速率、探测窗口时长等参数回传给上层；每个会话独立维护自己的探测节奏、本地滑窗和待发的 Cluster 队列。&lt;/p&gt;
 
-    subgraph COORD[&quot;协调层&quot;]
-        direction TB
-        AGG1[&quot;最大目标速率聚合&amp;lt;br/&amp;gt;(用于告知上层做 padding)&quot;]
-        AGG2[&quot;估计器窗长聚合&amp;lt;br/&amp;gt;(取所有会话最长间隔 × 倍数)&quot;]
-        BWE[&quot;全局带宽估计器&amp;lt;br/&amp;gt;滑窗最大值&quot;]
-    end
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/01-architecture.jpeg&quot; alt=&quot;整体架构图&quot; /&gt;&lt;/p&gt;
 
-    subgraph SESS[&quot;探测会话集合 (可多实例)&quot;]
-        direction LR
-        S1[&quot;会话 #1&amp;lt;br/&amp;gt;独立节奏 + 本地滑窗&quot;]
-        S2[&quot;会话 #2&quot;]
-        SN[&quot;会话 #N&quot;]
-    end
+&lt;h2 id=&quot;时序图&quot;&gt;时序图&lt;/h2&gt;
 
-    subgraph CQ[&quot;待发 Cluster 队列&amp;lt;br/&amp;gt;(每个会话各持一份)&quot;]
-        Q1[&quot;Cluster Queue&quot;]
-    end
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/09-callbacks.jpeg&quot; alt=&quot;整体时序图&quot; /&gt;&lt;/p&gt;
 
-    UP -- 创建/销毁/订阅 --&amp;gt; COORD
-    COORD -- OnPacketSent|Timer --&amp;gt; SESS
-    S1 --&amp;gt; Q1
-    S2 -.-&amp;gt; Q1
-    SN -.-&amp;gt; Q1
-    Q1 -- 发包工单 --&amp;gt; UP
-    SESS -- 样本 --&amp;gt; BWE
-    BWE -- 当前估计 --&amp;gt; UP
-    AGG1 -- 通知 --&amp;gt; UP
-&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&quot;单个探测会话状态机&quot;&gt;单个探测会话状态机&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/01-architecture.png&quot; alt=&quot;整体架构图&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;协调层 ProbeManager 聚合多个探测会话，统一维护全局带宽估计，并把最大目标速率、探测窗口时长等参数回传给上层；每个会话独立维护自己的探测节奏、本地滑窗和待发的 Cluster 队列。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;2-单个探测会话状态机核心状态机&quot;&gt;2. 单个探测会话状态机（核心状态机）&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram
-    direction TB
-    [*] --&amp;gt; Disabled : 初始 (未配置目标带宽)
-
-    Disabled --&amp;gt; EnabledIdle : 设置探测目标带宽 (max &amp;gt; 0)
-    EnabledIdle --&amp;gt; Disabled : 清除目标 / 达会话上限
-
-    EnabledIdle --&amp;gt; InterProbing : 定时器到点\n且闸门放行
-
-    state InterProbing {
-        direction TB
-        [*] --&amp;gt; IntraSending
-
-        IntraSending --&amp;gt; InterPause : cluster 发完\n(满包数 &amp;amp; 满字节)\n或 1s 发送超时
-
-        InterPause --&amp;gt; IntraSending : 继续升档\n(按指数缩放生成新 cluster)
-
-        InterPause --&amp;gt; InterPause : 收到 ACK\n更新样本与本地滑窗
-    }
-
-    InterProbing --&amp;gt; EnabledIdle : 本轮结束\n会话未到上限
-    InterProbing --&amp;gt; Disabled : 本轮结束\n会话达上限
-
-    note right of Disabled
-      未启用：不接受定时器触发
-      不响应任何 ACK / 发包事件
-    end note
-
-    note right of InterProbing
-      一轮 inter-probe 内会按指数走若干档
-      默认 4 档，每档一个 cluster
-    end note
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/02-session-state.png&quot; alt=&quot;单个探测会话状态机&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/02-session-state.jpeg&quot; alt=&quot;单个探测会话状态机&quot; /&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Disabled&lt;/strong&gt;：未启用，不响应定时器与 ACK。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;EnabledIdle&lt;/strong&gt;：已设目标，等待下一轮触发。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;InterProbing&lt;/strong&gt;：一轮内默认约 4 档，每档对应一个 cluster；ACK 在暂停态更新样本与本地滑窗。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Disabled&lt;/strong&gt;：未启用带宽探测，不响应定时器与 ACK。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;EnabledIdle&lt;/strong&gt;：启用带宽探测，等待下一轮触发。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;InterProbing&lt;/strong&gt;：一轮内默认约 4 档（可配），每档对应一个 cluster；ACK(包括 random loss) 在暂停态更新样本与本地滑窗。&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;3-启动会话前的闸门判断&quot;&gt;3. 启动会话前的闸门判断&lt;/h2&gt;
+&lt;h2 id=&quot;启动探测前提条件&quot;&gt;启动探测前提条件&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
-    A([定时器到点]) --&amp;gt; B{在拥塞控制慢启动期?}
-    B -- 是 --&amp;gt; X([跳过本轮])
-    B -- 否 --&amp;gt; C{近期标记为受限?}
-    C -- 是 --&amp;gt; X
-    C -- 否 --&amp;gt; D{拥塞控制允许探测?}
-    D -- 否 --&amp;gt; X
-    D -- 是 --&amp;gt; E{当前业务稳态带宽&amp;lt;br/&amp;gt;已 ≥ 目标上限?}
-    E -- 是 --&amp;gt; X
-    E -- 否 --&amp;gt; F([启动一轮 Inter-Probe])
-    X --&amp;gt; Y([安排下次时间])
-&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;启动一轮新的探测需同时满足多组条件，如：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;当前 CC 状态是否处于慢启动，且 Path 配置是否允许在该阶段进行探测。&lt;/li&gt;
+  &lt;li&gt;当前带宽非近期受限。&lt;/li&gt;
+  &lt;li&gt;拥塞控制状态允许，如 BBR 需要在 Probe_BW 和 STARTUP 阶段才允许开启探测。&lt;/li&gt;
+  &lt;li&gt;且当前稳态带宽尚未达到目标上限。&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/03-gate.png&quot; alt=&quot;启动会话前的闸门判断&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/03-gate.jpeg&quot; alt=&quot;启动会话前的状态判断&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;不是每个定时器到点都会探测。需同时满足：非慢启动、非近期受限、拥塞控制允许、且当前稳态带宽尚未达到目标上限。&lt;/p&gt;
+&lt;h2 id=&quot;单档-intra-probe-推进策略&quot;&gt;单档 Intra-Probe 推进策略&lt;/h2&gt;
 
-&lt;hr /&gt;
+&lt;p&gt;一档 cluster 发完且样本到齐后：达到目标上限 90% （包数或者字节数满足）则成功结束；已走完预设档位则结束；若当前档不足 70% 则提前结束；否则按指数缩放进入下一档。&lt;/p&gt;
 
-&lt;h2 id=&quot;4-单档-intra-probe-推进策略&quot;&gt;4. 单档 Intra-Probe 推进策略&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/04-intra-probe.jpeg&quot; alt=&quot;单档 Intra-Probe 推进决策&quot; /&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
-    A([一档 cluster 发完&amp;lt;br/&amp;gt;样本陆续到齐]) --&amp;gt; B{样本带宽 ≥&amp;lt;br/&amp;gt;目标上限 × 90%?}
-    B -- 是 --&amp;gt; S([本轮成功结束])
-
-    B -- 否 --&amp;gt; C{本轮已发完&amp;lt;br/&amp;gt;所有预设档位?}
-    C -- 是 --&amp;gt; S
-
-    C -- 否 --&amp;gt; D{样本带宽 ≥&amp;lt;br/&amp;gt;当前档目标 × 70%?}
-    D -- 否 --&amp;gt; E([不再升档&amp;lt;br/&amp;gt;本轮提前结束])
-    D -- 是 --&amp;gt; F([按指数缩放&amp;lt;br/&amp;gt;进入下一档])
-
-    F --&amp;gt; G([生成新 cluster&amp;lt;br/&amp;gt;回到 IntraSending])
-    S --&amp;gt; H([记录估计 → 调度下一轮])
-    E --&amp;gt; H
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/04-intra-probe.png&quot; alt=&quot;单档 Intra-Probe 推进决策&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;一档 cluster 发完且样本到齐后：达到目标上限 90% 则成功结束；已走完预设档位则结束；当前档不足 70% 则提前结束；否则按指数缩放进入下一档。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;5-cluster-队列的子状态机&quot;&gt;5. Cluster 队列的子状态机&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram
-    direction LR
-    [*] --&amp;gt; Inactive
-
-    Inactive --&amp;gt; Active : 队列非空\n激活发送\n→ 通知上层&quot;开始探测&quot;
-
-    Active --&amp;gt; Inactive : 满包数 &amp;amp; 满字节\n或 1 秒发送超时\n→ 通知上层&quot;停止探测&quot;
-
-    Active --&amp;gt; Inactive : 整体清理\n(会话重置)
-
-    note right of Active
-      每次发包累积：
-        包数 +1, 字节 += size
-      命中任一条件即出队
-    end note
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/05-cluster-queue.png&quot; alt=&quot;Cluster 队列的子状态机&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;cluster-队列按档位进行探测的子状态机&quot;&gt;Cluster 队列(按档位进行探测)的子状态机&lt;/h2&gt;
 
 &lt;p&gt;队列在「非激活 / 激活」间切换：有 cluster 待发则激活并通知上层开始探测；满包数且满字节，或 1 秒发送超时，则回到非激活并通知停止。&lt;/p&gt;
 
-&lt;hr /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/05-cluster-queue.jpeg&quot; alt=&quot;Cluster 队列的子状态机&quot; /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;6-cluster-完整生命周期&quot;&gt;6. Cluster 完整生命周期&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram-v2
-    direction TB
-    [*] --&amp;gt; Created : 会话决定本档目标速率\n生成 cluster
-
-    Created --&amp;gt; Queued : 入待发队列
-
-    Queued --&amp;gt; Sending : 队列激活\n上层开始按目标速率发包
-
-    Sending --&amp;gt; Done : 包数 &amp;amp; 字节均达标
-    Sending --&amp;gt; Aborted : 1 秒内未发完\n(pacer/业务在节流)
-
-    Done --&amp;gt; Aggregating : 进入估计器\n累积 ACK / 接收时间戳
-
-    Aggregating --&amp;gt; Settled : 样本足够\n产出有效带宽估计
-
-    Aggregating --&amp;gt; Expired : 长时间无足够样本\n(超过聚合过期阈值)
-
-    Aborted --&amp;gt; [*]
-    Settled --&amp;gt; [*]
-    Expired --&amp;gt; [*] : 触发兜底结算\n以当前最大样本作为结果
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/06-cluster-lifecycle.png&quot; alt=&quot;Cluster 完整生命周期&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;cluster-完整生命周期&quot;&gt;Cluster 完整生命周期&lt;/h2&gt;
 
 &lt;p&gt;单个 cluster 从创建、入队、发送，到完成或中止，再进入估计器的聚合与结算；样本不足过久则过期，并以当前最大样本兜底。&lt;/p&gt;
 
-&lt;hr /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/06-cluster-lifecycle.png&quot; alt=&quot;Cluster 完整生命周期&quot; /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;7-带宽估计&quot;&gt;7. 带宽估计&lt;/h2&gt;
+&lt;h2 id=&quot;带宽估计&quot;&gt;带宽估计&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TB
-    P([每个 ACK / 接收事件]) --&amp;gt; SPLIT{该包属于&amp;lt;br/&amp;gt;哪个 cluster?}
-    SPLIT --&amp;gt; AC[&quot;定位该 cluster&amp;lt;br/&amp;gt;的聚合状态&quot;]
+&lt;p&gt;每个 ACK/接收事件按 cluster 归入聚合状态，在发送、接收、ACK 三个记录队列上分别建立样本；三条同时有效时取各记录队列速率的最小值，再写入全局滑窗最大值滤波器。&lt;/p&gt;
 
-    AC --&amp;gt; T1[&quot;发送列车&amp;lt;br/&amp;gt;(按发送时间锚)&quot;]
-    AC --&amp;gt; T2{有效接收时间?}
-    T2 -- 有 --&amp;gt; T3[&quot;接收列车&amp;lt;br/&amp;gt;(按接收时间锚)&quot;]
-    T2 -- 无 --&amp;gt; T4[&quot;补偿器&amp;lt;br/&amp;gt;累计 bytes/cnt&quot;]
-    T4 -.下次有效时合并.-&amp;gt; T3
-    AC --&amp;gt; T5[&quot;ACK 列车&amp;lt;br/&amp;gt;(按 ACK 时间锚)&quot;]
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/07-bandwidth-estimate.jpeg&quot; alt=&quot;带宽估计&quot; /&gt;&lt;/p&gt;
 
-    T1 --&amp;gt; V{三条列车&amp;lt;br/&amp;gt;是否同时有效?&amp;lt;br/&amp;gt;≥5包 &amp;amp; ≥90%字节&amp;lt;br/&amp;gt;&amp;amp; 间隔 ∈ 1ms~1s}
-    T3 --&amp;gt; V
-    T5 --&amp;gt; V
-
-    V -- 否 --&amp;gt; Z([样本无效&amp;lt;br/&amp;gt;丢弃])
-    V -- 是 --&amp;gt; R[&quot;对每条列车计算速率:&amp;lt;br/&amp;gt;剔除首尾包&amp;lt;br/&amp;gt;用&apos;次新&apos;时间作锚&quot;]
-
-    R --&amp;gt; M[&quot;样本 = min(&amp;lt;br/&amp;gt;  发送列车速率,&amp;lt;br/&amp;gt;  接收/ACK 列车速率&amp;lt;br/&amp;gt;)&quot;]
-
-    M --&amp;gt; W[&quot;写入全局滑窗最大值滤波器&amp;lt;br/&amp;gt;(窗长由协调者动态设)&quot;]
-    W --&amp;gt; OUT([对外输出当前估计])
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/07-bandwidth-estimate.png&quot; alt=&quot;带宽估计&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;每个 ACK/接收事件按 cluster 归入聚合状态，在发送、接收、ACK 三条「列车」上分别建样本；三条同时有效时取各列车速率的最小值，再写入全局滑窗最大值滤波器。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;8-定时器主循环驱动一切的心跳&quot;&gt;8. 定时器主循环（驱动一切的心跳）&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
-    T([周期定时器触发]) --&amp;gt; A[协调者遍历所有会话]
-
-    A --&amp;gt; B{会话已禁用?}
-    B -- 是 --&amp;gt; NEXT[下一个会话]
-    B -- 否 --&amp;gt; C[清理过期 cluster&amp;lt;br/&amp;gt;必要时兜底结算本轮]
-
-    C --&amp;gt; D{到达&amp;lt;br/&amp;gt;下一轮起始时间?}
-    D -- 是 --&amp;gt; E[执行闸门判断&amp;lt;br/&amp;gt;见 图 3]
-    E --&amp;gt; F[启动本轮&amp;lt;br/&amp;gt;生成首档 cluster]
-    D -- 否 --&amp;gt; G
-
-    F --&amp;gt; G{到达&amp;lt;br/&amp;gt;下一档时间?}
-    G -- 是 --&amp;gt; H[激活下一档 cluster]
-    G -- 否 --&amp;gt; NEXT
-    H --&amp;gt; NEXT
-
-    NEXT --&amp;gt; I{所有会话遍历完?}
-    I -- 否 --&amp;gt; A
-    I -- 是 --&amp;gt; J[聚合最大目标速率&amp;lt;br/&amp;gt;聚合估计器窗长]
-    J --&amp;gt; K[估计器自身定时维护&amp;lt;br/&amp;gt;滑窗向下衰减]
-    K --&amp;gt; END([本次心跳结束])
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/08-timer-loop.png&quot; alt=&quot;定时器主循环&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;定时器主循环&quot;&gt;定时器主循环&lt;/h2&gt;
 
 &lt;p&gt;周期心跳驱动一切：遍历会话、清理过期 cluster、按节奏启动新一轮或激活下一档，最后聚合全局参数并维护估计器滑窗衰减。&lt;/p&gt;
 
-&lt;hr /&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/08-timer-loop.jpeg&quot; alt=&quot;定时器主循环&quot; /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;9-三类回调的总览时序角度&quot;&gt;9. 三类回调的总览（时序角度）&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;sequenceDiagram
-    autonumber
-    participant UP as 上层业务
-    participant C as 协调者
-    participant S as 探测会话
-    participant Q as Cluster 队列
-    participant E as 估计器
-
-    Note over C,S: 心跳：节奏驱动
-    UP-&amp;gt;&amp;gt;C: 周期心跳
-    C-&amp;gt;&amp;gt;S: 派发心跳
-    S-&amp;gt;&amp;gt;S: 通过闸门 → 启动一轮
-    S-&amp;gt;&amp;gt;Q: 生成首档 cluster
-    Q--&amp;gt;&amp;gt;S: 进入激活态
-    S--&amp;gt;&amp;gt;C: 当前目标速率上调
-    C--&amp;gt;&amp;gt;UP: 通知开始 padding 到 X
-
-    Note over UP,Q: 发包：业务侧驱动
-    UP-&amp;gt;&amp;gt;C: 业务包发出事件
-    C-&amp;gt;&amp;gt;S: 派发至各会话
-    S-&amp;gt;&amp;gt;Q: 累计包数/字节
-    alt 达标或超时
-        Q--&amp;gt;&amp;gt;S: cluster 出队
-        S--&amp;gt;&amp;gt;C: 本档目标速率清零/下调
-        C--&amp;gt;&amp;gt;UP: 通知调整 padding 目标
-    end
-
-    Note over UP,E: 反馈：对端 ACK 驱动
-    UP-&amp;gt;&amp;gt;C: ACK / 接收时间事件
-    C-&amp;gt;&amp;gt;S: 派发至处于评估期的会话
-    S-&amp;gt;&amp;gt;E: 提交样本输入
-    E--&amp;gt;&amp;gt;S: 返回当前样本速率
-    S-&amp;gt;&amp;gt;S: 更新本地滑窗 → 判定升档/结束
-    alt 本轮结束
-        S--&amp;gt;&amp;gt;C: 估计已更新
-        C--&amp;gt;&amp;gt;UP: 通知最新带宽估计
-    end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/09-callbacks.png&quot; alt=&quot;三类回调的总览&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;三类回调总览&quot;&gt;三类回调总览&lt;/h2&gt;
 
 &lt;p&gt;从时序上讲，探测由三类事件串联：&lt;strong&gt;心跳&lt;/strong&gt;定节奏、&lt;strong&gt;发包&lt;/strong&gt;执行 cluster、&lt;strong&gt;ACK&lt;/strong&gt; 回填样本并驱动升档或结束。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/09-callbacks.jpeg&quot; alt=&quot;三类回调的总览&quot; /&gt;&lt;/p&gt;
 </description>
         <pubDate>Thu, 30 Oct 2025 00:00:00 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/probe-bandwidth.html</link>
