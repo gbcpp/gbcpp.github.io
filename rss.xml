@@ -5,14 +5,14 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 01 Jun 2026 08:07:33 +0000</pubDate>
-    <lastBuildDate>Mon, 01 Jun 2026 08:07:33 +0000</lastBuildDate>
+    <pubDate>Mon, 01 Jun 2026 08:16:01 +0000</pubDate>
+    <lastBuildDate>Mon, 01 Jun 2026 08:16:01 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
         <title>私有协议带宽探测的设计与实现</title>
         <description>&lt;blockquote&gt;
-  &lt;p&gt;带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制&lt;strong&gt;业务发多快、就只能看见多快&lt;/strong&gt;的盲区—，这是实时音视频以及移动网络场景里，尽量把码率拉满、又不至于把链路打爆的前提。&lt;/p&gt;
+  &lt;p&gt;带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制&lt;strong&gt;业务发多快、就只能看见多快&lt;/strong&gt;的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h2 id=&quot;为什么需要主动探测&quot;&gt;为什么需要主动探测&lt;/h2&gt;
