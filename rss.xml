@@ -5,9 +5,249 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 01 Jun 2026 08:16:01 +0000</pubDate>
-    <lastBuildDate>Mon, 01 Jun 2026 08:16:01 +0000</lastBuildDate>
+    <pubDate>Mon, 08 Jun 2026 09:01:26 +0000</pubDate>
+    <lastBuildDate>Mon, 08 Jun 2026 09:01:26 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>基于 Ack 反馈实现的网络下行链路异常检测</title>
+        <description>&lt;h2 id=&quot;背景与问题&quot;&gt;背景与问题&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;RUT 是基于 UDP 实现的同时支持可靠和不可靠差异化 Qos 的传输协议，发送端的拥塞控制、重传决策都强依赖于 &lt;strong&gt;ACK 的到达节奏&lt;/strong&gt;。在真实弱网中，反馈链路（incoming&lt;/td&gt;
+      &lt;td&gt;downlink，承载对端发回的 ACK）经常出现两种典型的异常状态：&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;ACK 卡顿（ACK stuck）&lt;/strong&gt;：反馈链路被瞬时阻塞，ACK 长时间不到。发送端误以为数据丢了，触发不必要的超时重传，或者在静默期（quiescence）Timer 偏长，醒得太晚。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;ACK 突发（ACK burst）&lt;/strong&gt;：链路阻塞解除后，被排队积压的 ACK 在极短时间内集中涌入。这是 “反馈链路异常” 的特征之——：数据本身可能没丢，只是 ACK 在回来的路上被攒了一波。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;简单的 “基于 RTT 阈值” 判断无法区分 “前向链路差” 还是 “反馈链路差”。本算法的目标是：&lt;strong&gt;仅凭 ACK 到达的时间分布与数量分布，识别出反馈链路的异常，并为 RTO 重传策略提供更精准的 ACK 超时时间点。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;设计目标&quot;&gt;设计目标&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;目标&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;链路方向判定&lt;/td&gt;
+      &lt;td&gt;当判定为 ACK 突发时，向上层报告 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Direction::kIncoming&lt;/code&gt; 异常&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;ACK 卡顿超时&lt;/td&gt;
+      &lt;td&gt;给出一个动态的 ACK 等待截止时间，供 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;重传决策模块 RetransmitManager&lt;/code&gt; 使用&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;零额外探测&lt;/td&gt;
+      &lt;td&gt;完全复用已有的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OnPacketSent&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OnAckFrame&lt;/code&gt; 上层驱动事件，无需主动探测包&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;极低开销&lt;/td&gt;
+      &lt;td&gt;仅维护几个标记位 + 一个三态状态机；开关用位域，仅需 1 个字节开销&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;两个能力可独立开关：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;enable_link_detection_&lt;/code&gt;：链路方向检测（burst 突发判定）&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;enable_ack_stuck_detection_&lt;/code&gt;：ACK 卡顿检测&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;核心状态与数据结构&quot;&gt;核心状态与数据结构&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;EWMA: 指数加权移动平均算法。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;enum&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;STATE_NORMAL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;STATE_ACK_SPARSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;STATE_ACK_BURST&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;含义&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_ack_time_diff&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;相邻两次 ACK 事件时间间隔的 EWMA（0.7 旧 + 0.3 新）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_ack_pkt_num&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;每 50ms 窗口内 ACK 包数量的 EWMA&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_pkt_counter&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;当前 50ms 窗口已累计的 ACK 包数&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;last_ack_event_time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;上一次收到 ACK 反馈包的时间&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_burst_start_time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;进入异常态的起始时间（用于 500ms 后状态的清除）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cal_ack_num_update_time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;窗口统计的对齐时间戳&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;位域技巧&lt;/strong&gt;：两个开关与 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;enable_anything&lt;/code&gt; 共用一个 union。热路径入口只需 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if (!enable_anything) return;&lt;/code&gt; 一次判断即可同时短路两个特性，避免分别取两个 bool 进行判断。&lt;/p&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;union&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;enable_link_detection&lt;/span&gt;      &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;enable_ack_stuck_detection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unused&lt;/span&gt;                     &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;enable_anything&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;关键算法实现&quot;&gt;关键算法实现&lt;/h2&gt;
+
+&lt;h3 id=&quot;稀疏判定-maybeburstackcoming&quot;&gt;稀疏判定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaybeBurstAckComing&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;判断是否 “ACK 突然变得稀疏 Sparse”，这是 Burst 突发到来的征兆，需同时满足以下条件：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_ack_time_diff&lt;/code&gt; 即 Ack 平均到达间隔时间的平均值，已初始化；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_diff &amp;gt; kAckDiffMinGap&lt;/code&gt;（50ms）；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diverge &amp;gt; kRttDivergeThreshold(60ms)&lt;/code&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diverge&lt;/code&gt; 为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;latest_rtt - smoothed_rtt&lt;/code&gt;，满足该条件时，说明网络队列在增长）；&lt;/li&gt;
+  &lt;li&gt;且本次间隔显著超过历史均值，满足以下任一：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_diff &amp;gt; avg + 3*50ms&lt;/code&gt;（绝对超出）&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_diff &amp;gt; avg*10 且 &amp;gt; 2*50ms&lt;/code&gt;（相对暴增）&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_diff &amp;gt; avg*9 且 cwnd 余量 &amp;lt; 1000&lt;/code&gt;（窗口快打满时更敏感）&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;状态迁移&quot;&gt;状态迁移&lt;/h3&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;NORMAL ──(检测到稀疏)──► ACK_SPARSE ──(随后涌入大量 ACK)──► ACK_BURST
+   ▲                                                          │
+   └──────────────(异常起点超过 500ms 老化｜过期｜清除)───────────────────┘
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;NORMAL → ACK_SPARSE&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaybeBurstAckComing&lt;/code&gt; 命中时，刷新 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_burst_start_time&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;ACK_SPARSE → ACK_BURST&lt;/strong&gt;：在 500ms 窗口内，ACK 数量相对均值暴涨——&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_pkt_counter &amp;gt; avg*2 且 avg+7 &amp;lt; counter&lt;/code&gt;，或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg+5 &amp;lt; counter 且 bytes_in_flight &amp;lt; cwnd/5&lt;/code&gt;（在途数据已大量被确认）。此时确认是积压 ACK 的集中释放。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;任意态 → NORMAL&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_burst_start_time&lt;/code&gt; 未初始化，或距异常起点已超过 &lt;strong&gt;500ms&lt;/strong&gt;（复位）。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;只有处于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STATE_ACK_BURST&lt;/code&gt; 状态且开启链路检测时，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GetAbnormalLink()&lt;/code&gt; 才返回 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kIncoming&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;均值更新策略&quot;&gt;均值更新策略&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_ack_time_diff&lt;/code&gt; 仅在 &lt;strong&gt;NORMAL 态&lt;/strong&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ack_diff &amp;gt; 0&lt;/code&gt; 时用 EWMA 更新，避免异常态污染基线。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_ack_pkt_num&lt;/code&gt; 在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;UpdateAckPacketNum&lt;/code&gt; 中每超过 50ms 结算一次窗口，同样&lt;strong&gt;只在 NORMAL 态更新&lt;/strong&gt;，结算后计数清零。首次直接取值，之后 EWMA。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;ack-卡顿超时-getackstucktimeout&quot;&gt;ACK 卡顿超时 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GetAckStuckTimeout&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;为重传管理器计算出”再等多久还没收到 ACK 包就算当前链路卡住了”，&lt;strong&gt;如果重传管理器的该定时器超时未收到 Ack，那么将通过上层设置 Pacer 开启一段时间的非受限模式,即在未来的 1 秒内可以立即发送任何数据，不受 Pacer Bucket 的限制，直到接收到新的 Ack 反馈包以后将此状态消除&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
+     expected_next_ack_time + 60ms )
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bytes_in_flight == 0&lt;/code&gt; 或基线未建立时返回 0（不启用）。下界由历史 ACK 节奏决定，并保证不早于”期望下次 ACK 时间 + RTT 抖动容忍”。&lt;/p&gt;
+
+&lt;h2 id=&quot;时序图&quot;&gt;时序图&lt;/h2&gt;
+
+&lt;p&gt;下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;sequenceDiagram
+    autonumber
+    participant Net as 反馈链路
+    participant Path as Path
+    participant Det as AbnormalNetworkDetector
+    participant RM as RetransmissionManager
+
+    Note over Path,Det: 正常阶段（STATE_NORMAL）
+    Path-&amp;gt;&amp;gt;Det: OnPacketSent(now)
+    Det-&amp;gt;&amp;gt;Det: UpdateAckPacketNum()&amp;lt;br/&amp;gt;维护 avg_ack_pkt_num
+    Net--&amp;gt;&amp;gt;Path: ACK frame
+    Path-&amp;gt;&amp;gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
+    Det-&amp;gt;&amp;gt;Det: ack_diff = now - last_ack_event&amp;lt;br/&amp;gt;EWMA 更新 avg_ack_time_diff
+    Det-&amp;gt;&amp;gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
+
+    Note over Net: 反馈链路开始阻塞，ACK 被排队
+    Net--xPath: ACK 长时间不到
+    Path-&amp;gt;&amp;gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&amp;gt;60ms)
+    Det-&amp;gt;&amp;gt;Det: MaybeBurstAckComing() = true
+    Det-&amp;gt;&amp;gt;Det: NORMAL → ACK_SPARSE&amp;lt;br/&amp;gt;记录 ack_burst_start_time
+
+    Note over Net: 阻塞解除，积压 ACK 集中涌入
+    Net--&amp;gt;&amp;gt;Path: ACK 突发（大批量）
+    loop 500ms 窗口内
+        Path-&amp;gt;&amp;gt;Det: OnAckFrame(...)
+        Det-&amp;gt;&amp;gt;Det: ack_pkt_counter 快速累加
+    end
+    Det-&amp;gt;&amp;gt;Det: counter 远超 avg_ack_pkt_num&amp;lt;br/&amp;gt;ACK_SPARSE → ACK_BURST
+
+    Path-&amp;gt;&amp;gt;Det: GetAbnormalLink()
+    Det--&amp;gt;&amp;gt;Path: Direction::kIncoming
+
+    Note over Det: 距异常起点超过 500ms
+    Path-&amp;gt;&amp;gt;Det: OnAckFrame(...)
+    Det-&amp;gt;&amp;gt;Det: 老化复位 → STATE_NORMAL
+    Det--&amp;gt;&amp;gt;Path: GetAbnormalLink() = nullopt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;状态机图&quot;&gt;状态机图&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram-v2
+    [*] --&amp;gt; NORMAL
+    NORMAL --&amp;gt; ACK_SPARSE: MaybeBurstAckComing()命中&amp;lt;br/&amp;gt;(ack_diff 暴增 &amp;amp; rtt 发散)
+    ACK_SPARSE --&amp;gt; ACK_BURST: 500ms 内 ACK 数量&amp;lt;br/&amp;gt;远超历史均值
+    ACK_SPARSE --&amp;gt; NORMAL: 距异常起点 &amp;gt; 500ms
+    ACK_BURST --&amp;gt; NORMAL: 距异常起点 &amp;gt; 500ms
+    ACK_BURST --&amp;gt; ACK_BURST: 持续突发，刷新起点
+
+    note right of ACK_BURST
+        GetAbnormalLink() = kIncoming
+        判定反馈链路异常
+    end note
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;设计权衡与局限&quot;&gt;设计权衡与局限&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;只测反馈方向&lt;/strong&gt;：当前 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GetAbnormalLink&lt;/code&gt; 只产出 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kIncoming&lt;/code&gt;，因为 “ACK 突发” 是反馈链路的特征信号；前向链路异常由丢包/拥塞算法另行判断。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;基线纯净性&lt;/strong&gt;：均值统计严格只在 NORMAL 态更新，保证异常期间不会自我污染，但代价是异常持续时基线被 “冻结”。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;500ms 老化&lt;/strong&gt;：在保证及时复位与避免抖动误判之间取的折中值；超长抖动场景可能反复进出异常态，对于超大延迟 + jitter 的场景不友好。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;无主动探测&lt;/strong&gt;：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sat, 01 Nov 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/abnormal-network-detect.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/abnormal-network-detect.html</guid>
+        
+        <category>Protocol</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
     
       <item>
         <title>私有协议带宽探测的设计与实现</title>
@@ -1854,161 +2094,6 @@ network:
         
         
         <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>webtransport-go 在直播场景下的优化</title>
-        <description>&lt;h1 id=&quot;背景&quot;&gt;背景&lt;/h1&gt;
-&lt;p&gt;公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化， B本人进入公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
-且对比 Tcp 来看，webtransport-go 带来的性能消耗是 tcp 的 5 倍以上。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;为什么不直接使用-quic-go&quot;&gt;为什么不直接使用 quic-go&lt;/h2&gt;
-
-&lt;p&gt;因为 quic 虽然也是可靠传输，但是 quic 暂不支持通过 Url 来携带业务测参数，如：vhost、token 等的。&lt;/p&gt;
-
-&lt;h1 id=&quot;初始化&quot;&gt;初始化&lt;/h1&gt;
-&lt;h2 id=&quot;代码下载&quot;&gt;代码下载&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git clone git@github.com:quic-go/webtransport-go.git&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;拉取相关依赖仓库代码：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# 进入代码目录
-cd webtransport-go
-
-# 通过 build 触发代码拉取
-go build webtransport_test.go
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Golang 默认将代码存放在&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$GOPATH&lt;/code&gt;目录下，我的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GOPATH&lt;/code&gt;环境变量配置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go&lt;/code&gt;，那么拉取的依赖仓库 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;quic-go&lt;/code&gt; 的存放目录就是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1&lt;/code&gt;，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Add Folder to WorkSpace&lt;/code&gt;，选择上述目录，即可一起查看 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;quic-go&lt;/code&gt; 相关的代码，如下：
-&lt;img src=&quot;/assets/img/blog/vscode-go.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;quic-go&quot;&gt;Quic-go&lt;/h2&gt;
-
-&lt;p&gt;Quic-go 作为 webtransport-go 的依赖仓库，提供 quic 的基础传输能力，但是其提供的传输配置能力非常有限，特别是作为发送端时，一些基础的 CWnd、Burst、Ack 等参数均不支持配置，接口文件为：
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/interface.go&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;quic-go 内部相关参数主要位于：
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go&lt;/code&gt;
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/protocol.go&lt;/code&gt;
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/params.go&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;优化项&quot;&gt;优化项&lt;/h1&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;初始化发送包数：&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;文件：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go&lt;/code&gt; 中指定
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;const maxBurstSizePackets = 10&lt;/code&gt;，在直播场景，I 帧切片后（1200Bytes/pkt）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
-该配置项生效后对秒开的影响较小，属于毫秒级别，原来可能受 pacer 控制在几个 timerGraulariry 中将一个关键帧发送完，该配置的理想效果是减少这几个 timerGraulariry 的延迟。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;握手超时时间：
-应用层建议也是用 2 秒的配置。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// Default
-const DefaultHandshakeIdleTimeout = 5 * time.Second
-// 建议修改为 2 或者 3 秒，业务测可以快速重连，减少等待时间
-const DefaultHandshakeIdleTimeout = 2 * time.Second
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;定时器精度&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;最好是从系统中获取自己的定时器精度（一般是4ms），不建议使用 1 ms 这种精度，过于高频，无效的 cpu 消耗。&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// Default
-const TimerGranularity = time.Millisecond
-// 建议值：动态获取系统定时器精度，或者 hardcode 为 4ms 或者 10ms
-const TimerGranularity = 4 * time.Millisecond
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;转发模式&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。&lt;/p&gt;
-
-&lt;p&gt;可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。&lt;/p&gt;
-
-&lt;h1 id=&quot;faq&quot;&gt;FAQ&lt;/h1&gt;
-
-&lt;h2 id=&quot;webtransport-是否是整帧的收发&quot;&gt;Webtransport 是否是整帧的收发？&lt;/h2&gt;
-
-&lt;p&gt;不是，websocket 在发送大的数据帧时，会通过 FIN 标记位是否为 1 标记为该 Frame 是否结束，而 WebTransport 中是基于流的传输，需要应用层自行组装完整的数据帧。
-&lt;a href=&quot;https://www.ietf.org/archive/id/draft-ietf-webtrans-overview-05.html#name-conventions-and-definitions-8&quot;&gt;ref link&lt;/a&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;A stream is a sequence of bytes that is reliably delivered to the receiving application in the same order as it was transmitted by the sender. Streams can be of arbitrary length, and therefore cannot always be buffered entirely in memory. WebTransport protocols and APIs are expected to provide partial stream data to the application before the stream has been entirely received.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;bbr-sender-配置-startup-的较大带宽但是-max-burst-send-packets-number-却较小能将关键帧的几个切片一次性发送出去吗&quot;&gt;BBR sender 配置 startup 的较大带宽，但是 max burst send packets number 却较小，能将关键帧的几个切片一次性发送出去吗？&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go&lt;/code&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;        p := &amp;amp;pacer{
-                maxDatagramSize: initialMaxDatagramSize,
-                adjustedBandwidth: func() uint64 {
-                        // Bandwidth is in bits/s. We need the value in bytes/s.
-                        bw := uint64(getBandwidth() / BytesPerSecond)
-                        // Use a slightly higher value than the actual measured bandwidth.
-                        // RTT variations then won&apos;t result in under-utilization of the congestion window.
-                        // Ultimately, this will result in sending packets as acknowledgments are received rather than when timers fire,
-                        // provided the congestion window is fully utilized and acknowledgments arrive at regular intervals.
-                        return bw * 5 / 4
-                },
-        }
-        p.budgetAtLastSent = p.maxBurstSize()
-        return p
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;而在初始化时，由于没有 smoothedRTT 的有效值，所以初始化为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;infBandwidth&lt;/code&gt; (UINT64_MAX)，
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/bbr_sender.go&lt;/code&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;func (b *bbrSender) bandwidthEstimate() Bandwidth {
-        srtt := b.rttStats.SmoothedRTT()
-        if srtt == 0 {
-                // If we haven&apos;t measured an rtt, the bandwidth estimate is unknown.
-                return infBandwidth
-        }
-        bw := b.maxBandwidth.GetBest()
-        if bw == 0 {
-                return infBandwidth
-        }
-        return bw
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;虽然初始化的 bandwidth 比较大，但是 pacer 在发送数据时依然会受限于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;maxBurstSizePackets&lt;/code&gt; 的配置，如下：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;func (p *pacer) maxBurstSize() protocol.ByteCount {
-        return utils.Max(
-                protocol.ByteCount(uint64((protocol.MinPacingDelay+protocol.TimerGranularity).Nanoseconds())*p.adjustedBandwidth())/1e9,
-                maxBurstSizePackets*p.maxDatagramSize,
-        )
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;所以建议将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;maxBurstSizePackets&lt;/code&gt; 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 07 Jan 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html</guid>
-        
-        <category>Protocol</category>
-        
-        
-        <category>Protocol</category>
         
       </item>
     

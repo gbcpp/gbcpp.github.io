@@ -1,4 +1,229 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-01T08:16:01+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">私有协议带宽探测的设计与实现</title><link href="https://gbcpp.github.io/protocol/probe-bandwidth.html" rel="alternate" type="text/html" title="私有协议带宽探测的设计与实现" /><published>2025-10-30T00:00:00+00:00</published><updated>2025-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/probe-bandwidth</id><content type="html" xml:base="https://gbcpp.github.io/protocol/probe-bandwidth.html"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-08T09:01:26+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect-</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td>RUT 是基于 UDP 实现的同时支持可靠和不可靠差异化 Qos 的传输协议，发送端的拥塞控制、重传决策都强依赖于 <strong>ACK 的到达节奏</strong>。在真实弱网中，反馈链路（incoming</td>
+      <td>downlink，承载对端发回的 ACK）经常出现两种典型的异常状态：</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li><strong>ACK 卡顿（ACK stuck）</strong>：反馈链路被瞬时阻塞，ACK 长时间不到。发送端误以为数据丢了，触发不必要的超时重传，或者在静默期（quiescence）Timer 偏长，醒得太晚。</li>
+  <li><strong>ACK 突发（ACK burst）</strong>：链路阻塞解除后，被排队积压的 ACK 在极短时间内集中涌入。这是 “反馈链路异常” 的特征之——：数据本身可能没丢，只是 ACK 在回来的路上被攒了一波。</li>
+</ol>
+
+<p>简单的 “基于 RTT 阈值” 判断无法区分 “前向链路差” 还是 “反馈链路差”。本算法的目标是：<strong>仅凭 ACK 到达的时间分布与数量分布，识别出反馈链路的异常，并为 RTO 重传策略提供更精准的 ACK 超时时间点。</strong></p>
+
+<h2 id="设计目标">设计目标</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>目标</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>链路方向判定</td>
+      <td>当判定为 ACK 突发时，向上层报告 <code class="language-plaintext highlighter-rouge">Direction::kIncoming</code> 异常</td>
+    </tr>
+    <tr>
+      <td>ACK 卡顿超时</td>
+      <td>给出一个动态的 ACK 等待截止时间，供 <code class="language-plaintext highlighter-rouge">重传决策模块 RetransmitManager</code> 使用</td>
+    </tr>
+    <tr>
+      <td>零额外探测</td>
+      <td>完全复用已有的 <code class="language-plaintext highlighter-rouge">OnPacketSent</code> / <code class="language-plaintext highlighter-rouge">OnAckFrame</code> 上层驱动事件，无需主动探测包</td>
+    </tr>
+    <tr>
+      <td>极低开销</td>
+      <td>仅维护几个标记位 + 一个三态状态机；开关用位域，仅需 1 个字节开销</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>两个能力可独立开关：</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">enable_link_detection_</code>：链路方向检测（burst 突发判定）</li>
+  <li><code class="language-plaintext highlighter-rouge">enable_ack_stuck_detection_</code>：ACK 卡顿检测</li>
+</ul>
+
+<h2 id="核心状态与数据结构">核心状态与数据结构</h2>
+
+<blockquote>
+  <p>EWMA: 指数加权移动平均算法。</p>
+</blockquote>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="n">State</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span> <span class="n">STATE_NORMAL</span><span class="p">,</span> <span class="n">STATE_ACK_SPARSE</span><span class="p">,</span> <span class="n">STATE_ACK_BURST</span> <span class="p">};</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code></td>
+      <td>相邻两次 ACK 事件时间间隔的 EWMA（0.7 旧 + 0.3 新）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code></td>
+      <td>每 50ms 窗口内 ACK 包数量的 EWMA</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_pkt_counter</code></td>
+      <td>当前 50ms 窗口已累计的 ACK 包数</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">last_ack_event_time</code></td>
+      <td>上一次收到 ACK 反馈包的时间</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_burst_start_time</code></td>
+      <td>进入异常态的起始时间（用于 500ms 后状态的清除）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">cal_ack_num_update_time</code></td>
+      <td>窗口统计的对齐时间戳</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>位域技巧</strong>：两个开关与 <code class="language-plaintext highlighter-rouge">enable_anything</code> 共用一个 union。热路径入口只需 <code class="language-plaintext highlighter-rouge">if (!enable_anything) return;</code> 一次判断即可同时短路两个特性，避免分别取两个 bool 进行判断。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">union</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="p">{</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_link_detection</span>      <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_ack_stuck_detection</span> <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">unused</span>                     <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="kt">uint8_t</span> <span class="n">enable_anything</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h2 id="关键算法实现">关键算法实现</h2>
+
+<h3 id="稀疏判定-maybeburstackcoming">稀疏判定 <code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code></h3>
+
+<p>判断是否 “ACK 突然变得稀疏 Sparse”，这是 Burst 突发到来的征兆，需同时满足以下条件：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 即 Ack 平均到达间隔时间的平均值，已初始化；</li>
+  <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; kAckDiffMinGap</code>（50ms）；</li>
+  <li><code class="language-plaintext highlighter-rouge">rtt_diverge &gt; kRttDivergeThreshold(60ms)</code>（<code class="language-plaintext highlighter-rouge">rtt_diverge</code> 为 <code class="language-plaintext highlighter-rouge">latest_rtt - smoothed_rtt</code>，满足该条件时，说明网络队列在增长）；</li>
+  <li>且本次间隔显著超过历史均值，满足以下任一：
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg + 3*50ms</code>（绝对超出）</li>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*10 且 &gt; 2*50ms</code>（相对暴增）</li>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*9 且 cwnd 余量 &lt; 1000</code>（窗口快打满时更敏感）</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="状态迁移">状态迁移</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NORMAL ──(检测到稀疏)──► ACK_SPARSE ──(随后涌入大量 ACK)──► ACK_BURST
+   ▲                                                          │
+   └──────────────(异常起点超过 500ms 老化｜过期｜清除)───────────────────┘
+</code></pre></div></div>
+
+<ul>
+  <li><strong>NORMAL → ACK_SPARSE</strong>：<code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code> 命中时，刷新 <code class="language-plaintext highlighter-rouge">ack_burst_start_time</code>。</li>
+  <li><strong>ACK_SPARSE → ACK_BURST</strong>：在 500ms 窗口内，ACK 数量相对均值暴涨——<code class="language-plaintext highlighter-rouge">ack_pkt_counter &gt; avg*2 且 avg+7 &lt; counter</code>，或 <code class="language-plaintext highlighter-rouge">avg+5 &lt; counter 且 bytes_in_flight &lt; cwnd/5</code>（在途数据已大量被确认）。此时确认是积压 ACK 的集中释放。</li>
+  <li><strong>任意态 → NORMAL</strong>：<code class="language-plaintext highlighter-rouge">ack_burst_start_time</code> 未初始化，或距异常起点已超过 <strong>500ms</strong>（复位）。</li>
+</ul>
+
+<p>只有处于 <code class="language-plaintext highlighter-rouge">STATE_ACK_BURST</code> 状态且开启链路检测时，<code class="language-plaintext highlighter-rouge">GetAbnormalLink()</code> 才返回 <code class="language-plaintext highlighter-rouge">kIncoming</code>。</p>
+
+<h3 id="均值更新策略">均值更新策略</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 仅在 <strong>NORMAL 态</strong> 且 <code class="language-plaintext highlighter-rouge">ack_diff &gt; 0</code> 时用 EWMA 更新，避免异常态污染基线。</li>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code> 在 <code class="language-plaintext highlighter-rouge">UpdateAckPacketNum</code> 中每超过 50ms 结算一次窗口，同样<strong>只在 NORMAL 态更新</strong>，结算后计数清零。首次直接取值，之后 EWMA。</li>
+</ul>
+
+<h3 id="ack-卡顿超时-getackstucktimeout">ACK 卡顿超时 <code class="language-plaintext highlighter-rouge">GetAckStuckTimeout</code></h3>
+
+<p>为重传管理器计算出”再等多久还没收到 ACK 包就算当前链路卡住了”，<strong>如果重传管理器的该定时器超时未收到 Ack，那么将通过上层设置 Pacer 开启一段时间的非受限模式,即在未来的 1 秒内可以立即发送任何数据，不受 Pacer Bucket 的限制，直到接收到新的 Ack 反馈包以后将此状态消除</strong>。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
+     expected_next_ack_time + 60ms )
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bytes_in_flight == 0</code> 或基线未建立时返回 0（不启用）。下界由历史 ACK 节奏决定，并保证不早于”期望下次 ACK 时间 + RTT 抖动容忍”。</p>
+
+<h2 id="时序图">时序图</h2>
+
+<p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant Net as 反馈链路
+    participant Path as Path
+    participant Det as AbnormalNetworkDetector
+    participant RM as RetransmissionManager
+
+    Note over Path,Det: 正常阶段（STATE_NORMAL）
+    Path-&gt;&gt;Det: OnPacketSent(now)
+    Det-&gt;&gt;Det: UpdateAckPacketNum()&lt;br/&gt;维护 avg_ack_pkt_num
+    Net--&gt;&gt;Path: ACK frame
+    Path-&gt;&gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
+    Det-&gt;&gt;Det: ack_diff = now - last_ack_event&lt;br/&gt;EWMA 更新 avg_ack_time_diff
+    Det-&gt;&gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
+
+    Note over Net: 反馈链路开始阻塞，ACK 被排队
+    Net--xPath: ACK 长时间不到
+    Path-&gt;&gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&gt;60ms)
+    Det-&gt;&gt;Det: MaybeBurstAckComing() = true
+    Det-&gt;&gt;Det: NORMAL → ACK_SPARSE&lt;br/&gt;记录 ack_burst_start_time
+
+    Note over Net: 阻塞解除，积压 ACK 集中涌入
+    Net--&gt;&gt;Path: ACK 突发（大批量）
+    loop 500ms 窗口内
+        Path-&gt;&gt;Det: OnAckFrame(...)
+        Det-&gt;&gt;Det: ack_pkt_counter 快速累加
+    end
+    Det-&gt;&gt;Det: counter 远超 avg_ack_pkt_num&lt;br/&gt;ACK_SPARSE → ACK_BURST
+
+    Path-&gt;&gt;Det: GetAbnormalLink()
+    Det--&gt;&gt;Path: Direction::kIncoming
+
+    Note over Det: 距异常起点超过 500ms
+    Path-&gt;&gt;Det: OnAckFrame(...)
+    Det-&gt;&gt;Det: 老化复位 → STATE_NORMAL
+    Det--&gt;&gt;Path: GetAbnormalLink() = nullopt
+</code></pre>
+
+<h2 id="状态机图">状态机图</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; NORMAL
+    NORMAL --&gt; ACK_SPARSE: MaybeBurstAckComing()命中&lt;br/&gt;(ack_diff 暴增 &amp; rtt 发散)
+    ACK_SPARSE --&gt; ACK_BURST: 500ms 内 ACK 数量&lt;br/&gt;远超历史均值
+    ACK_SPARSE --&gt; NORMAL: 距异常起点 &gt; 500ms
+    ACK_BURST --&gt; NORMAL: 距异常起点 &gt; 500ms
+    ACK_BURST --&gt; ACK_BURST: 持续突发，刷新起点
+
+    note right of ACK_BURST
+        GetAbnormalLink() = kIncoming
+        判定反馈链路异常
+    end note
+</code></pre>
+
+<h2 id="设计权衡与局限">设计权衡与局限</h2>
+
+<ul>
+  <li><strong>只测反馈方向</strong>：当前 <code class="language-plaintext highlighter-rouge">GetAbnormalLink</code> 只产出 <code class="language-plaintext highlighter-rouge">kIncoming</code>，因为 “ACK 突发” 是反馈链路的特征信号；前向链路异常由丢包/拥塞算法另行判断。</li>
+  <li><strong>基线纯净性</strong>：均值统计严格只在 NORMAL 态更新，保证异常期间不会自我污染，但代价是异常持续时基线被 “冻结”。</li>
+  <li><strong>500ms 老化</strong>：在保证及时复位与避免抖动误判之间取的折中值；超长抖动场景可能反复进出异常态，对于超大延迟 + jitter 的场景不友好。</li>
+  <li><strong>无主动探测</strong>：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。</li>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景与问题]]></summary></entry><entry><title type="html">私有协议带宽探测的设计与实现</title><link href="https://gbcpp.github.io/protocol/probe-bandwidth.html" rel="alternate" type="text/html" title="私有协议带宽探测的设计与实现" /><published>2025-10-30T00:00:00+00:00</published><updated>2025-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/probe-bandwidth</id><content type="html" xml:base="https://gbcpp.github.io/protocol/probe-bandwidth.html"><![CDATA[<blockquote>
   <p>带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制<strong>业务发多快、就只能看见多快</strong>的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。</p>
 </blockquote>
 
@@ -1699,143 +1924,4 @@ network:
 </code></pre></div></div>
 
 <p>如果没有格式错误的话，便没有任何输出，否则提示格式错误。
-至此配置成功，通过<code class="language-plaintext highlighter-rouge">ip addr show</code>查看确认。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。]]></summary></entry><entry><title type="html">webtransport-go 在直播场景下的优化</title><link href="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html" rel="alternate" type="text/html" title="webtransport-go 在直播场景下的优化" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream</id><content type="html" xml:base="https://gbcpp.github.io/protocol/webtransport-go-optimze-for-livestream.html"><![CDATA[<h1 id="背景">背景</h1>
-<p>公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。</p>
-
-<blockquote>
-  <p>本人经历 2024年 11月变动以后，刚来公司不久，周边同事基本都以 golang 语言开发为主，且基本没有协议的优化经验，只能选择开源项目进行优化， B本人进入公司的时机也不好，该项目已经选定该方案，并且开始上线进行灰度测试，无法推翻重来。
-且对比 Tcp 来看，webtransport-go 带来的性能消耗是 tcp 的 5 倍以上。</p>
-</blockquote>
-
-<h2 id="为什么不直接使用-quic-go">为什么不直接使用 quic-go</h2>
-
-<p>因为 quic 虽然也是可靠传输，但是 quic 暂不支持通过 Url 来携带业务测参数，如：vhost、token 等的。</p>
-
-<h1 id="初始化">初始化</h1>
-<h2 id="代码下载">代码下载</h2>
-
-<p><code class="language-plaintext highlighter-rouge">git clone git@github.com:quic-go/webtransport-go.git</code></p>
-
-<p>拉取相关依赖仓库代码：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># 进入代码目录
-cd webtransport-go
-
-# 通过 build 触发代码拉取
-go build webtransport_test.go
-</code></pre></div></div>
-
-<p>Golang 默认将代码存放在<code class="language-plaintext highlighter-rouge">$GOPATH</code>目录下，我的<code class="language-plaintext highlighter-rouge">GOPATH</code>环境变量配置为 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go</code>，那么拉取的依赖仓库 <code class="language-plaintext highlighter-rouge">quic-go</code> 的存放目录就是 <code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1</code>，为了方便在 VSCode 中查看代码，在 VSCode 的 WorkSpace 空白处通过右键选择：<code class="language-plaintext highlighter-rouge">Add Folder to WorkSpace</code>，选择上述目录，即可一起查看 <code class="language-plaintext highlighter-rouge">quic-go</code> 相关的代码，如下：
-<img src="/assets/img/blog/vscode-go.jpg" alt="" /></p>
-
-<h2 id="quic-go">Quic-go</h2>
-
-<p>Quic-go 作为 webtransport-go 的依赖仓库，提供 quic 的基础传输能力，但是其提供的传输配置能力非常有限，特别是作为发送端时，一些基础的 CWnd、Burst、Ack 等参数均不支持配置，接口文件为：
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/interface.go</code></p>
-
-<p>quic-go 内部相关参数主要位于：
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code>
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/protocol.go</code>
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/protocol/params.go</code></p>
-
-<h1 id="优化项">优化项</h1>
-
-<ul>
-  <li>初始化发送包数：</li>
-</ul>
-
-<p>文件：<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code> 中指定
-<code class="language-plaintext highlighter-rouge">const maxBurstSizePackets = 10</code>，在直播场景，I 帧切片后（1200Bytes/pkt）基本都会超过 10 片，建议配置为 20~30，具体视业务场景中首帧的切换大小，但也不宜过高，控制在 30 以内。
-该配置项生效后对秒开的影响较小，属于毫秒级别，原来可能受 pacer 控制在几个 timerGraulariry 中将一个关键帧发送完，该配置的理想效果是减少这几个 timerGraulariry 的延迟。</p>
-
-<ul>
-  <li>握手超时时间：
-应用层建议也是用 2 秒的配置。</li>
-</ul>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
-const DefaultHandshakeIdleTimeout = 5 * time.Second
-// 建议修改为 2 或者 3 秒，业务测可以快速重连，减少等待时间
-const DefaultHandshakeIdleTimeout = 2 * time.Second
-</code></pre></div></div>
-
-<ul>
-  <li>定时器精度</li>
-</ul>
-
-<p>最好是从系统中获取自己的定时器精度（一般是4ms），不建议使用 1 ms 这种精度，过于高频，无效的 cpu 消耗。</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// Default
-const TimerGranularity = time.Millisecond
-// 建议值：动态获取系统定时器精度，或者 hardcode 为 4ms 或者 10ms
-const TimerGranularity = 4 * time.Millisecond
-</code></pre></div></div>
-
-<ul>
-  <li>转发模式</li>
-</ul>
-
-<p>目前业务集成方在回源时，虽然传输协议使用的是流式传输，但是边缘节点在接收到分片数据后并不会立即进行转发，而是在组装成一个完整的帧以后再一次性进行发送，这样做是为了内部各种封装格式的转换，但是也存在明显的弊端，即在没有收到完整的关键帧以前，不会向 Player 发送任何数据，被回源的关键帧阻塞，间接的增加了首开的延迟。</p>
-
-<p>可优化选项：比如回源的协议与 Player 请求的协议相同，即均为 HTTP-FLV，那么便不再需要进行完整帧的转封装，而直接进行分片的透明转发，同时边缘节点也异步的 cache 分片数据进行组帧操作，转封装分发给其它请求的协议。</p>
-
-<h1 id="faq">FAQ</h1>
-
-<h2 id="webtransport-是否是整帧的收发">Webtransport 是否是整帧的收发？</h2>
-
-<p>不是，websocket 在发送大的数据帧时，会通过 FIN 标记位是否为 1 标记为该 Frame 是否结束，而 WebTransport 中是基于流的传输，需要应用层自行组装完整的数据帧。
-<a href="https://www.ietf.org/archive/id/draft-ietf-webtrans-overview-05.html#name-conventions-and-definitions-8">ref link</a></p>
-
-<blockquote>
-  <p>A stream is a sequence of bytes that is reliably delivered to the receiving application in the same order as it was transmitted by the sender. Streams can be of arbitrary length, and therefore cannot always be buffered entirely in memory. WebTransport protocols and APIs are expected to provide partial stream data to the application before the stream has been entirely received.</p>
-</blockquote>
-
-<h2 id="bbr-sender-配置-startup-的较大带宽但是-max-burst-send-packets-number-却较小能将关键帧的几个切片一次性发送出去吗">BBR sender 配置 startup 的较大带宽，但是 max burst send packets number 却较小，能将关键帧的几个切片一次性发送出去吗？</h2>
-
-<p><code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/pacer.go</code></p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        p := &amp;pacer{
-                maxDatagramSize: initialMaxDatagramSize,
-                adjustedBandwidth: func() uint64 {
-                        // Bandwidth is in bits/s. We need the value in bytes/s.
-                        bw := uint64(getBandwidth() / BytesPerSecond)
-                        // Use a slightly higher value than the actual measured bandwidth.
-                        // RTT variations then won't result in under-utilization of the congestion window.
-                        // Ultimately, this will result in sending packets as acknowledgments are received rather than when timers fire,
-                        // provided the congestion window is fully utilized and acknowledgments arrive at regular intervals.
-                        return bw * 5 / 4
-                },
-        }
-        p.budgetAtLastSent = p.maxBurstSize()
-        return p
-}
-</code></pre></div></div>
-
-<p>而在初始化时，由于没有 smoothedRTT 的有效值，所以初始化为 <code class="language-plaintext highlighter-rouge">infBandwidth</code> (UINT64_MAX)，
-<code class="language-plaintext highlighter-rouge">/Users/eddie/develop/go/pkg/mod/github.com/quic-go@v0.42.0-mod.1/internal/congestion/bbr_sender.go</code></p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (b *bbrSender) bandwidthEstimate() Bandwidth {
-        srtt := b.rttStats.SmoothedRTT()
-        if srtt == 0 {
-                // If we haven't measured an rtt, the bandwidth estimate is unknown.
-                return infBandwidth
-        }
-        bw := b.maxBandwidth.GetBest()
-        if bw == 0 {
-                return infBandwidth
-        }
-        return bw
-}
-</code></pre></div></div>
-
-<p>虽然初始化的 bandwidth 比较大，但是 pacer 在发送数据时依然会受限于 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 的配置，如下：</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func (p *pacer) maxBurstSize() protocol.ByteCount {
-        return utils.Max(
-                protocol.ByteCount(uint64((protocol.MinPacingDelay+protocol.TimerGranularity).Nanoseconds())*p.adjustedBandwidth())/1e9,
-                maxBurstSizePackets*p.maxDatagramSize,
-        )
-}
-</code></pre></div></div>
-
-<p>所以建议将 <code class="language-plaintext highlighter-rouge">maxBurstSizePackets</code> 值配置为 20 ～ 30 之间，根据业务场景，尽量让首帧（I Frame）的所有切片能够一次性发送出去，但是也不宜过高，避免数据突发导致网络拥塞丢包。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景 公司后台代码以 golang 为主，同事已经选择使用 webtransport-go 的开源方案灰度上线，虽然短期内就要接客户，使用自研的私有传输协议已经完全来不及，当下只能尽量优化 webtransport-go 这个方案，首先尽量在首开上进行优化，卡顿率相关的指标如果能与 tcp 持平甚至更好的话，就不在该方案中继续投入了，转为基于 c++ 的私有协议方案。]]></summary></entry></feed>
+至此配置成功，通过<code class="language-plaintext highlighter-rouge">ip addr show</code>查看确认。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。]]></summary></entry></feed>

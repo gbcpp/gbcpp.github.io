@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>私有协议带宽探测的设计与实现 - Mr Chen</title>
+    <title>基于 Ack 反馈实现的网络下行链路异常检测 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="私有协议带宽探测的设计与实现">
+    <meta name="description" content="基于 Ack 反馈实现的网络下行链路异常检测">
     <meta name="keywords"  content="Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="私有协议带宽探测的设计与实现 - Mr Chen">
+    <meta property="og:title" content="基于 Ack 反馈实现的网络下行链路异常检测 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/protocol/probe-bandwidth.html">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/abnormal-network-detect.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/protocol/abnormal-network-detect.html">
     
-    
-    <meta property="og:next_url" content="/protocol/rut-protocol-design.html">
+    <meta property="og:next_url" content="/protocol/probe-bandwidth.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-10-30 00:00:00 +0000" />
+    <meta property="post-date" content="2025-11-01 00:00:00 +0000" />
     
     
     
@@ -166,7 +164,7 @@
             
           
         </div>
-        <h1>私有协议带宽探测的设计与实现</h1>
+        <h1>基于 Ack 反馈实现的网络下行链路异常检测</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="25-10-30">
+          <time class="post-meta-item" datetime="25-11-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="25-10-30">
+          <time class="post-meta-item" datetime="25-11-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.1k  字
+              本文总共  4.2k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 4 分钟
+              阅读全文大约需要 13 分钟
             </span>
             
               <span class="post-meta-item">
@@ -214,7 +212,7 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">带宽探测策略设计与实现</h2>
+      <h2 class="post-subtitle">RUT 基于 Ack 反馈包检测网络下行链路是否异常</h2>
       
 
       
@@ -223,88 +221,253 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制<strong>业务发多快、就只能看见多快</strong>的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。</p>
+            <h2 id="背景与问题">背景与问题</h2>
+
+<table>
+  <tbody>
+    <tr>
+      <td>RUT 是基于 UDP 实现的同时支持可靠和不可靠差异化 Qos 的传输协议，发送端的拥塞控制、重传决策都强依赖于 <strong>ACK 的到达节奏</strong>。在真实弱网中，反馈链路（incoming</td>
+      <td>downlink，承载对端发回的 ACK）经常出现两种典型的异常状态：</td>
+    </tr>
+  </tbody>
+</table>
+
+<ol>
+  <li>
+<strong>ACK 卡顿（ACK stuck）</strong>：反馈链路被瞬时阻塞，ACK 长时间不到。发送端误以为数据丢了，触发不必要的超时重传，或者在静默期（quiescence）Timer 偏长，醒得太晚。</li>
+  <li>
+<strong>ACK 突发（ACK burst）</strong>：链路阻塞解除后，被排队积压的 ACK 在极短时间内集中涌入。这是 “反馈链路异常” 的特征之——：数据本身可能没丢，只是 ACK 在回来的路上被攒了一波。</li>
+</ol>
+
+<p>简单的 “基于 RTT 阈值” 判断无法区分 “前向链路差” 还是 “反馈链路差”。本算法的目标是：<strong>仅凭 ACK 到达的时间分布与数量分布，识别出反馈链路的异常，并为 RTO 重传策略提供更精准的 ACK 超时时间点。</strong></p>
+
+<h2 id="设计目标">设计目标</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>目标</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>链路方向判定</td>
+      <td>当判定为 ACK 突发时，向上层报告 <code class="language-plaintext highlighter-rouge">Direction::kIncoming</code> 异常</td>
+    </tr>
+    <tr>
+      <td>ACK 卡顿超时</td>
+      <td>给出一个动态的 ACK 等待截止时间，供 <code class="language-plaintext highlighter-rouge">重传决策模块 RetransmitManager</code> 使用</td>
+    </tr>
+    <tr>
+      <td>零额外探测</td>
+      <td>完全复用已有的 <code class="language-plaintext highlighter-rouge">OnPacketSent</code> / <code class="language-plaintext highlighter-rouge">OnAckFrame</code> 上层驱动事件，无需主动探测包</td>
+    </tr>
+    <tr>
+      <td>极低开销</td>
+      <td>仅维护几个标记位 + 一个三态状态机；开关用位域，仅需 1 个字节开销</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>两个能力可独立开关：</p>
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">enable_link_detection_</code>：链路方向检测（burst 突发判定）</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">enable_ack_stuck_detection_</code>：ACK 卡顿检测</li>
+</ul>
+
+<h2 id="核心状态与数据结构">核心状态与数据结构</h2>
+
+<blockquote>
+  <p>EWMA: 指数加权移动平均算法。</p>
 </blockquote>
 
-<h2 id="为什么需要主动探测">为什么需要主动探测</h2>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="n">State</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span> <span class="n">STATE_NORMAL</span><span class="p">,</span> <span class="n">STATE_ACK_SPARSE</span><span class="p">,</span> <span class="n">STATE_ACK_BURST</span> <span class="p">};</span>
+</code></pre></div></div>
 
-<p>拥塞控制会根据 ACK 和丢包反馈调节发送速率，但它天然偏向跟着业务走,业务层发得慢，观测到的带宽就低；业务发得快，才更容易看到上限。</p>
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code></td>
+      <td>相邻两次 ACK 事件时间间隔的 EWMA（0.7 旧 + 0.3 新）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code></td>
+      <td>每 50ms 窗口内 ACK 包数量的 EWMA</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_pkt_counter</code></td>
+      <td>当前 50ms 窗口已累计的 ACK 包数</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">last_ack_event_time</code></td>
+      <td>上一次收到 ACK 反馈包的时间</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_burst_start_time</code></td>
+      <td>进入异常态的起始时间（用于 500ms 后状态的清除）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">cal_ack_num_update_time</code></td>
+      <td>窗口统计的对齐时间戳</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>然而业务方普遍的偏保守（例如在弱网下主动降低码率甚至暂停发送），系统可能长期低估可用带宽。主动探测的价值在于：<strong>在合适时机注入一小段可控的突发数据</strong>，用样本反推链路能力，再把结果反馈给上层做码率决策，最终获得真实的码率上限。</p>
+<p><strong>位域技巧</strong>：两个开关与 <code class="language-plaintext highlighter-rouge">enable_anything</code> 共用一个 union。热路径入口只需 <code class="language-plaintext highlighter-rouge">if (!enable_anything) return;</code> 一次判断即可同时短路两个特性，避免分别取两个 bool 进行判断。</p>
 
-<h2 id="整体架构图">整体架构图</h2>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">union</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="p">{</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_link_detection</span>      <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_ack_stuck_detection</span> <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">unused</span>                     <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="kt">uint8_t</span> <span class="n">enable_anything</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
 
-<p>ProbeManager 聚合多个探测会话，统一维护全局带宽估计，并把最大目标速率、探测窗口时长等参数回传给上层；每个会话独立维护自己的探测节奏、本地滑窗和待发的 Cluster 队列。</p>
+<h2 id="关键算法实现">关键算法实现</h2>
 
-<p><img src="/assets/img/blog/probe-bandwidth/01-architecture.jpeg" alt="整体架构图"></p>
+<h3 id="稀疏判定-maybeburstackcoming">稀疏判定 <code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code>
+</h3>
+
+<p>判断是否 “ACK 突然变得稀疏 Sparse”，这是 Burst 突发到来的征兆，需同时满足以下条件：</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 即 Ack 平均到达间隔时间的平均值，已初始化；</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">ack_diff &gt; kAckDiffMinGap</code>（50ms）；</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">rtt_diverge &gt; kRttDivergeThreshold(60ms)</code>（<code class="language-plaintext highlighter-rouge">rtt_diverge</code> 为 <code class="language-plaintext highlighter-rouge">latest_rtt - smoothed_rtt</code>，满足该条件时，说明网络队列在增长）；</li>
+  <li>且本次间隔显著超过历史均值，满足以下任一：
+    <ul>
+      <li>
+<code class="language-plaintext highlighter-rouge">ack_diff &gt; avg + 3*50ms</code>（绝对超出）</li>
+      <li>
+<code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*10 且 &gt; 2*50ms</code>（相对暴增）</li>
+      <li>
+<code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*9 且 cwnd 余量 &lt; 1000</code>（窗口快打满时更敏感）</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="状态迁移">状态迁移</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NORMAL ──(检测到稀疏)──► ACK_SPARSE ──(随后涌入大量 ACK)──► ACK_BURST
+   ▲                                                          │
+   └──────────────(异常起点超过 500ms 老化｜过期｜清除)───────────────────┘
+</code></pre></div></div>
+
+<ul>
+  <li>
+<strong>NORMAL → ACK_SPARSE</strong>：<code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code> 命中时，刷新 <code class="language-plaintext highlighter-rouge">ack_burst_start_time</code>。</li>
+  <li>
+<strong>ACK_SPARSE → ACK_BURST</strong>：在 500ms 窗口内，ACK 数量相对均值暴涨——<code class="language-plaintext highlighter-rouge">ack_pkt_counter &gt; avg*2 且 avg+7 &lt; counter</code>，或 <code class="language-plaintext highlighter-rouge">avg+5 &lt; counter 且 bytes_in_flight &lt; cwnd/5</code>（在途数据已大量被确认）。此时确认是积压 ACK 的集中释放。</li>
+  <li>
+<strong>任意态 → NORMAL</strong>：<code class="language-plaintext highlighter-rouge">ack_burst_start_time</code> 未初始化，或距异常起点已超过 <strong>500ms</strong>（复位）。</li>
+</ul>
+
+<p>只有处于 <code class="language-plaintext highlighter-rouge">STATE_ACK_BURST</code> 状态且开启链路检测时，<code class="language-plaintext highlighter-rouge">GetAbnormalLink()</code> 才返回 <code class="language-plaintext highlighter-rouge">kIncoming</code>。</p>
+
+<h3 id="均值更新策略">均值更新策略</h3>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 仅在 <strong>NORMAL 态</strong> 且 <code class="language-plaintext highlighter-rouge">ack_diff &gt; 0</code> 时用 EWMA 更新，避免异常态污染基线。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code> 在 <code class="language-plaintext highlighter-rouge">UpdateAckPacketNum</code> 中每超过 50ms 结算一次窗口，同样<strong>只在 NORMAL 态更新</strong>，结算后计数清零。首次直接取值，之后 EWMA。</li>
+</ul>
+
+<h3 id="ack-卡顿超时-getackstucktimeout">ACK 卡顿超时 <code class="language-plaintext highlighter-rouge">GetAckStuckTimeout</code>
+</h3>
+
+<p>为重传管理器计算出”再等多久还没收到 ACK 包就算当前链路卡住了”，<strong>如果重传管理器的该定时器超时未收到 Ack，那么将通过上层设置 Pacer 开启一段时间的非受限模式,即在未来的 1 秒内可以立即发送任何数据，不受 Pacer Bucket 的限制，直到接收到新的 Ack 反馈包以后将此状态消除</strong>。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
+     expected_next_ack_time + 60ms )
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bytes_in_flight == 0</code> 或基线未建立时返回 0（不启用）。下界由历史 ACK 节奏决定，并保证不早于”期望下次 ACK 时间 + RTT 抖动容忍”。</p>
 
 <h2 id="时序图">时序图</h2>
 
-<p><img src="/assets/img/blog/probe-bandwidth/09-callbacks.jpeg" alt="整体时序图"></p>
+<p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
 
-<h2 id="单个探测会话状态机">单个探测会话状态机</h2>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant Net as 反馈链路
+    participant Path as Path
+    participant Det as AbnormalNetworkDetector
+    participant RM as RetransmissionManager
 
-<p><img src="/assets/img/blog/probe-bandwidth/02-session-state.jpeg" alt="单个探测会话状态机"></p>
+    Note over Path,Det: 正常阶段（STATE_NORMAL）
+    Path-&gt;&gt;Det: OnPacketSent(now)
+    Det-&gt;&gt;Det: UpdateAckPacketNum()&lt;br/&gt;维护 avg_ack_pkt_num
+    Net--&gt;&gt;Path: ACK frame
+    Path-&gt;&gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
+    Det-&gt;&gt;Det: ack_diff = now - last_ack_event&lt;br/&gt;EWMA 更新 avg_ack_time_diff
+    Det-&gt;&gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
+
+    Note over Net: 反馈链路开始阻塞，ACK 被排队
+    Net--xPath: ACK 长时间不到
+    Path-&gt;&gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&gt;60ms)
+    Det-&gt;&gt;Det: MaybeBurstAckComing() = true
+    Det-&gt;&gt;Det: NORMAL → ACK_SPARSE&lt;br/&gt;记录 ack_burst_start_time
+
+    Note over Net: 阻塞解除，积压 ACK 集中涌入
+    Net--&gt;&gt;Path: ACK 突发（大批量）
+    loop 500ms 窗口内
+        Path-&gt;&gt;Det: OnAckFrame(...)
+        Det-&gt;&gt;Det: ack_pkt_counter 快速累加
+    end
+    Det-&gt;&gt;Det: counter 远超 avg_ack_pkt_num&lt;br/&gt;ACK_SPARSE → ACK_BURST
+
+    Path-&gt;&gt;Det: GetAbnormalLink()
+    Det--&gt;&gt;Path: Direction::kIncoming
+
+    Note over Det: 距异常起点超过 500ms
+    Path-&gt;&gt;Det: OnAckFrame(...)
+    Det-&gt;&gt;Det: 老化复位 → STATE_NORMAL
+    Det--&gt;&gt;Path: GetAbnormalLink() = nullopt
+</code></pre>
+
+<h2 id="状态机图">状态机图</h2>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; NORMAL
+    NORMAL --&gt; ACK_SPARSE: MaybeBurstAckComing()命中&lt;br/&gt;(ack_diff 暴增 &amp; rtt 发散)
+    ACK_SPARSE --&gt; ACK_BURST: 500ms 内 ACK 数量&lt;br/&gt;远超历史均值
+    ACK_SPARSE --&gt; NORMAL: 距异常起点 &gt; 500ms
+    ACK_BURST --&gt; NORMAL: 距异常起点 &gt; 500ms
+    ACK_BURST --&gt; ACK_BURST: 持续突发，刷新起点
+
+    note right of ACK_BURST
+        GetAbnormalLink() = kIncoming
+        判定反馈链路异常
+    end note
+</code></pre>
+
+<h2 id="设计权衡与局限">设计权衡与局限</h2>
 
 <ul>
   <li>
-<strong>Disabled</strong>：未启用带宽探测，不响应定时器与 ACK。</li>
+<strong>只测反馈方向</strong>：当前 <code class="language-plaintext highlighter-rouge">GetAbnormalLink</code> 只产出 <code class="language-plaintext highlighter-rouge">kIncoming</code>，因为 “ACK 突发” 是反馈链路的特征信号；前向链路异常由丢包/拥塞算法另行判断。</li>
   <li>
-<strong>EnabledIdle</strong>：启用带宽探测，等待下一轮触发。</li>
+<strong>基线纯净性</strong>：均值统计严格只在 NORMAL 态更新，保证异常期间不会自我污染，但代价是异常持续时基线被 “冻结”。</li>
   <li>
-<strong>InterProbing</strong>：一轮内默认约 4 档（可配），每档对应一个 cluster；ACK(包括 random loss) 在暂停态更新样本与本地滑窗。</li>
+<strong>500ms 老化</strong>：在保证及时复位与避免抖动误判之间取的折中值；超长抖动场景可能反复进出异常态，对于超大延迟 + jitter 的场景不友好。</li>
+  <li>
+<strong>无主动探测</strong>：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。</li>
 </ul>
-
-<hr>
-
-<h2 id="启动探测前提条件">启动探测前提条件</h2>
-
-<p>启动一轮新的探测需同时满足多组条件，如：</p>
-<ul>
-  <li>当前 CC 状态是否处于慢启动，且 Path 配置是否允许在该阶段进行探测。</li>
-  <li>当前带宽非近期受限。</li>
-  <li>拥塞控制状态允许，如 BBR 需要在 Probe_BW 和 STARTUP 阶段才允许开启探测。</li>
-  <li>且当前稳态带宽尚未达到目标上限。</li>
-</ul>
-
-<p><img src="/assets/img/blog/probe-bandwidth/03-gate.jpeg" alt="启动会话前的状态判断"></p>
-
-<h2 id="单档-intra-probe-推进策略">单档 Intra-Probe 推进策略</h2>
-
-<p>一档 cluster 发完且样本到齐后：达到目标上限 90% （包数或者字节数满足）则成功结束；已走完预设档位则结束；若当前档不足 70% 则提前结束；否则按指数缩放进入下一档。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/04-intra-probe.jpeg" alt="单档 Intra-Probe 推进决策"></p>
-
-<h2 id="cluster-队列按档位进行探测的子状态机">Cluster 队列(按档位进行探测)的子状态机</h2>
-
-<p>队列在「非激活 / 激活」间切换：有 cluster 待发则激活并通知上层开始探测；满包数且满字节，或 1 秒发送超时，则回到非激活并通知停止。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/05-cluster-queue.jpeg" alt="Cluster 队列的子状态机"></p>
-
-<h2 id="cluster-完整生命周期">Cluster 完整生命周期</h2>
-
-<p>单个 cluster 从创建、入队、发送，到完成或中止，再进入估计器的聚合与结算；样本不足过久则过期，并以当前最大样本兜底。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/06-cluster-lifecycle.png" alt="Cluster 完整生命周期"></p>
-
-<h2 id="带宽估计">带宽估计</h2>
-
-<p>每个 ACK/接收事件按 cluster 归入聚合状态，在发送、接收、ACK 三个记录队列上分别建立样本；三条同时有效时取各记录队列速率的最小值，再写入全局滑窗最大值滤波器。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/07-bandwidth-estimate.jpeg" alt="带宽估计"></p>
-
-<h2 id="定时器主循环">定时器主循环</h2>
-
-<p>周期心跳驱动一切：遍历会话、清理过期 cluster、按节奏启动新一轮或激活下一档，最后聚合全局参数并维护估计器滑窗衰减。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/08-timer-loop.jpeg" alt="定时器主循环"></p>
-
-<h2 id="三类回调总览">三类回调总览</h2>
-
-<p>从时序上讲，探测由三类事件串联：<strong>心跳</strong>定节奏、<strong>发包</strong>执行 cluster、<strong>ACK</strong> 回填样本并驱动升档或结束。</p>
-
-<p><img src="/assets/img/blog/probe-bandwidth/09-callbacks.jpeg" alt="三类回调的总览"></p>
 
             <div class="post-copyright">
               <p>
@@ -320,15 +483,15 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 私有协议带宽探测的设计与实现 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/probe-bandwidth.html" class="cplink">https://gbcpp.github.io/protocol/probe-bandwidth.html</a></p>
+              <p><span>本文标题：</span>《 基于 Ack 反馈实现的网络下行链路异常检测 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" class="cplink">https://gbcpp.github.io/protocol/abnormal-network-detect.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('为什么需要主动探测')">为什么需要主动探测</a></li><li><a onclick="scrollToAdjust('整体架构图')">整体架构图</a></li><li><a onclick="scrollToAdjust('时序图')">时序图</a></li><li><a onclick="scrollToAdjust('单个探测会话状态机')">单个探测会话状态机</a></li><li><a onclick="scrollToAdjust('启动探测前提条件')">启动探测前提条件</a></li><li><a onclick="scrollToAdjust('单档-intra-probe-推进策略')">单档 Intra-Probe 推进策略</a></li><li><a onclick="scrollToAdjust('cluster-队列(按档位进行探测)的子状态机')">Cluster 队列(按档位进行探测)的子状态机</a></li><li><a onclick="scrollToAdjust('cluster-完整生命周期')">Cluster 完整生命周期</a></li><li><a onclick="scrollToAdjust('带宽估计')">带宽估计</a></li><li><a onclick="scrollToAdjust('定时器主循环')">定时器主循环</a></li><li><a onclick="scrollToAdjust('三类回调总览')">三类回调总览</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('背景与问题')">背景与问题</a></li><li><a onclick="scrollToAdjust('设计目标')">设计目标</a></li><li><a onclick="scrollToAdjust('核心状态与数据结构')">核心状态与数据结构</a></li><li><a onclick="scrollToAdjust('关键算法实现')">关键算法实现</a><ul><li><a onclick="scrollToAdjust('稀疏判定-<code-class="language-plaintext-highlighter-rouge">maybeburstackcoming</code>')">稀疏判定 <code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code></a></li><li><a onclick="scrollToAdjust('状态迁移')">状态迁移</a></li><li><a onclick="scrollToAdjust('均值更新策略')">均值更新策略</a></li><li><a onclick="scrollToAdjust('ack-卡顿超时-<code-class="language-plaintext-highlighter-rouge">getackstucktimeout</code>')">ACK 卡顿超时 <code class="language-plaintext highlighter-rouge">GetAckStuckTimeout</code></a></li></ul></li><li><a onclick="scrollToAdjust('时序图')">时序图</a></li><li><a onclick="scrollToAdjust('状态机图')">状态机图</a></li><li><a onclick="scrollToAdjust('设计权衡与局限')">设计权衡与局限</a></li></ul>
         </div>
       </div>
       
@@ -382,22 +545,13 @@
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/protocol/abnormal-network-detect.html" class="read-next-link" aria-label="基于 Ack 反馈实现的网络下行链路异常检测"></a>
-          <section>
-            <span>基于 Ack 反馈实现的网络下行链路异常检测</span>
-            <p>背景与问题</p>
-          </section>
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/protocol/rut-protocol-design.html" class="read-next-link" aria-label="RUT protocol design"></a>
+          <a href="/protocol/probe-bandwidth.html" class="read-next-link" aria-label="私有协议带宽探测的设计与实现"></a>
             <section>
-              <span>RUT protocol design</span>
-              <p>设计思想</p>
+              <span>私有协议带宽探测的设计与实现</span>
+              <p>  带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制业务发多快、就只能看见多快的不...</p>
             </section>
             
         </div>
@@ -413,7 +567,7 @@
   
   <script>
     var gitalk = new Gitalk({
-      id: '2025-10-30 00:00:00 +0000',
+      id: '2025-11-01 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -626,7 +780,7 @@
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2025-10-15-probe-bandwidth.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2026-04-01-abnormal-network-detect-.md")
           .then((response) => {
             return response.json();
           })
