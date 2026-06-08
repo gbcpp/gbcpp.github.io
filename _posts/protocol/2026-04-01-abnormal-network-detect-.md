@@ -116,61 +116,12 @@ max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
 
 下面的时序图展示一次"反馈链路阻塞 → 恢复"过程中，各组件的交互与状态迁移。
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Net as 反馈链路
-    participant Path as Path
-    participant Det as AbnormalNetworkDetector
-    participant RM as RetransmissionManager
+![时序图](/assets/img/blog/abnormal_dectect_1.jpeg)
 
-    Note over Path,Det: 正常阶段（STATE_NORMAL）
-    Path->>Det: OnPacketSent(now)
-    Det->>Det: UpdateAckPacketNum()<br/>维护 avg_ack_pkt_num
-    Net-->>Path: ACK frame
-    Path->>Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
-    Det->>Det: ack_diff = now - last_ack_event<br/>EWMA 更新 avg_ack_time_diff
-    Det->>RM: GetAckStuckTimeout() → SetAckStuckTimeout()
-
-    Note over Net: 反馈链路开始阻塞，ACK 被排队
-    Net--xPath: ACK 长时间不到
-    Path->>Det: OnAckFrame(ack_diff 很大, rtt_diverge>60ms)
-    Det->>Det: MaybeBurstAckComing() = true
-    Det->>Det: NORMAL → ACK_SPARSE<br/>记录 ack_burst_start_time
-
-    Note over Net: 阻塞解除，积压 ACK 集中涌入
-    Net-->>Path: ACK 突发（大批量）
-    loop 500ms 窗口内
-        Path->>Det: OnAckFrame(...)
-        Det->>Det: ack_pkt_counter 快速累加
-    end
-    Det->>Det: counter 远超 avg_ack_pkt_num<br/>ACK_SPARSE → ACK_BURST
-
-    Path->>Det: GetAbnormalLink()
-    Det-->>Path: Direction::kIncoming
-
-    Note over Det: 距异常起点超过 500ms
-    Path->>Det: OnAckFrame(...)
-    Det->>Det: 老化复位 → STATE_NORMAL
-    Det-->>Path: GetAbnormalLink() = nullopt
-```
 
 ## 状态机图
 
-```mermaid
-stateDiagram-v2
-    [*] --> NORMAL
-    NORMAL --> ACK_SPARSE: MaybeBurstAckComing()命中<br/>(ack_diff 暴增 & rtt 发散)
-    ACK_SPARSE --> ACK_BURST: 500ms 内 ACK 数量<br/>远超历史均值
-    ACK_SPARSE --> NORMAL: 距异常起点 > 500ms
-    ACK_BURST --> NORMAL: 距异常起点 > 500ms
-    ACK_BURST --> ACK_BURST: 持续突发，刷新起点
-
-    note right of ACK_BURST
-        GetAbnormalLink() = kIncoming
-        判定反馈链路异常
-    end note
-```
+![状态转换图](/assets/img/blog/abnormal_dectect_2.jpeg)
 
 ## 设计权衡与局限
 
