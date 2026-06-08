@@ -189,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  4.2k  字
+              本文总共  2.8k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 13 分钟
+              阅读全文大约需要 8 分钟
             </span>
             
               <span class="post-meta-item">
@@ -402,59 +402,11 @@
 
 <p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
 
-<pre><code class="language-mermaid">sequenceDiagram
-    autonumber
-    participant Net as 反馈链路
-    participant Path as Path
-    participant Det as AbnormalNetworkDetector
-    participant RM as RetransmissionManager
-
-    Note over Path,Det: 正常阶段（STATE_NORMAL）
-    Path-&gt;&gt;Det: OnPacketSent(now)
-    Det-&gt;&gt;Det: UpdateAckPacketNum()&lt;br/&gt;维护 avg_ack_pkt_num
-    Net--&gt;&gt;Path: ACK frame
-    Path-&gt;&gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
-    Det-&gt;&gt;Det: ack_diff = now - last_ack_event&lt;br/&gt;EWMA 更新 avg_ack_time_diff
-    Det-&gt;&gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
-
-    Note over Net: 反馈链路开始阻塞，ACK 被排队
-    Net--xPath: ACK 长时间不到
-    Path-&gt;&gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&gt;60ms)
-    Det-&gt;&gt;Det: MaybeBurstAckComing() = true
-    Det-&gt;&gt;Det: NORMAL → ACK_SPARSE&lt;br/&gt;记录 ack_burst_start_time
-
-    Note over Net: 阻塞解除，积压 ACK 集中涌入
-    Net--&gt;&gt;Path: ACK 突发（大批量）
-    loop 500ms 窗口内
-        Path-&gt;&gt;Det: OnAckFrame(...)
-        Det-&gt;&gt;Det: ack_pkt_counter 快速累加
-    end
-    Det-&gt;&gt;Det: counter 远超 avg_ack_pkt_num&lt;br/&gt;ACK_SPARSE → ACK_BURST
-
-    Path-&gt;&gt;Det: GetAbnormalLink()
-    Det--&gt;&gt;Path: Direction::kIncoming
-
-    Note over Det: 距异常起点超过 500ms
-    Path-&gt;&gt;Det: OnAckFrame(...)
-    Det-&gt;&gt;Det: 老化复位 → STATE_NORMAL
-    Det--&gt;&gt;Path: GetAbnormalLink() = nullopt
-</code></pre>
+<p><img src="/assets/img/blog/abnormal_dectect_1.jpeg" alt="时序图"></p>
 
 <h2 id="状态机图">状态机图</h2>
 
-<pre><code class="language-mermaid">stateDiagram-v2
-    [*] --&gt; NORMAL
-    NORMAL --&gt; ACK_SPARSE: MaybeBurstAckComing()命中&lt;br/&gt;(ack_diff 暴增 &amp; rtt 发散)
-    ACK_SPARSE --&gt; ACK_BURST: 500ms 内 ACK 数量&lt;br/&gt;远超历史均值
-    ACK_SPARSE --&gt; NORMAL: 距异常起点 &gt; 500ms
-    ACK_BURST --&gt; NORMAL: 距异常起点 &gt; 500ms
-    ACK_BURST --&gt; ACK_BURST: 持续突发，刷新起点
-
-    note right of ACK_BURST
-        GetAbnormalLink() = kIncoming
-        判定反馈链路异常
-    end note
-</code></pre>
+<p><img src="/assets/img/blog/abnormal_dectect_2.jpeg" alt="状态转换图"></p>
 
 <h2 id="设计权衡与局限">设计权衡与局限</h2>
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-08T09:01:26+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect-</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-08T09:10:02+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect-</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
 
 <table>
   <tbody>
@@ -162,59 +162,11 @@
 
 <p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
 
-<pre><code class="language-mermaid">sequenceDiagram
-    autonumber
-    participant Net as 反馈链路
-    participant Path as Path
-    participant Det as AbnormalNetworkDetector
-    participant RM as RetransmissionManager
-
-    Note over Path,Det: 正常阶段（STATE_NORMAL）
-    Path-&gt;&gt;Det: OnPacketSent(now)
-    Det-&gt;&gt;Det: UpdateAckPacketNum()&lt;br/&gt;维护 avg_ack_pkt_num
-    Net--&gt;&gt;Path: ACK frame
-    Path-&gt;&gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
-    Det-&gt;&gt;Det: ack_diff = now - last_ack_event&lt;br/&gt;EWMA 更新 avg_ack_time_diff
-    Det-&gt;&gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
-
-    Note over Net: 反馈链路开始阻塞，ACK 被排队
-    Net--xPath: ACK 长时间不到
-    Path-&gt;&gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&gt;60ms)
-    Det-&gt;&gt;Det: MaybeBurstAckComing() = true
-    Det-&gt;&gt;Det: NORMAL → ACK_SPARSE&lt;br/&gt;记录 ack_burst_start_time
-
-    Note over Net: 阻塞解除，积压 ACK 集中涌入
-    Net--&gt;&gt;Path: ACK 突发（大批量）
-    loop 500ms 窗口内
-        Path-&gt;&gt;Det: OnAckFrame(...)
-        Det-&gt;&gt;Det: ack_pkt_counter 快速累加
-    end
-    Det-&gt;&gt;Det: counter 远超 avg_ack_pkt_num&lt;br/&gt;ACK_SPARSE → ACK_BURST
-
-    Path-&gt;&gt;Det: GetAbnormalLink()
-    Det--&gt;&gt;Path: Direction::kIncoming
-
-    Note over Det: 距异常起点超过 500ms
-    Path-&gt;&gt;Det: OnAckFrame(...)
-    Det-&gt;&gt;Det: 老化复位 → STATE_NORMAL
-    Det--&gt;&gt;Path: GetAbnormalLink() = nullopt
-</code></pre>
+<p><img src="/assets/img/blog/abnormal_dectect_1.jpeg" alt="时序图" /></p>
 
 <h2 id="状态机图">状态机图</h2>
 
-<pre><code class="language-mermaid">stateDiagram-v2
-    [*] --&gt; NORMAL
-    NORMAL --&gt; ACK_SPARSE: MaybeBurstAckComing()命中&lt;br/&gt;(ack_diff 暴增 &amp; rtt 发散)
-    ACK_SPARSE --&gt; ACK_BURST: 500ms 内 ACK 数量&lt;br/&gt;远超历史均值
-    ACK_SPARSE --&gt; NORMAL: 距异常起点 &gt; 500ms
-    ACK_BURST --&gt; NORMAL: 距异常起点 &gt; 500ms
-    ACK_BURST --&gt; ACK_BURST: 持续突发，刷新起点
-
-    note right of ACK_BURST
-        GetAbnormalLink() = kIncoming
-        判定反馈链路异常
-    end note
-</code></pre>
+<p><img src="/assets/img/blog/abnormal_dectect_2.jpeg" alt="状态转换图" /></p>
 
 <h2 id="设计权衡与局限">设计权衡与局限</h2>
 

@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 08 Jun 2026 09:01:26 +0000</pubDate>
-    <lastBuildDate>Mon, 08 Jun 2026 09:01:26 +0000</lastBuildDate>
+    <pubDate>Mon, 08 Jun 2026 09:10:02 +0000</pubDate>
+    <lastBuildDate>Mon, 08 Jun 2026 09:10:02 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -175,59 +175,11 @@
 
 &lt;p&gt;下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;sequenceDiagram
-    autonumber
-    participant Net as 反馈链路
-    participant Path as Path
-    participant Det as AbnormalNetworkDetector
-    participant RM as RetransmissionManager
-
-    Note over Path,Det: 正常阶段（STATE_NORMAL）
-    Path-&amp;gt;&amp;gt;Det: OnPacketSent(now)
-    Det-&amp;gt;&amp;gt;Det: UpdateAckPacketNum()&amp;lt;br/&amp;gt;维护 avg_ack_pkt_num
-    Net--&amp;gt;&amp;gt;Path: ACK frame
-    Path-&amp;gt;&amp;gt;Det: OnAckFrame(now, in_flight, cwnd, rtt_diverge)
-    Det-&amp;gt;&amp;gt;Det: ack_diff = now - last_ack_event&amp;lt;br/&amp;gt;EWMA 更新 avg_ack_time_diff
-    Det-&amp;gt;&amp;gt;RM: GetAckStuckTimeout() → SetAckStuckTimeout()
-
-    Note over Net: 反馈链路开始阻塞，ACK 被排队
-    Net--xPath: ACK 长时间不到
-    Path-&amp;gt;&amp;gt;Det: OnAckFrame(ack_diff 很大, rtt_diverge&amp;gt;60ms)
-    Det-&amp;gt;&amp;gt;Det: MaybeBurstAckComing() = true
-    Det-&amp;gt;&amp;gt;Det: NORMAL → ACK_SPARSE&amp;lt;br/&amp;gt;记录 ack_burst_start_time
-
-    Note over Net: 阻塞解除，积压 ACK 集中涌入
-    Net--&amp;gt;&amp;gt;Path: ACK 突发（大批量）
-    loop 500ms 窗口内
-        Path-&amp;gt;&amp;gt;Det: OnAckFrame(...)
-        Det-&amp;gt;&amp;gt;Det: ack_pkt_counter 快速累加
-    end
-    Det-&amp;gt;&amp;gt;Det: counter 远超 avg_ack_pkt_num&amp;lt;br/&amp;gt;ACK_SPARSE → ACK_BURST
-
-    Path-&amp;gt;&amp;gt;Det: GetAbnormalLink()
-    Det--&amp;gt;&amp;gt;Path: Direction::kIncoming
-
-    Note over Det: 距异常起点超过 500ms
-    Path-&amp;gt;&amp;gt;Det: OnAckFrame(...)
-    Det-&amp;gt;&amp;gt;Det: 老化复位 → STATE_NORMAL
-    Det--&amp;gt;&amp;gt;Path: GetAbnormalLink() = nullopt
-&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/abnormal_dectect_1.jpeg&quot; alt=&quot;时序图&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;状态机图&quot;&gt;状态机图&lt;/h2&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram-v2
-    [*] --&amp;gt; NORMAL
-    NORMAL --&amp;gt; ACK_SPARSE: MaybeBurstAckComing()命中&amp;lt;br/&amp;gt;(ack_diff 暴增 &amp;amp; rtt 发散)
-    ACK_SPARSE --&amp;gt; ACK_BURST: 500ms 内 ACK 数量&amp;lt;br/&amp;gt;远超历史均值
-    ACK_SPARSE --&amp;gt; NORMAL: 距异常起点 &amp;gt; 500ms
-    ACK_BURST --&amp;gt; NORMAL: 距异常起点 &amp;gt; 500ms
-    ACK_BURST --&amp;gt; ACK_BURST: 持续突发，刷新起点
-
-    note right of ACK_BURST
-        GetAbnormalLink() = kIncoming
-        判定反馈链路异常
-    end note
-&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/abnormal_dectect_2.jpeg&quot; alt=&quot;状态转换图&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;设计权衡与局限&quot;&gt;设计权衡与局限&lt;/h2&gt;
 
