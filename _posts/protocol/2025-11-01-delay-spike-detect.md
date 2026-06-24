@@ -36,7 +36,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 如果没有该算法介入，那么当发生 delay 阶跃时，传输协议内部指标 CWND、BWE 等关键性输出指标变化如下图，先速降然后再逐步爬升:
 
 
-![无 Delay 阶跃检测算法的传输协议走势](/assets/img/blog/delay-spike/without_delay_spike_detect.jpeg)
+![无 Delay 阶跃检测算法的传输协议走势](/assets/img/blog/delay-spike/without_delay_spike_detect.png)
 
 
 `延迟突变检测算法` 的职责：**把「真实、稳定的 RTT 水平阶跃」与「瞬时抖动 / 离群点」区分开**。一旦确认是稳定阶跃：
