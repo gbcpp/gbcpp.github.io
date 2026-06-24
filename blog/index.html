@@ -167,7 +167,7 @@
         <h3 class="post-subtitle"></h3>
         
         
-        <p class="post-excerpt">延迟突变检测算法 设计文档</p>
+        <p class="post-excerpt">  BBR 依赖 min_rtt 估算 BDP/CWND，但 min_rtt 只会被更小的 RTT 刷新，或等 10s 过期后进入 PROBE_RTT 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 min_rtt 会长期偏低...</p>
         
     </section>
     <footer class="post-meta">
@@ -499,7 +499,7 @@
             </div>
             <div class="author-name" rel="author">Mr Chen</div>
             <div class="bio">
-                <p>资深流媒体开发工作者</p>
+                <p>技术工作者</p>
             </div>
             <div class="level">
                 <div class="level-item">

@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 24 Jun 2026 07:19:53 +0000</pubDate>
-    <lastBuildDate>Wed, 24 Jun 2026 07:19:53 +0000</lastBuildDate>
+    <pubDate>Wed, 24 Jun 2026 07:28:25 +0000</pubDate>
+    <lastBuildDate>Wed, 24 Jun 2026 07:28:25 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -203,9 +203,7 @@
     
       <item>
         <title>如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title>
-        <description>&lt;h1 id=&quot;延迟突变检测算法-设计文档&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;延迟突变检测算法&lt;/code&gt; 设计文档&lt;/h1&gt;
-
-&lt;blockquote&gt;
+        <description>&lt;blockquote&gt;
   &lt;p&gt;BBR 依赖 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 估算 BDP/CWND，但 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 只会被更小的 RTT 刷新，或等 10s 过期后进入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 &lt;strong&gt;上跳&lt;/strong&gt; 后立即抬高 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 并跳过常规过期逻辑；&lt;strong&gt;下跳&lt;/strong&gt; 时放开 recovery 限制，由主干自然下调。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -335,6 +333,12 @@
 &lt;hr /&gt;
 
 &lt;h2 id=&quot;4-参数与阈值&quot;&gt;4. 参数与阈值&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;图片同表格，有时候表格渲染可能是乱码，可以查看图片。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/table-4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
 | ————————————— | ———— | — | —————————————————————————— |

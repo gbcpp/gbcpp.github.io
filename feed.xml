@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-24T07:19:53+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title><link href="https://gbcpp.github.io/protocol/delay-spike-detect.html" rel="alternate" type="text/html" title="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/delay-spike-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/delay-spike-detect.html"><![CDATA[<h1 id="延迟突变检测算法-设计文档"><code class="language-plaintext highlighter-rouge">延迟突变检测算法</code> 设计文档</h1>
-
-<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-06-24T07:28:25+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title><link href="https://gbcpp.github.io/protocol/delay-spike-detect.html" rel="alternate" type="text/html" title="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/delay-spike-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/delay-spike-detect.html"><![CDATA[<blockquote>
   <p>BBR 依赖 <code class="language-plaintext highlighter-rouge">min_rtt</code> 估算 BDP/CWND，但 <code class="language-plaintext highlighter-rouge">min_rtt</code> 只会被更小的 RTT 刷新，或等 10s 过期后进入 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 <code class="language-plaintext highlighter-rouge">min_rtt</code> 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 <strong>上跳</strong> 后立即抬高 <code class="language-plaintext highlighter-rouge">min_rtt</code> 并跳过常规过期逻辑；<strong>下跳</strong> 时放开 recovery 限制，由主干自然下调。</p>
 </blockquote>
 
@@ -130,6 +128,12 @@
 <hr />
 
 <h2 id="4-参数与阈值">4. 参数与阈值</h2>
+
+<blockquote>
+  <p>图片同表格，有时候表格渲染可能是乱码，可以查看图片。</p>
+</blockquote>
+
+<p><img src="/assets/img/blog/delay-spike/table-4.png" alt="" /></p>
 
 <p>| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
 | ————————————— | ———— | — | —————————————————————————— |
@@ -320,7 +324,7 @@ AND (
 <ol>
   <li><strong>整型方差 + <code class="language-plaintext highlighter-rouge">pow</code> 截断</strong>：<code class="language-plaintext highlighter-rouge">int rtt_dispersion = pow(...)</code> 用 <code class="language-plaintext highlighter-rouge">double</code> 计算后截断为 <code class="language-plaintext highlighter-rouge">int</code>；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 <code class="language-plaintext highlighter-rouge">int</code>，但属隐式窄化。</li>
   <li><strong>依赖 ACK 采样密度</strong>：等待期后需在 (200ms, 1200ms] 内攒够 10 个样本，低速率/稀疏 ACK 的链路可能始终攒不够而无法触发——这是有意的保守取舍（实时高包率场景才是目标）。</li>
-</ol>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[延迟突变检测算法 设计文档]]></summary></entry><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect-</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
+</ol>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[BBR 依赖 min_rtt 估算 BDP/CWND，但 min_rtt 只会被更小的 RTT 刷新，或等 10s 过期后进入 PROBE_RTT 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 min_rtt 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 上跳 后立即抬高 min_rtt 并跳过常规过期逻辑；下跳 时放开 recovery 限制，由主干自然下调。]]></summary></entry><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect-</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
 
 <table>
   <tbody>
