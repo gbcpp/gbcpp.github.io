@@ -6,6 +6,12 @@
   } ,
 
   {
+    "title"    : "如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性",
+    "tags"     : "Protocol",
+    "url"      : "/protocol/delay-spike-detect.html"
+  } ,
+
+  {
     "title"    : "私有协议带宽探测的设计与实现",
     "tags"     : "Protocol",
     "url"      : "/protocol/probe-bandwidth.html"

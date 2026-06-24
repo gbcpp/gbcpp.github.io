@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 08 Jun 2026 09:10:02 +0000</pubDate>
-    <lastBuildDate>Mon, 08 Jun 2026 09:10:02 +0000</lastBuildDate>
+    <pubDate>Wed, 24 Jun 2026 07:19:53 +0000</pubDate>
+    <lastBuildDate>Wed, 24 Jun 2026 07:19:53 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -193,6 +193,344 @@
         <pubDate>Sat, 01 Nov 2025 00:00:00 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/abnormal-network-detect.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/abnormal-network-detect.html</guid>
+        
+        <category>Protocol</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
+    
+      <item>
+        <title>如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title>
+        <description>&lt;h1 id=&quot;延迟突变检测算法-设计文档&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;延迟突变检测算法&lt;/code&gt; 设计文档&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;BBR 依赖 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 估算 BDP/CWND，但 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 只会被更小的 RTT 刷新，或等 10s 过期后进入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 &lt;strong&gt;上跳&lt;/strong&gt; 后立即抬高 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 并跳过常规过期逻辑；&lt;strong&gt;下跳&lt;/strong&gt; 时放开 recovery 限制，由主干自然下调。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;1-解决的问题&quot;&gt;1. 解决的问题&lt;/h2&gt;
+
+&lt;p&gt;BBR 的一切都建立在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;**min_rtt&lt;/code&gt;（链路往返最低延迟）** 之上：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;BDP = min_rtt × BandwidthEst&lt;/code&gt;，目标拥塞窗口 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;target_cwnd = gain × BDP&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 只在两种情况下被刷新：采样到了&lt;strong&gt;更小&lt;/strong&gt; 的 RTT，或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;**MinRttExpiry = 10s&lt;/code&gt; 过期** 后进入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 重新探测。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这套机制在「&lt;strong&gt;路径的真实传播时延发生持久阶跃&lt;/strong&gt;」时，也就是突然出现 rtt 持久性的变大，会失效：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;场景&lt;/th&gt;
+      &lt;th&gt;现象&lt;/th&gt;
+      &lt;th&gt;主干 BBR 的问题&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;路由切换 / 移动网络切换基站（handoff）&lt;/td&gt;
+      &lt;td&gt;RTT 整体上跳&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;旧的&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; &lt;strong&gt;已不可达，但在 10s 过期前一直被沿用 →&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;BDP&lt;/code&gt; &lt;strong&gt;被低估 → CWND 偏小 → 吞吐被饿死&lt;/strong&gt;, bwe 整体会经历快速降低然后再逐步升高恢复&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;路径整体变短（如切回低延迟链路）&lt;/td&gt;
+      &lt;td&gt;RTT 整体下跳&lt;/td&gt;
+      &lt;td&gt;主干靠「取更小值」能跟上，但下跳期间常伴随重排序/乱序丢包，恢复窗口会误压 CWND&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;如果没有该算法介入，那么当发生 delay 阶跃时，传输协议内部指标 CWND、BWE 等关键性输出指标变化如下图，先速降然后再逐步爬升:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/without_delay_spike_detect.png&quot; alt=&quot;无 Delay 阶跃检测算法的传输协议走势&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;延迟突变检测算法&lt;/code&gt; 的职责：&lt;strong&gt;把「真实、稳定的 RTT 水平阶跃」与「瞬时抖动 / 离群点」区分开&lt;/strong&gt;。一旦确认是稳定阶跃：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;上跳（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikeUp&lt;/code&gt;）&lt;/strong&gt;：立刻把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 抬到阶跃后的平滑水平，相当于不等 10s 过期、也不付出 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 吞吐凹陷的代价，就让 BBR 认识到「BDP 变大了」。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;下跳（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikeDown&lt;/code&gt;）&lt;/strong&gt;：交给主干「取更小值」自然跟进，检测器只负责放开恢复窗口限制。&lt;/li&gt;
+  &lt;li&gt;两种情况都置位 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisableRecoveryCwnd&lt;/code&gt;，避免阶跃过渡期里的伪丢包通过恢复窗口把有效 CWND 压死。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;总结：它是 BBR &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 的一条 &lt;strong&gt;快速上修通道 + 误判保护&lt;/strong&gt;，专门针对「传播延迟的突然变化」这一 BBR 处理不了的弱网形态。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;2-架构与接入点&quot;&gt;2. 架构与接入点&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/architecture.png&quot; alt=&quot;架构图&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;关键交互过程&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;当检测到 SpikeUp&lt;/code&gt; ：直接绕过常规的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 过期与下修逻辑，本轮 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 被强制设为阶跃后的平滑值，且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt_expired&lt;/code&gt; 视为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;（不触发 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt;）。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;如果检测到 SpikeDown&lt;/code&gt;： 不 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return&lt;/code&gt;，继续走常规逻辑，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;更小的 min rtt&lt;/code&gt; 会自然把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt 更新&lt;/code&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;3-数据结构状态变量&quot;&gt;3. 数据结构（状态变量）&lt;/h2&gt;
+
+&lt;p&gt;构造函数初值见 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_detector.h:12&lt;/code&gt;。&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;成员&lt;/th&gt;
+      &lt;th&gt;含义&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;基线轨道&lt;/strong&gt; 平滑 RTT（正常网络的短期 SRTT）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;基线轨道&lt;/strong&gt; 平滑方差；&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-1&lt;/code&gt; = 未初始化（bootstrap 哨兵）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_srtt&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;spike 轨道&lt;/strong&gt; 平滑 RTT；&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-1&lt;/code&gt; = 本次候选尚未开始累积&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_variance&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;spike 轨道&lt;/strong&gt; 平滑方差&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_count&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;spike 轨道累积的样本数（仅在越过 50ms 等待期后才累加）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;outside_point_count&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;候选挂起期间出现的「正常样本」计数，用于误报回滚&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;first_spiked_time&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;首个可疑样本的时刻；是否已初始化代表「是否处于候选挂起态」&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_states&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;最近一次确认的阶跃方向（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Normal&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikeUp&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikeDown&lt;/code&gt;）&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;两条轨道（dual-track）&lt;/strong&gt; 是核心设计：基线轨道始终跟踪「当前认定的正常水平」，spike 轨道是「候选新水平」的试探性平滑。只有 spike 轨道被确认后，才会 &lt;strong&gt;整体替换&lt;/strong&gt; 基线轨道。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;平滑均采用 RFC6298 风格的 EWMA（位移实现）：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;SRTT：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;srtt = (7·srtt + crtt) &amp;gt;&amp;gt; 3&lt;/code&gt;，即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;α = 1/8&lt;/code&gt; 取新值。&lt;/li&gt;
+  &lt;li&gt;方差：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;var = (3·var + dispersion) &amp;gt;&amp;gt; 2&lt;/code&gt;，即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;β = 1/4&lt;/code&gt; 取新值。&lt;/li&gt;
+  &lt;li&gt;注意 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dispersion = (crtt − srtt)²&lt;/code&gt; 是 &lt;strong&gt;平方偏差&lt;/strong&gt;，因此 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance&lt;/code&gt; 是平滑后的 &lt;strong&gt;方差&lt;/strong&gt;（均方偏差），&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sqrt(rtt_variance)&lt;/code&gt; 即标准差 σ。这一点是后面「6σ」判据成立的前提。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;4-参数与阈值&quot;&gt;4. 参数与阈值&lt;/h2&gt;
+
+&lt;p&gt;| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
+| ————————————— | ———— | — | —————————————————————————— |
+| &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MinimalRttDispersionThreshold&lt;/code&gt;        | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500&lt;/code&gt;       | ms² | 越界判据的方差下限。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500 = 50²&lt;/code&gt;，即 &lt;strong&gt;偏差至少 50ms&lt;/strong&gt; 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）           |
+| 越界倍数（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;）                          | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;         | —   | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36 = 6²&lt;/code&gt;。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dispersion &amp;gt; 36·var ⟺                                               |
+| &lt;/code&gt;StableDelaySpikeWaitingTime&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;          | &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | ms  | 首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点                                             |
+| &lt;/code&gt;MinimalDelaySpikeObservationDuration&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; | &lt;/code&gt;200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;        | ms  | 确认所需的 **最短** 观测时长（持续性下限）                                                       |
+| &lt;/code&gt;MaximalDelaySpikeObservationDuration&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; | &lt;/code&gt;1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;       | ms  | 确认的 **最长** 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）                                            |
+| &lt;/code&gt;MaximalRttSpikeThreshold&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;             | &lt;/code&gt;1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;       | ms  | 上跳幅度上限。&lt;/code&gt;spiked_srtt &amp;lt; short_term_srtt + 1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 &lt;/code&gt;min_rtt&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; |
+| spike 样本数门限（硬编码 &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                   | &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | 个   | spike 轨道需累积 ≥10 个样本                                                            |
+| 误报回滚门限（硬编码 &lt;/code&gt;3&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                         | &lt;/code&gt;3&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;          | 个   | 候选挂起期间累计 3 个正常样本即回滚                                                            |
+| 上跳稳定性系数（硬编码 &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                       | &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | —   | &lt;/code&gt;var·50 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√50 ≈ 14.1%&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;（变异系数上限，**严**）                        |
+| 下跳稳定性系数（硬编码 &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                       | &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | —   | &lt;/code&gt;var·10 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√10 ≈ 31.6%&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;（变异系数上限，**宽**）                        |
+| EWMA 系数                                 | &lt;/code&gt;1/8&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;, &lt;/code&gt;1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |&lt;/p&gt;
+
+&lt;h3 id=&quot;41-为什么上跳严下跳宽&quot;&gt;4.1 为什么上跳严、下跳宽？&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;上跳&lt;/strong&gt; 会把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 抬高 → 直接放大 BDP 与 CWND。误判代价大（可能引入 bufferbloat），故要求 spike 轨道变异系数 &amp;lt; 14.1%（很稳）且幅度 &amp;lt; 1200ms（有上限）。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;下跳&lt;/strong&gt; 只是放开恢复窗口钳制，真正的下修仍由主干「取更小值」把关，误判代价低，故放宽到 31.6% 以求 &lt;strong&gt;快速反应&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;5-运行状态机&quot;&gt;5. 运行状态机&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;这里描述的是检测器的 &lt;strong&gt;运行态&lt;/strong&gt;（操作语义），与对外输出的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;States&lt;/code&gt; 三值枚举不同——后者只是确认那一刻的方向标签。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/state-diagram.png&quot; alt=&quot;状态转换图&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;状态语义对照：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;运行态&lt;/th&gt;
+      &lt;th&gt;判定条件&lt;/th&gt;
+      &lt;th&gt;关键动作&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Bootstrap&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance &amp;lt; 0&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;用首样本直接初始化基线（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = dispersion&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt = crtt&lt;/code&gt;）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Baseline&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;first_spiked_time&lt;/code&gt; 未初始化&lt;/td&gt;
+      &lt;td&gt;每来一个正常样本就 EWMA 更新基线&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikePending&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;first_spiked_time&lt;/code&gt; 已初始化&lt;/td&gt;
+      &lt;td&gt;等待期（&amp;lt;50ms）只标记；越过 50ms 后向 spike 轨道累积 EWMA&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Confirmed&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;见 §6 确认判据&lt;/td&gt;
+      &lt;td&gt;提升基线、输出方向、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetSpikeRecord&lt;/code&gt;、返回 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;6-逐样本处理流程&quot;&gt;6. 逐样本处理流程&lt;/h2&gt;
+
+&lt;p&gt;入口 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaybeXXXHappened(now, crtt)&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;crtt&lt;/code&gt; 为最新 RTT（ms）。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/sequeue.png&quot; alt=&quot;逐样本处理流程图&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;61-越界判据&quot;&gt;6.1 越界判据&lt;/h3&gt;
+
+&lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rtt_dispersion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;36&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rtt_variance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MinimalRttDispersionThreshold&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|crtt − short_term_srtt| &amp;gt; max(6σ, 50ms)&lt;/code&gt;，即同时满足「偏离基线 &amp;gt;6 个标准差」&lt;strong&gt;且&lt;/strong&gt;「绝对偏离 &amp;gt;50ms」。&lt;/p&gt;
+
+&lt;h3 id=&quot;62-spike-轨道累积&quot;&gt;6.2 spike 轨道累积&lt;/h3&gt;
+
+&lt;p&gt;仅在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;now &amp;gt; first_spiked_time + 50ms&lt;/code&gt;（越过等待期）后执行：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;首个累积样本：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_srtt = crtt&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_variance = 0&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;后续：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_srtt = (7·spiked_srtt + crtt) &amp;gt;&amp;gt; 3&lt;/code&gt;；&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_variance = (3·spiked_rtt_variance + (crtt − spiked_srtt)²) &amp;gt;&amp;gt; 2&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_count++&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;63-确认判据&quot;&gt;6.3 确认判据&lt;/h3&gt;
+
+&lt;p&gt;需同时满足 &lt;strong&gt;持续性&lt;/strong&gt; 与 &lt;strong&gt;稳定性 + 方向&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;now &amp;gt; first_spiked_time + 200ms                          // 持续 ≥200ms
+AND spiked_rtt_count &amp;gt;= 10                                // ≥10 个 spike 样本
+AND (
+      // (a) 上跳：严稳定 + 高于基线 + 幅度不超 1200ms
+      spiked_rtt_variance * 50 &amp;lt; spiked_srtt²
+        &amp;amp;&amp;amp; spiked_srtt &amp;gt; short_term_srtt
+        &amp;amp;&amp;amp; spiked_srtt &amp;lt; short_term_srtt + 1200
+   OR
+      // (b) 下跳：宽稳定 + 不高于基线
+      spiked_rtt_variance * 10 &amp;lt; spiked_srtt²
+        &amp;amp;&amp;amp; spiked_srtt &amp;lt;= short_term_srtt
+    )
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;满足后再分流：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;now &amp;gt; first_spiked_time + 1200ms&lt;/code&gt; → 收敛太慢，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetSpikeRecord()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return false&lt;/code&gt;（&lt;strong&gt;不&lt;/strong&gt;认作干净阶跃）。&lt;/li&gt;
+  &lt;li&gt;否则 → 确认：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_states = (spiked_srtt &amp;gt; short_term_srtt) ? SpikeUp : SpikeDown&lt;/code&gt;；&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;提升基线&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = spiked_rtt_variance&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt = spiked_srtt&lt;/code&gt;；&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetSpikeRecord()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return true&lt;/code&gt;。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;有效确认窗口是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(200ms, 1200ms]&lt;/code&gt;。太快（&amp;lt;200ms）不算持续阶跃；太慢（&amp;gt;1200ms）不算干净阶跃。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;7-典型时序上跳被确认&quot;&gt;7. 典型时序（上跳被确认）&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/sequeue-diagrm.png&quot; alt=&quot;时序图&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;下跳（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SpikeDown&lt;/code&gt;）时序基本相同，区别在确认后 &lt;strong&gt;不&lt;/strong&gt; 设 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt;、&lt;strong&gt;不&lt;/strong&gt; 提前 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return&lt;/code&gt;，随后由主干常规逻辑用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_min_rtt &amp;lt; min_rtt&lt;/code&gt; 下调 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt;。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;8-误报防护机制&quot;&gt;8. 误报防护机制&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;机制&lt;/th&gt;
+      &lt;th&gt;阈值&lt;/th&gt;
+      &lt;th&gt;防的是什么&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;6σ + 50ms 双门限&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36·var&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;把日常抖动挡在越界判定外&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;50ms 等待期&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;StableDelaySpikeWaitingTime&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;剔除阶跃边沿的过渡样本，避免污染 spike 轨道均值&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;≥200ms 持续 + ≥10 样本&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;200ms&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;要求阶跃「站得住」，过滤短脉冲&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;变异系数稳定性&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;50&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;要求新水平本身平稳，过滤还在剧烈波动的伪阶跃&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;上跳幅度封顶&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1200ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;避免把瞬时巨抖/中断当成 min_rtt 阶跃&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;≤1200ms 收敛窗&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaximalDelaySpikeObservationDuration&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;收敛太慢则放弃，不视作干净阶跃&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;3 个正常样本回滚&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;outside_point_count &amp;gt;= 3&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;候选期间网络恢复正常即撤销候选&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;9-设计观察与注意点&quot;&gt;9. 设计观察与注意点&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;整型方差 + &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pow&lt;/code&gt; 截断&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int rtt_dispersion = pow(...)&lt;/code&gt; 用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;double&lt;/code&gt; 计算后截断为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int&lt;/code&gt;；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int&lt;/code&gt;，但属隐式窄化。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;依赖 ACK 采样密度&lt;/strong&gt;：等待期后需在 (200ms, 1200ms] 内攒够 10 个样本，低速率/稀疏 ACK 的链路可能始终攒不够而无法触发——这是有意的保守取舍（实时高包率场景才是目标）。&lt;/li&gt;
+&lt;/ol&gt;
+
+</description>
+        <pubDate>Sat, 01 Nov 2025 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/delay-spike-detect.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/delay-spike-detect.html</guid>
         
         <category>Protocol</category>
         
@@ -1923,126 +2261,6 @@ default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
         <category>Life</category>
         
         <category>Protocol</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>Ubuntu24.04 配置静态 IP</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;公司默认给配置的 2016 年的 MBP，实在忍受不了退而求其次申请了一台台式机作为开发机、工作站使用。安装的 Ubuntu24.04 LTS 系统需要配置为静态 IP 远程连接上去进行工作。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;如下所有操作均使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root&lt;/code&gt; 权限。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;记录该过程主要是因为想当然的以为网关地址就是同网段的 .1，导致配置后网络不通，通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ip route&lt;/code&gt; 查询后方可。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;查看当前-ip&quot;&gt;查看当前 IP&lt;/h1&gt;
-
-&lt;p&gt;系统默认开启 DHCP，自动获取 IP，且查看 IP 不再默认支持&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt;命令，需要 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ip addr show&lt;/code&gt;进行查看。&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1: lo: &amp;lt;LOOPBACK,UP,LOWER_UP&amp;gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute
-       valid_lft forever preferred_lft forever
-2: eno1: &amp;lt;BROADCAST,MULTICAST,UP,LOWER_UP&amp;gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 2c:f0:5d:2b:11:31 brd ff:ff:ff:ff:ff:ff
-    altname enp0s31f6
-    inet 100.100.57.20/23 brd 100.100.57.255 scope global noprefixroute eno1
-       valid_lft forever preferred_lft forever
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;可以看到自己的 IP 地址为&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;100.100.57.20&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h1 id=&quot;配置静态-ip&quot;&gt;配置静态 IP&lt;/h1&gt;
-
-&lt;p&gt;ubuntu 18 以后版本开始使用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;netplan&lt;/code&gt;配置网卡信息，查看当前系统目录&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/netplan/&lt;/code&gt;下具体配置文件名：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ls /etc/netplan
-$ 50-cloud-init.yaml
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;编辑前建议先进行备份。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;strong&gt;默认配置：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# This file is generated from information provided by the datasource.  Changes
-# to it will not persist across an instance reboot.  To disable cloud-init&apos;s
-# network configuration capabilities, write a file
-# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
-# network: {config: disabled}
-network:
-    ethernets:
-        eno1:
-            dhcp4: true
-    version: 2
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;查询路由&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;通过&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ip route&lt;/code&gt;获取当前路由地址：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ip route
-$ default via 100.100.56.254 dev eno1 proto static metric 100
-$ default via 100.100.56.254 dev eno1 proto dhcp src 100.100.57.20 metric 100
-$ 100.100.56.0/23 dev eno1 proto kernel scope link src 100.100.57.20 metric 100
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;可以看到默认路由地址为&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;100.100.56.254&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;配置文件&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;vim /etc/netplan/50-cloud-init.yaml&lt;/code&gt;进行编辑,最终内容如下：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# This file is generated from information provided by the datasource.  Changes
-# to it will not persist across an instance reboot.  To disable cloud-init&apos;s
-# network configuration capabilities, write a file
-# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
-# network: {config: disabled}
-network:
-    version: 2
-    ethernets:
-        eno1:
-            dhcp4: no
-            addresses:
-             - 100.100.57.20/23
-            routes:
-              - to: default
-                via: 100.100.56.254
-            nameservers:
-              addresses:
-                - 8.8.8.8
-                - 8.8.4.4
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;注意缩进的格式和位置，不能使用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tab&lt;/code&gt;只能用空格进行缩进。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;strong&gt;应用&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;netplan apply
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;如果没有格式错误的话，便没有任何输出，否则提示格式错误。
-至此配置成功，通过&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ip addr show&lt;/code&gt;查看确认。&lt;/p&gt;
-
-</description>
-        <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/ubuntu24.04-static-ip.html</guid>
-        
-        <category>Life</category>
         
         
         <category>Notes</category>

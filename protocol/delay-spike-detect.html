@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性">
+    <meta name="keywords"  content="Protocol">
+    <!-- Open Graph -->
+    <meta property="og:title" content="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/delay-spike-detect.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/protocol/abnormal-network-detect.html">
+    
+    
+    <meta property="og:next_url" content="/protocol/probe-bandwidth.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-11-01 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+            
+          
+        </div>
+        <h1>如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-11-01">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="25-11-01">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  4.9k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 15 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle"></h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h1 id="延迟突变检测算法-设计文档">
+<code class="language-plaintext highlighter-rouge">延迟突变检测算法</code> 设计文档</h1>
+
+<blockquote>
+  <p>BBR 依赖 <code class="language-plaintext highlighter-rouge">min_rtt</code> 估算 BDP/CWND，但 <code class="language-plaintext highlighter-rouge">min_rtt</code> 只会被更小的 RTT 刷新，或等 10s 过期后进入 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 <code class="language-plaintext highlighter-rouge">min_rtt</code> 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 <strong>上跳</strong> 后立即抬高 <code class="language-plaintext highlighter-rouge">min_rtt</code> 并跳过常规过期逻辑；<strong>下跳</strong> 时放开 recovery 限制，由主干自然下调。</p>
+</blockquote>
+
+<h2 id="1-解决的问题">1. 解决的问题</h2>
+
+<p>BBR 的一切都建立在 <code class="language-plaintext highlighter-rouge">**min_rtt</code>（链路往返最低延迟）** 之上：</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">BDP = min_rtt × BandwidthEst</code>，目标拥塞窗口 <code class="language-plaintext highlighter-rouge">target_cwnd = gain × BDP</code>。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">min_rtt</code> 只在两种情况下被刷新：采样到了<strong>更小</strong> 的 RTT，或 <code class="language-plaintext highlighter-rouge">**MinRttExpiry = 10s</code> 过期** 后进入 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 重新探测。</li>
+</ul>
+
+<p>这套机制在「<strong>路径的真实传播时延发生持久阶跃</strong>」时，也就是突然出现 rtt 持久性的变大，会失效：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>场景</th>
+      <th>现象</th>
+      <th>主干 BBR 的问题</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>路由切换 / 移动网络切换基站（handoff）</td>
+      <td>RTT 整体上跳</td>
+      <td>
+<strong>旧的</strong> <code class="language-plaintext highlighter-rouge">min_rtt</code> <strong>已不可达，但在 10s 过期前一直被沿用 →</strong> <code class="language-plaintext highlighter-rouge">BDP</code> <strong>被低估 → CWND 偏小 → 吞吐被饿死</strong>, bwe 整体会经历快速降低然后再逐步升高恢复</td>
+    </tr>
+    <tr>
+      <td>路径整体变短（如切回低延迟链路）</td>
+      <td>RTT 整体下跳</td>
+      <td>主干靠「取更小值」能跟上，但下跳期间常伴随重排序/乱序丢包，恢复窗口会误压 CWND</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>如果没有该算法介入，那么当发生 delay 阶跃时，传输协议内部指标 CWND、BWE 等关键性输出指标变化如下图，先速降然后再逐步爬升:</p>
+
+<p><img src="/assets/img/blog/delay-spike/without_delay_spike_detect.png" alt="无 Delay 阶跃检测算法的传输协议走势"></p>
+
+<p><code class="language-plaintext highlighter-rouge">延迟突变检测算法</code> 的职责：<strong>把「真实、稳定的 RTT 水平阶跃」与「瞬时抖动 / 离群点」区分开</strong>。一旦确认是稳定阶跃：</p>
+
+<ul>
+  <li>
+<strong>上跳（<code class="language-plaintext highlighter-rouge">SpikeUp</code>）</strong>：立刻把 <code class="language-plaintext highlighter-rouge">min_rtt</code> 抬到阶跃后的平滑水平，相当于不等 10s 过期、也不付出 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 吞吐凹陷的代价，就让 BBR 认识到「BDP 变大了」。</li>
+  <li>
+<strong>下跳（<code class="language-plaintext highlighter-rouge">SpikeDown</code>）</strong>：交给主干「取更小值」自然跟进，检测器只负责放开恢复窗口限制。</li>
+  <li>两种情况都置位 <code class="language-plaintext highlighter-rouge">DisableRecoveryCwnd</code>，避免阶跃过渡期里的伪丢包通过恢复窗口把有效 CWND 压死。</li>
+</ul>
+
+<blockquote>
+  <p>总结：它是 BBR <code class="language-plaintext highlighter-rouge">min_rtt</code> 的一条 <strong>快速上修通道 + 误判保护</strong>，专门针对「传播延迟的突然变化」这一 BBR 处理不了的弱网形态。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="2-架构与接入点">2. 架构与接入点</h2>
+
+<p><img src="/assets/img/blog/delay-spike/architecture.png" alt="架构图"></p>
+
+<p><strong>关键交互过程</strong>：</p>
+
+<ol>
+  <li>
+<code class="language-plaintext highlighter-rouge">当检测到 SpikeUp</code> ：直接绕过常规的 <code class="language-plaintext highlighter-rouge">min_rtt</code> 过期与下修逻辑，本轮 <code class="language-plaintext highlighter-rouge">min_rtt</code> 被强制设为阶跃后的平滑值，且 <code class="language-plaintext highlighter-rouge">min_rtt_expired</code> 视为 <code class="language-plaintext highlighter-rouge">false</code>（不触发 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code>）。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">如果检测到 SpikeDown</code>： 不 <code class="language-plaintext highlighter-rouge">return</code>，继续走常规逻辑，<code class="language-plaintext highlighter-rouge">更小的 min rtt</code> 会自然把 <code class="language-plaintext highlighter-rouge">min_rtt 更新</code>。</li>
+</ol>
+
+<hr>
+
+<h2 id="3-数据结构状态变量">3. 数据结构（状态变量）</h2>
+
+<p>构造函数初值见 <code class="language-plaintext highlighter-rouge">delay_spike_detector.h:12</code>。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>成员</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">short_term_srtt</code></td>
+      <td>
+<strong>基线轨道</strong> 平滑 RTT（正常网络的短期 SRTT）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rtt_variance</code></td>
+      <td>
+<strong>基线轨道</strong> 平滑方差；<code class="language-plaintext highlighter-rouge">-1</code> = 未初始化（bootstrap 哨兵）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spiked_srtt</code></td>
+      <td>
+<strong>spike 轨道</strong> 平滑 RTT；<code class="language-plaintext highlighter-rouge">-1</code> = 本次候选尚未开始累积</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spiked_rtt_variance</code></td>
+      <td>
+<strong>spike 轨道</strong> 平滑方差</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spiked_rtt_count</code></td>
+      <td>spike 轨道累积的样本数（仅在越过 50ms 等待期后才累加）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">outside_point_count</code></td>
+      <td>候选挂起期间出现的「正常样本」计数，用于误报回滚</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">first_spiked_time</code></td>
+      <td>首个可疑样本的时刻；是否已初始化代表「是否处于候选挂起态」</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">delay_spike_states</code></td>
+      <td>最近一次确认的阶跃方向（<code class="language-plaintext highlighter-rouge">Normal</code> / <code class="language-plaintext highlighter-rouge">SpikeUp</code> / <code class="language-plaintext highlighter-rouge">SpikeDown</code>）</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>两条轨道（dual-track）</strong> 是核心设计：基线轨道始终跟踪「当前认定的正常水平」，spike 轨道是「候选新水平」的试探性平滑。只有 spike 轨道被确认后，才会 <strong>整体替换</strong> 基线轨道。</p>
+</blockquote>
+
+<p>平滑均采用 RFC6298 风格的 EWMA（位移实现）：</p>
+
+<ul>
+  <li>SRTT：<code class="language-plaintext highlighter-rouge">srtt = (7·srtt + crtt) &gt;&gt; 3</code>，即 <code class="language-plaintext highlighter-rouge">α = 1/8</code> 取新值。</li>
+  <li>方差：<code class="language-plaintext highlighter-rouge">var = (3·var + dispersion) &gt;&gt; 2</code>，即 <code class="language-plaintext highlighter-rouge">β = 1/4</code> 取新值。</li>
+  <li>注意 <code class="language-plaintext highlighter-rouge">dispersion = (crtt − srtt)²</code> 是 <strong>平方偏差</strong>，因此 <code class="language-plaintext highlighter-rouge">rtt_variance</code> 是平滑后的 <strong>方差</strong>（均方偏差），<code class="language-plaintext highlighter-rouge">sqrt(rtt_variance)</code> 即标准差 σ。这一点是后面「6σ」判据成立的前提。</li>
+</ul>
+
+<hr>
+
+<h2 id="4-参数与阈值">4. 参数与阈值</h2>
+
+<p>| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
+| ————————————— | ———— | — | —————————————————————————— |
+| <code class="language-plaintext highlighter-rouge">MinimalRttDispersionThreshold</code>        | <code class="language-plaintext highlighter-rouge">2500</code>       | ms² | 越界判据的方差下限。<code class="language-plaintext highlighter-rouge">2500 = 50²</code>，即 <strong>偏差至少 50ms</strong> 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）           |
+| 越界倍数（硬编码 <code class="language-plaintext highlighter-rouge">36</code>）                          | <code class="language-plaintext highlighter-rouge">36</code>         | —   | <code class="language-plaintext highlighter-rouge">36 = 6²</code>。<code class="language-plaintext highlighter-rouge">dispersion &gt; 36·var ⟺                                               |
+| </code>StableDelaySpikeWaitingTime<code class="language-plaintext highlighter-rouge">          | </code>50<code class="language-plaintext highlighter-rouge">         | ms  | 首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点                                             |
+| </code>MinimalDelaySpikeObservationDuration<code class="language-plaintext highlighter-rouge"> | </code>200<code class="language-plaintext highlighter-rouge">        | ms  | 确认所需的 **最短** 观测时长（持续性下限）                                                       |
+| </code>MaximalDelaySpikeObservationDuration<code class="language-plaintext highlighter-rouge"> | </code>1200<code class="language-plaintext highlighter-rouge">       | ms  | 确认的 **最长** 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）                                            |
+| </code>MaximalRttSpikeThreshold<code class="language-plaintext highlighter-rouge">             | </code>1200<code class="language-plaintext highlighter-rouge">       | ms  | 上跳幅度上限。</code>spiked_srtt &lt; short_term_srtt + 1200<code class="language-plaintext highlighter-rouge"> 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 </code>min_rtt<code class="language-plaintext highlighter-rouge"> |
+| spike 样本数门限（硬编码 </code>10<code class="language-plaintext highlighter-rouge">）                   | </code>10<code class="language-plaintext highlighter-rouge">         | 个   | spike 轨道需累积 ≥10 个样本                                                            |
+| 误报回滚门限（硬编码 </code>3<code class="language-plaintext highlighter-rouge">）                         | </code>3<code class="language-plaintext highlighter-rouge">          | 个   | 候选挂起期间累计 3 个正常样本即回滚                                                            |
+| 上跳稳定性系数（硬编码 </code>50<code class="language-plaintext highlighter-rouge">）                       | </code>50<code class="language-plaintext highlighter-rouge">         | —   | </code>var·50 &lt; srtt² ⟺ σ/srtt &lt; 1/√50 ≈ 14.1%<code class="language-plaintext highlighter-rouge">（变异系数上限，**严**）                        |
+| 下跳稳定性系数（硬编码 </code>10<code class="language-plaintext highlighter-rouge">）                       | </code>10<code class="language-plaintext highlighter-rouge">         | —   | </code>var·10 &lt; srtt² ⟺ σ/srtt &lt; 1/√10 ≈ 31.6%<code class="language-plaintext highlighter-rouge">（变异系数上限，**宽**）                        |
+| EWMA 系数                                 | </code>1/8<code class="language-plaintext highlighter-rouge">, </code>1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |</p>
+
+<h3 id="41-为什么上跳严下跳宽">4.1 为什么上跳严、下跳宽？</h3>
+
+<ul>
+  <li>
+<strong>上跳</strong> 会把 <code class="language-plaintext highlighter-rouge">min_rtt</code> 抬高 → 直接放大 BDP 与 CWND。误判代价大（可能引入 bufferbloat），故要求 spike 轨道变异系数 &lt; 14.1%（很稳）且幅度 &lt; 1200ms（有上限）。</li>
+  <li>
+<strong>下跳</strong> 只是放开恢复窗口钳制，真正的下修仍由主干「取更小值」把关，误判代价低，故放宽到 31.6% 以求 <strong>快速反应</strong>。</li>
+</ul>
+
+<hr>
+
+<h2 id="5-运行状态机">5. 运行状态机</h2>
+
+<blockquote>
+  <p>这里描述的是检测器的 <strong>运行态</strong>（操作语义），与对外输出的 <code class="language-plaintext highlighter-rouge">States</code> 三值枚举不同——后者只是确认那一刻的方向标签。</p>
+</blockquote>
+
+<p><img src="/assets/img/blog/delay-spike/state-diagram.png" alt="状态转换图"></p>
+
+<p>状态语义对照：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>运行态</th>
+      <th>判定条件</th>
+      <th>关键动作</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Bootstrap</code></td>
+      <td><code class="language-plaintext highlighter-rouge">rtt_variance &lt; 0</code></td>
+      <td>用首样本直接初始化基线（<code class="language-plaintext highlighter-rouge">rtt_variance = dispersion</code>, <code class="language-plaintext highlighter-rouge">short_term_srtt = crtt</code>）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Baseline</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">first_spiked_time</code> 未初始化</td>
+      <td>每来一个正常样本就 EWMA 更新基线</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">SpikePending</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">first_spiked_time</code> 已初始化</td>
+      <td>等待期（&lt;50ms）只标记；越过 50ms 后向 spike 轨道累积 EWMA</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Confirmed</code></td>
+      <td>见 §6 确认判据</td>
+      <td>提升基线、输出方向、<code class="language-plaintext highlighter-rouge">ResetSpikeRecord</code>、返回 <code class="language-plaintext highlighter-rouge">true</code>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="6-逐样本处理流程">6. 逐样本处理流程</h2>
+
+<p>入口 <code class="language-plaintext highlighter-rouge">MaybeXXXHappened(now, crtt)</code>，<code class="language-plaintext highlighter-rouge">crtt</code> 为最新 RTT（ms）。</p>
+
+<p><img src="/assets/img/blog/delay-spike/sequeue.png" alt="逐样本处理流程图"></p>
+
+<h3 id="61-越界判据">6.1 越界判据</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rtt_dispersion</span> <span class="o">&gt;</span> <span class="n">max</span><span class="p">(</span><span class="mi">36</span> <span class="o">*</span> <span class="n">rtt_variance</span><span class="p">,</span> <span class="n">MinimalRttDispersionThreshold</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">|crtt − short_term_srtt| &gt; max(6σ, 50ms)</code>，即同时满足「偏离基线 &gt;6 个标准差」<strong>且</strong>「绝对偏离 &gt;50ms」。</p>
+
+<h3 id="62-spike-轨道累积">6.2 spike 轨道累积</h3>
+
+<p>仅在 <code class="language-plaintext highlighter-rouge">now &gt; first_spiked_time + 50ms</code>（越过等待期）后执行：</p>
+
+<ul>
+  <li>首个累积样本：<code class="language-plaintext highlighter-rouge">spiked_srtt = crtt</code>，<code class="language-plaintext highlighter-rouge">spiked_rtt_variance = 0</code>。</li>
+  <li>后续：<code class="language-plaintext highlighter-rouge">spiked_srtt = (7·spiked_srtt + crtt) &gt;&gt; 3</code>；<code class="language-plaintext highlighter-rouge">spiked_rtt_variance = (3·spiked_rtt_variance + (crtt − spiked_srtt)²) &gt;&gt; 2</code>。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">spiked_rtt_count++</code>。</li>
+</ul>
+
+<h3 id="63-确认判据">6.3 确认判据</h3>
+
+<p>需同时满足 <strong>持续性</strong> 与 <strong>稳定性 + 方向</strong>：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>now &gt; first_spiked_time + 200ms                          // 持续 ≥200ms
+AND spiked_rtt_count &gt;= 10                                // ≥10 个 spike 样本
+AND (
+      // (a) 上跳：严稳定 + 高于基线 + 幅度不超 1200ms
+      spiked_rtt_variance * 50 &lt; spiked_srtt²
+        &amp;&amp; spiked_srtt &gt; short_term_srtt
+        &amp;&amp; spiked_srtt &lt; short_term_srtt + 1200
+   OR
+      // (b) 下跳：宽稳定 + 不高于基线
+      spiked_rtt_variance * 10 &lt; spiked_srtt²
+        &amp;&amp; spiked_srtt &lt;= short_term_srtt
+    )
+</code></pre></div></div>
+
+<p>满足后再分流：</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">now &gt; first_spiked_time + 1200ms</code> → 收敛太慢，<code class="language-plaintext highlighter-rouge">ResetSpikeRecord()</code>，<code class="language-plaintext highlighter-rouge">return false</code>（<strong>不</strong>认作干净阶跃）。</li>
+  <li>否则 → 确认：
+    <ul>
+      <li>
+<code class="language-plaintext highlighter-rouge">delay_spike_states = (spiked_srtt &gt; short_term_srtt) ? SpikeUp : SpikeDown</code>；</li>
+      <li>
+<strong>提升基线</strong>：<code class="language-plaintext highlighter-rouge">rtt_variance = spiked_rtt_variance</code>，<code class="language-plaintext highlighter-rouge">short_term_srtt = spiked_srtt</code>；</li>
+      <li>
+<code class="language-plaintext highlighter-rouge">ResetSpikeRecord()</code>，<code class="language-plaintext highlighter-rouge">return true</code>。</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>有效确认窗口是 <code class="language-plaintext highlighter-rouge">(200ms, 1200ms]</code>。太快（&lt;200ms）不算持续阶跃；太慢（&gt;1200ms）不算干净阶跃。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="7-典型时序上跳被确认">7. 典型时序（上跳被确认）</h2>
+
+<p><img src="/assets/img/blog/delay-spike/sequeue-diagrm.png" alt="时序图"></p>
+
+<p>下跳（<code class="language-plaintext highlighter-rouge">SpikeDown</code>）时序基本相同，区别在确认后 <strong>不</strong> 设 <code class="language-plaintext highlighter-rouge">min_rtt</code>、<strong>不</strong> 提前 <code class="language-plaintext highlighter-rouge">return</code>，随后由主干常规逻辑用 <code class="language-plaintext highlighter-rouge">sample_min_rtt &lt; min_rtt</code> 下调 <code class="language-plaintext highlighter-rouge">min_rtt</code>。</p>
+
+<hr>
+
+<h2 id="8-误报防护机制">8. 误报防护机制</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>机制</th>
+      <th>阈值</th>
+      <th>防的是什么</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6σ + 50ms 双门限</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">36·var</code> 且 <code class="language-plaintext highlighter-rouge">2500</code>
+</td>
+      <td>把日常抖动挡在越界判定外</td>
+    </tr>
+    <tr>
+      <td>50ms 等待期</td>
+      <td><code class="language-plaintext highlighter-rouge">StableDelaySpikeWaitingTime</code></td>
+      <td>剔除阶跃边沿的过渡样本，避免污染 spike 轨道均值</td>
+    </tr>
+    <tr>
+      <td>≥200ms 持续 + ≥10 样本</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">200ms</code> / <code class="language-plaintext highlighter-rouge">10</code>
+</td>
+      <td>要求阶跃「站得住」，过滤短脉冲</td>
+    </tr>
+    <tr>
+      <td>变异系数稳定性</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">50</code> / <code class="language-plaintext highlighter-rouge">10</code>
+</td>
+      <td>要求新水平本身平稳，过滤还在剧烈波动的伪阶跃</td>
+    </tr>
+    <tr>
+      <td>上跳幅度封顶</td>
+      <td><code class="language-plaintext highlighter-rouge">1200ms</code></td>
+      <td>避免把瞬时巨抖/中断当成 min_rtt 阶跃</td>
+    </tr>
+    <tr>
+      <td>≤1200ms 收敛窗</td>
+      <td><code class="language-plaintext highlighter-rouge">MaximalDelaySpikeObservationDuration</code></td>
+      <td>收敛太慢则放弃，不视作干净阶跃</td>
+    </tr>
+    <tr>
+      <td>3 个正常样本回滚</td>
+      <td><code class="language-plaintext highlighter-rouge">outside_point_count &gt;= 3</code></td>
+      <td>候选期间网络恢复正常即撤销候选</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2 id="9-设计观察与注意点">9. 设计观察与注意点</h2>
+
+<ol>
+  <li>
+<strong>整型方差 + <code class="language-plaintext highlighter-rouge">pow</code> 截断</strong>：<code class="language-plaintext highlighter-rouge">int rtt_dispersion = pow(...)</code> 用 <code class="language-plaintext highlighter-rouge">double</code> 计算后截断为 <code class="language-plaintext highlighter-rouge">int</code>；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 <code class="language-plaintext highlighter-rouge">int</code>，但属隐式窄化。</li>
+  <li>
+<strong>依赖 ACK 采样密度</strong>：等待期后需在 (200ms, 1200ms] 内攒够 10 个样本，低速率/稀疏 ACK 的链路可能始终攒不够而无法触发——这是有意的保守取舍（实时高包率场景才是目标）。</li>
+</ol>
+
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/delay-spike-detect.html" class="cplink">https://gbcpp.github.io/protocol/delay-spike-detect.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('<code-class="language-plaintext-highlighter-rouge">延迟突变检测算法</code>-设计文档')"><code class="language-plaintext highlighter-rouge">延迟突变检测算法</code> 设计文档</a><ul><li><a onclick="scrollToAdjust('1.-解决的问题')">1. 解决的问题</a></li><li><a onclick="scrollToAdjust('2.-架构与接入点')">2. 架构与接入点</a></li><li><a onclick="scrollToAdjust('3.-数据结构（状态变量）')">3. 数据结构（状态变量）</a></li><li><a onclick="scrollToAdjust('4.-参数与阈值')">4. 参数与阈值</a><ul><li><a onclick="scrollToAdjust('4.1-为什么上跳严、下跳宽？')">4.1 为什么上跳严、下跳宽？</a></li></ul></li><li><a onclick="scrollToAdjust('5.-运行状态机')">5. 运行状态机</a></li><li><a onclick="scrollToAdjust('6.-逐样本处理流程')">6. 逐样本处理流程</a><ul><li><a onclick="scrollToAdjust('6.1-越界判据')">6.1 越界判据</a></li><li><a onclick="scrollToAdjust('6.2-spike-轨道累积')">6.2 spike 轨道累积</a></li><li><a onclick="scrollToAdjust('6.3-确认判据')">6.3 确认判据</a></li></ul></li><li><a onclick="scrollToAdjust('7.-典型时序（上跳被确认）')">7. 典型时序（上跳被确认）</a></li><li><a onclick="scrollToAdjust('8.-误报防护机制')">8. 误报防护机制</a></li><li><a onclick="scrollToAdjust('9.-设计观察与注意点')">9. 设计观察与注意点</a></li></ul></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+     <div id="gitalk_container"></div>
+     <div id="disqus_thread"></div>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>资深流媒体开发工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/protocol/abnormal-network-detect.html" class="read-next-link" aria-label="基于 Ack 反馈实现的网络下行链路异常检测"></a>
+          <section>
+            <span>基于 Ack 反馈实现的网络下行链路异常检测</span>
+            <p>背景与问题</p>
+          </section>
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/protocol/probe-bandwidth.html" class="read-next-link" aria-label="私有协议带宽探测的设计与实现"></a>
+            <section>
+              <span>私有协议带宽探测的设计与实现</span>
+              <p>  带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制业务发多快、就只能看见多快的不...</p>
+            </section>
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+  <script>
+    var gitalk = new Gitalk({
+      id: '2025-11-01 00:00:00 +0000',
+      clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
+      clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
+      repo: 'gbcpp.github.io',
+      owner: 'gbcpp',
+      admin: 'gbcpp',
+      distractionFreeMode: 'true'
+    })
+
+    gitalk.render('disqus_thread')
+  </script>
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2026
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2025-11-01-delay-spike-detect.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - http://docs.mathjax.org/en/latest/options/index.html
+-->
+
+	<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+		jax: ["input/TeX", "output/HTML-CSS"],
+		tex2jax: {
+			inlineMath: [ ["$", "$"] ],
+			displayMath: [ ["$$", "$$"] ],
+			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		},
+		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+      });
+    </script>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
