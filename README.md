@@ -104,3 +104,10 @@ Jekyll-Theme-H2O-ac is licensed under [MIT](https://github.com/zhonger/jekyll-th
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fzhonger%2Fjekyll-theme-H2O-ac.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fzhonger%2Fjekyll-theme-H2O-ac?ref=badge_large)
 
 ![Alt](https://repobeats.axiom.co/api/embed/c3257de0cec8e91520debc3232103da52e4727b4.svg "Repobeats analytics image")
+
+## 启动测试
+
+```
+export PATH="/opt/homebrew/opt/ruby@3.3/bin:$PATH"; export SDKROOT=$(xcrun --show-sdk-path); export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8; bundle exec jekyll serve
+```
+

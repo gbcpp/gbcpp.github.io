@@ -472,10 +472,12 @@ $(document).ready(function () {
 
         if (lang == "ERS") {
             lang = $(this).attr("class").split(" ")[0].substring(9).toUpperCase();
-            if (lang == "MERMAID2") {
+            if (lang == "MERMAID2" || lang == "MERMAID") {
                 text = $(this).text();
                 $(this).before('<summary class="render-expand" aria-haspopup="dialog" role="button"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="octicon" style="display:inline-block;vertical-align:text-bottom"><path fill-rule="evenodd" d="M3.72 3.72a.75.75 0 011.06 1.06L2.56 7h10.88l-2.22-2.22a.75.75 0 011.06-1.06l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06l2.22-2.22H2.56l2.22 2.22a.75.75 0 11-1.06 1.06l-3.5-3.5a.75.75 0 010-1.06l3.5-3.5z"></path></svg></summary>');
                 $(this).after('<div class="mermaid2">' + text + '</div>');
+                // hide source block for both `mermaid` and `mermaid2` (CSS only hides language-mermaid2)
+                $(this).hide();
             } else {
                 $(this).wrap('<div class="highlight"></div>');
                 $(this).parent().wrap('<div class="' + $(this).attr("class").split(" ")[0] + ' highlighter-rouge"></div>');
