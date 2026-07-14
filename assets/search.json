@@ -1,5 +1,11 @@
 [
   {
+    "title"    : "QUIC 丢包检测算法优化",
+    "tags"     : "Protocol",
+    "url"      : "/protocol/loss-detect-algo.html"
+  } ,
+
+  {
     "title"    : "BBR 优化重点项",
     "tags"     : "Protocol",
     "url"      : "/protocol/bbr-optimize-record.html"
@@ -45,12 +51,6 @@
     "title"    : "HTTP3/QUIC 在部分iPhone设备下卡顿问题排查",
     "tags"     : "Protocol",
     "url"      : "/notes/quic-stuck-on-iphone.html"
-  } ,
-
-  {
-    "title"    : "QUIC 丢包检测算法优化",
-    "tags"     : "Protocol",
-    "url"      : "/protocol/loss-detect-algo.html"
   } ,
 
   {

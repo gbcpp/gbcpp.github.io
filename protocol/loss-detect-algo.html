@@ -21,14 +21,12 @@
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/quic-stuck-on-iphone.html">
     
-    
-    <meta property="og:next_url" content="/notes/golang-issues.html">
+    <meta property="og:next_url" content="/protocol/bbr-optimize-record.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-02-05 00:00:00 +0000" />
+    <meta property="post-date" content="2026-02-05 00:00:00 +0000" />
     
     
     
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="25-02-05">
+          <time class="post-meta-item" datetime="26-02-05">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="25-02-05">
+          <time class="post-meta-item" datetime="26-02-05">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -259,7 +257,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <p><code class="language-plaintext highlighter-rouge">reordering_threshold</code> 默认为 3，实际运行中通过 <code class="language-plaintext highlighter-rouge">SpuriousLossDetected</code> 进行检测调整。</p>
 
-<pre><code class="language-mermaid">flowchart TD
+<pre><code class="language-mermaid2">flowchart TD
     A["least_in_flight 快进: 跳过已连续 ACK 的前缀"] --&gt; B["从 least_in_flight 遍历至 largest_newly_acked"]
     B --&gt; C{"包阈值命中?&lt;br/&gt;即 largest_newly_acked 减 pkt_no 大于等于 reordering_threshold 默认3"}
     C --&gt;|是| LOST["判定丢失"]
@@ -289,11 +287,11 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <p>两中丢包检测算法的实现中，判断丢包基于时间兜底的公式均如下：</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>early_retransmit_delay = clamp(loss_delay_multiplier × max_rtt + 0.5 × mean_deviation, [5ms, 3s])
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>early_retransmit_delay = clamp(loss_delay_multiplier × max_rtt + 0.5 × mean_deviation, [5ms, 3s])
 其中 loss_delay_multiplier 可配置，配置范围 [1, 2]。
 </code></pre></div></div>
 
-<pre><code class="language-mermaid">flowchart TD
+<pre><code class="language-mermaid2">flowchart TD
     A["ACK 到达 或 丢包定时器触发"] --&gt; B["启动检测是否丢包"]
     B --&gt; C{"max_loss_delay 是否已初始化?"}
     C --&gt;|"接收 ACK 触发路径"| D["detect_end 等于 largest_acked, 走自适应阈值并更新 loss_detection_timeout"]
@@ -322,7 +320,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 <strong>尾丢包</strong>：ACK 路径不快速覆盖，注释明确交给 TLP/PTO，靠周期性检测进行兜底。</li>
 </ul>
 
-<pre><code class="language-mermaid">flowchart TD
+<pre><code class="language-mermaid2">flowchart TD
     S["按序号升序遍历 inflight 包 pkt"] --&gt; A{"pkt 在 inflight 且 可重传?"}
     A --&gt;|否| S
     A --&gt;|是| B{"pkt_no 大于 detect_end?"}
@@ -355,7 +353,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 <strong>largest_acked 之后的尾包</strong>：直接用包最大有效时间判断是否丢包，以此覆盖尾丢包检测（与 Sequence 版最大不同）。</li>
 </ul>
 
-<pre><code class="language-mermaid">flowchart TD
+<pre><code class="language-mermaid2">flowchart TD
     A["先更新 reordering_window"] --&gt; B{"近期乱序比例和乱序包数是否满足使用乱序窗口的门槛?"}
     B --&gt;|是| C["reordering_window 等于 max_reorder_delay 加 min_rtt"]
     B --&gt;|否| D["reordering_window 置零"]
@@ -506,26 +504,14 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/notes/quic-stuck-on-iphone.html" class="read-next-link" aria-label="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查"></a>
-          <section>
-            <span>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</span>
-            <p>    直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不...</p>
-          </section>
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/notes/golang-issues.html" class="read-next-link" aria-label="golang 问题记录"></a>
+          <a href="/protocol/bbr-optimize-record.html" class="read-next-link" aria-label="BBR 优化重点项"></a>
             <section>
-              <span>golang 问题记录</span>
-              <p>    记录 Golang 学习、开发过程中的一些疑难杂症。</p>
+              <span>BBR 优化重点项</span>
+              <p>BBR 状态机</p>
             </section>
-            
-            <div class="filter"></div>
-            <img src="/assets/img/shan.jpg" alt="">
             
         </div>
         
@@ -540,7 +526,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
   
   <script>
     var gitalk = new Gitalk({
-      id: '2025-02-05 00:00:00 +0000',
+      id: '2026-02-05 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
