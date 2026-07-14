@@ -15,6 +15,8 @@ mermaid: true
 
 ## BBR 状态机
 
+BBR 的核心是估计链路的管道容量 BDP，即 $BDP = BtlBw \times RTprop$，其中 $BtlBw$ 为瓶颈带宽、$RTprop$ 为往返传播时延。
+
 BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：
 
 ```mermaid
