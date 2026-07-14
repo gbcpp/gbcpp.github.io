@@ -21,7 +21,7 @@
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/notes/quic-stuck-on-iphone.html">
+    <meta property="og:previous_url" content="/protocol/loss-detect-algo.html">
     
     
     <meta property="og:next_url" content="/notes/optimize-back-to-source.html">
@@ -340,10 +340,10 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/notes/quic-stuck-on-iphone.html" class="read-next-link" aria-label="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查"></a>
+          <a href="/protocol/loss-detect-algo.html" class="read-next-link" aria-label="QUIC 丢包检测算法优化"></a>
           <section>
-            <span>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</span>
-            <p>    直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不...</p>
+            <span>QUIC 丢包检测算法优化</span>
+            <p>  针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输...</p>
           </section>
           
       </div>
@@ -675,21 +675,22 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
 	<!--
 Author: Ray-Eldath
 refer to:
- - http://docs.mathjax.org/en/latest/options/index.html
+ - https://docs.mathjax.org/en/latest/options/index.html
 -->
 
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-		jax: ["input/TeX", "output/HTML-CSS"],
-		tex2jax: {
-			inlineMath: [ ["$", "$"] ],
-			displayMath: [ ["$$", "$$"] ],
-			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-		},
-		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
-      });
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
     </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 
    
     <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>

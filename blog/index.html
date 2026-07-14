@@ -432,33 +432,30 @@
 <article class="article-item keep-top">
 
     
-        <div class="post-cover">
-            <a class="post-link" href="/notes/golang-issues.html" title="golang 问题记录"></a>
-            <img class="lazyload" src="/assets/img/loading.gif" data-src="/assets/img/shan.jpg" href="/notes/golang-issues.html" alt="">
-        </div>
-    
     <section class="post-preview">
-        <a class="post-link" href="/notes/golang-issues.html" title="golang 问题记录"></a>
-        <h2 class="post-title">golang 问题记录</h2>
+        <a class="post-link" href="/protocol/loss-detect-algo.html" title="QUIC 丢包检测算法优化"></a>
+        <h2 class="post-title">QUIC 丢包检测算法优化</h2>
         
-        <h3 class="post-subtitle">go 常见问题记事本</h3>
+        <h3 class="post-subtitle"></h3>
         
+        
+        <p class="post-excerpt">  针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。</p>
         
     </section>
     <footer class="post-meta">
         <div class="post-tags">
             
                 
-                <a href=/tags.html#Life class="post-tag">Life</a>
+                <a href=/tags.html#Protocol class="post-tag">Protocol</a>
                 
             
         </div>
-        <time class="post-date" datetime="25-01-21">
+        <time class="post-date" datetime="25-02-05">
             <svg class="icon" aria-hidden="true">
                 <use xlink:href="#icon-time2"></use>
             </svg>
             
-                2025-01-21 
+                2025-02-05 
             
         </time>
     </footer>
@@ -500,7 +497,7 @@
                 <div class="level-item">
                     <p class="heading">文章</p>
                     <a href="/archives.html">
-                        <p class="title">49</p>
+                        <p class="title">50</p>
                     </a>
                 </div>
                 <div class="level-item">
@@ -606,7 +603,84 @@
                     
                         
                         
-                        <a href="/tags.html#Protocol" class="tag">Protocol<sup>10</sup></a>
+                        <a href="/tags.html#Protocol" class="tag">Protocol<sup>11</sup></a>
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                
+            
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
+                    
+                
                     
                 
                     
@@ -1473,21 +1547,22 @@
     <!--
 Author: Ray-Eldath
 refer to:
- - http://docs.mathjax.org/en/latest/options/index.html
+ - https://docs.mathjax.org/en/latest/options/index.html
 -->
 
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-		jax: ["input/TeX", "output/HTML-CSS"],
-		tex2jax: {
-			inlineMath: [ ["$", "$"] ],
-			displayMath: [ ["$$", "$$"] ],
-			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-		},
-		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
-      });
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
     </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 
      
     <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>

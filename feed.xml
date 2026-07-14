@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-14T05:46:55+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">BBR 优化重点项</title><link href="https://gbcpp.github.io/protocol/bbr-optimize-record.html" rel="alternate" type="text/html" title="BBR 优化重点项" /><published>2025-12-01T00:00:00+00:00</published><updated>2025-12-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/bbr-optimize-record</id><content type="html" xml:base="https://gbcpp.github.io/protocol/bbr-optimize-record.html"><![CDATA[<h2 id="bbr-状态机">BBR 状态机</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-14T09:11:16+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">BBR 优化重点项</title><link href="https://gbcpp.github.io/protocol/bbr-optimize-record.html" rel="alternate" type="text/html" title="BBR 优化重点项" /><published>2025-12-01T00:00:00+00:00</published><updated>2025-12-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/bbr-optimize-record</id><content type="html" xml:base="https://gbcpp.github.io/protocol/bbr-optimize-record.html"><![CDATA[<h2 id="bbr-状态机">BBR 状态机</h2>
+
+<p>BBR 的核心是估计链路的管道容量 BDP，即 $BDP = BtlBw \times RTprop$，其中 $BtlBw$ 为瓶颈带宽、$RTprop$ 为往返传播时延。</p>
 
 <p>BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：</p>
 
@@ -1397,7 +1399,196 @@ defaults delete <span class="nt">-g</span> ApplePressAndHoldEnabled
 
 <h2 id="后续">后续</h2>
 
-<p>   无</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。]]></summary></entry><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
+<p>   无</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。]]></summary></entry><entry><title type="html">QUIC 丢包检测算法优化</title><link href="https://gbcpp.github.io/protocol/loss-detect-algo.html" rel="alternate" type="text/html" title="QUIC 丢包检测算法优化" /><published>2025-02-05T00:00:00+00:00</published><updated>2025-02-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-detect-algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-detect-algo.html"><![CDATA[<blockquote>
+  <p>针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。</p>
+</blockquote>
+
+<blockquote>
+  <p>QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
+QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc</code> 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。</p>
+</blockquote>
+
+<hr />
+
+<h2 id="1-为什么需要自适应的丢包检测">1. 为什么需要「自适应」的丢包检测</h2>
+
+<p>发送端判定一个包丢了，本质上只有两类信号：</p>
+
+<ul>
+  <li><strong>序号信号（packet threshold）</strong>：后面的包都 ACK 了，中间的还没来，且<code class="language-plaintext highlighter-rouge">空洞</code>足够大 —— 大概率丢了，对应 TCP 的 3 次重复 ACK 判定丢包的策略。</li>
+  <li><strong>时间信号（time threshold）</strong>：这个包发出去已经超过<code class="language-plaintext highlighter-rouge">合理的等待时间</code>还没 ACK —— 大概率丢了，对应 RACK / Early Retransmit。</li>
+</ul>
+
+<p>难点在于<strong>乱序（reordering）</strong>：网络会把包的顺序打乱，一个迟到的包不等于丢失的包。判早了 ==» 伪重传，浪费带宽、误伤拥塞控制；判晚了==»恢复延迟高，实时业务卡、慢。</p>
+
+<p>所以最佳的实现需要<strong>自适应</strong>：根据实测的乱序程度，动态调整”空洞多大算丢”和”等多久算丢”。</p>
+
+<hr />
+
+<h2 id="2-首先查看-quic-实现机制">2. 首先查看 QUIC 实现机制</h2>
+
+<p>实现类：<code class="language-plaintext highlighter-rouge">GeneralLossAlgorithm</code>，其中：</p>
+
+<p><code class="language-plaintext highlighter-rouge">least_in_flight</code> 为最小的 inflight 的包序号。</p>
+
+<p><code class="language-plaintext highlighter-rouge">reordering_threshold</code> 默认为 3，实际运行中通过 <code class="language-plaintext highlighter-rouge">SpuriousLossDetected</code> 进行检测调整。</p>
+
+<pre><code class="language-mermaid">flowchart TD
+    A["least_in_flight 快进: 跳过已连续 ACK 的前缀"] --&gt; B["从 least_in_flight 遍历至 largest_newly_acked"]
+    B --&gt; C{"包阈值命中?&lt;br/&gt;即 largest_newly_acked 减 pkt_no 大于等于 reordering_threshold 默认3"}
+    C --&gt;|是| LOST["判定丢失"]
+    C --&gt;|否| D{"时间阈值命中?&lt;br/&gt;now 大于等于 sent_time 加 max_rtt 乘 1.25 (1.25 系数可配置)"}
+    D --&gt;|是| LOST
+    D --&gt;|否| E["记录 loss_detection_timeout, 置 least_in_flight 等于 pkt_no, 停止"]
+    LOST --&gt; B
+</code></pre>
+
+<p>要点：</p>
+
+<ul>
+  <li><strong>单趟同时判 packet 与 time</strong>：任一命中即丢，<code class="language-plaintext highlighter-rouge">reordering_threshold_</code> 默认 <strong>3</strong>,运行中根据统计实时调整，但仅向上取大(Bug)，时间阈值固定 <code class="language-plaintext highlighter-rouge">max_rtt × 1.25</code>（<code class="language-plaintext highlighter-rouge">reordering_shift_ 默认 2，可以配置</code>）。</li>
+  <li><strong>自适应</strong>：<code class="language-plaintext highlighter-rouge">use_adaptive_reordering_threshold_</code>（默认开）伪丢包时抬包阈值；<code class="language-plaintext highlighter-rouge">use_adaptive_time_threshold_</code>（默认关）伪丢包时降 shift 放宽时间窗。</li>
+  <li><strong>runt 包保护</strong> <code class="language-plaintext highlighter-rouge">use_packet_threshold_for_runt_packets_</code> 默认开启，个人观点认为不需要这种策略，保持默认值即可。</li>
+  <li>尾丢包同样交给 PTO（与 RUT 序号版一致）。</li>
+</ul>
+
+<hr />
+
+<h2 id="3-算法调优">3. 算法调优</h2>
+
+<p>实现两种丢包检测算法，分别基于 packet number 和 Time，分别用于低延迟、低乱序窗口下的低延迟传输场景，和高延迟、高乱序窗口的场景，丢包判定趋于保守，以用于不同的网络场景。</p>
+
+<p>两中丢包检测算法的实现中，判断丢包基于时间兜底的公式均如下：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>early_retransmit_delay = clamp(loss_delay_multiplier × max_rtt + 0.5 × mean_deviation, [5ms, 3s])
+其中 loss_delay_multiplier 可配置，配置范围 [1, 2]。
+</code></pre></div></div>
+
+<pre><code class="language-mermaid">flowchart TD
+    A["ACK 到达 或 丢包定时器触发"] --&gt; B["启动检测是否丢包"]
+    B --&gt; C{"max_loss_delay 是否已初始化?"}
+    C --&gt;|"接收 ACK 触发路径"| D["detect_end 等于 largest_acked, 走自适应阈值并更新 loss_detection_timeout"]
+    C --&gt;|"定时器检查路径"| E["detect_end 等于 largest_sent, 以大延迟兜底清理超期包 (含尾包)"]
+    D--&gt;I["返回 lost_packets 集合"]
+    E--&gt;I["返回 lost_packets 集合"]
+    I --&gt; J["MarkAsLost 并上报拥塞控制"]
+</code></pre>
+
+<hr />
+
+<h3 id="31-adaptivesequence序号优先默认">3.1 AdaptiveSequence：序号优先（默认）</h3>
+
+<p>参考 <strong>TCP 3-dupack + Early Retransmit</strong> 思路：以<strong>序号跳变</strong>为主要判断依据，时间窗做门控，最后有一条纯时间判断兜底。</p>
+
+<ul>
+  <li><strong>条件 A（序号）</strong>：<code class="language-plaintext highlighter-rouge">pkt_no + reordering_threshold_ &lt; largest_acked</code>，即包序号在乱序窗口之外。</li>
+  <li><strong>条件 B（时间）</strong>：<code class="language-plaintext highlighter-rouge">IsExpired(now, loss_delay)</code>，对遍历到的所有包生效（尾包在周期性检查时靠大 hint（默认 3秒） 兜底）。</li>
+  <li><strong>闭环自适应</strong>（<code class="language-plaintext highlighter-rouge">SpuriousLossDetected</code>）：以一定包数为窗（默认300）统计伪重传率，如果<code class="language-plaintext highlighter-rouge">&gt; 1%</code> 则阈值 <code class="language-plaintext highlighter-rouge">+1</code>，如果<code class="language-plaintext highlighter-rouge">&lt; 0.1%</code> 则 <code class="language-plaintext highlighter-rouge">-1</code>，限制在配置范围内，建议[1,100]；如果遇到 <code class="language-plaintext highlighter-rouge">round_trip_delay &gt; 3 × max_rtt</code> 的伪丢包判为”非乱序”而剔除。</li>
+  <li><strong>快速重置</strong>：当检测到网络中不再存在乱序后，将乱序阈值设置为 min，避免无乱序后，依然保持乱序窗口导致丢包检测的延迟。</li>
+  <li><strong>尾丢包</strong>：ACK 路径不快速覆盖，注释明确交给 TLP/PTO，靠周期性检测进行兜底。</li>
+</ul>
+
+<pre><code class="language-mermaid">flowchart TD
+    S["按序号升序遍历 inflight 包 pkt"] --&gt; A{"pkt 在 inflight 且 可重传?"}
+    A --&gt;|否| S
+    A --&gt;|是| B{"pkt_no 大于 detect_end?"}
+    B --&gt;|是| Z["结束遍历"]
+    B --&gt;|否| C{"序号差达阈值 且 已超 reorder 时间窗?&lt;br/&gt;pkt_no 加 reordering_threshold 小于 largest_acked"}
+    C --&gt;|是| L["判定丢失, 继续下一个"]
+    C --&gt;|否| D{"已超时间阈值 loss_delay?"}
+    D --&gt;|是| L
+    D --&gt;|否| E["记录 loss_detection_timeout 并停止"]
+    L --&gt; S
+</code></pre>
+
+<hr />
+
+<h3 id="32-adaptivetime时间优先rack-风格">3.2. AdaptiveTime：时间优先（RACK 风格）</h3>
+
+<p>思路贴近 <strong>RACK-TLP（RFC 8985）</strong>：以<strong>时间窗</strong>为主要判断依据，序号只在”无乱序”时做 fallback，并原生覆盖尾丢包。</p>
+
+<ul>
+  <li><strong>动态时间窗</strong> 首先确定乱序时间窗口：如果有检测到乱序，则乱序窗口为 <code class="language-plaintext highlighter-rouge">max_reorder_delay</code> + <code class="language-plaintext highlighter-rouge">min_rtt</code>，否则为 0。</li>
+  <li><strong>largest_acked 之前的包</strong>：
+    <ul>
+      <li>窗为 0（无乱序）→ fallback 到序号跳变 <code class="language-plaintext highlighter-rouge">pkt_no + min_reordering_threshold_ &lt; largest_acked</code>；</li>
+      <li>否则 RACK 判丢依据 <code class="language-plaintext highlighter-rouge">IsExpired(now, max(reordering_window_, early_retransmit_delay))</code>，其中 early_retransmit_delay = smoothed_rtt * loss_delay_multipier + mead_deviation / 2, loss_delay_multipier 配置范围 [1, 2]。</li>
+    </ul>
+  </li>
+  <li><strong>largest_acked 之后的尾包</strong>：直接用包最大有效时间判断是否丢包，以此覆盖尾丢包检测（与 Sequence 版最大不同）。</li>
+</ul>
+
+<pre><code class="language-mermaid">flowchart TD
+    A["先更新 reordering_window"] --&gt; B{"近期乱序比例和乱序包数是否满足使用乱序窗口的门槛?"}
+    B --&gt;|是| C["reordering_window 等于 max_reorder_delay 加 min_rtt"]
+    B --&gt;|否| D["reordering_window 置零"]
+    C --&gt; E["遍历所有 inflight 包"]
+    D --&gt; E
+    E --&gt; F{"pkt_no 小于 largest_acked?"}
+    F --&gt;|"是, 前向包"| G{"reordering_window 为 0?"}
+    G --&gt;|"是, 无乱序"| H{"序号差达 min 阈值?"}
+    H --&gt;|是| LOST["判定丢失"]
+    H --&gt;|否| CONT["继续下一个"]
+    G --&gt;|"否, 有乱序"| I{"RACK 时间到期?&lt;br/&gt;now 减 sent_time 大于等于 loss_delay"}
+    I --&gt;|是| LOST
+    I --&gt;|否| T["记录 loss_detection_timeout 并停止"]
+    F --&gt;|"否, 尾包"| J{"尾包时间到期?"}
+    J --&gt;|是| LOST
+    J --&gt;|否| CONT
+</code></pre>
+
+<hr />
+
+<h2 id="4-三者横向对比">4. 三者横向对比</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>维度</th>
+      <th>New AdaptiveSequence</th>
+      <th>New AdaptiveTime</th>
+      <th>QUIC General</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>对标</td>
+      <td>TCP 3-dupack + Early Retransmit</td>
+      <td>RACK-TLP (RFC 8985)</td>
+      <td>QUIC 双阈值</td>
+    </tr>
+    <tr>
+      <td>判断主依据</td>
+      <td>序号阈值（时间窗兜底）</td>
+      <td>时间窗 RACK（无乱序时，使用序号判断）</td>
+      <td>包序号阈值 与 时间阈值并列</td>
+    </tr>
+    <tr>
+      <td>序号阈值默认</td>
+      <td>动态检测调整</td>
+      <td>固定容忍 1 个包的乱序</td>
+      <td>默认为3，可动态调整向上，但不下降探测</td>
+    </tr>
+    <tr>
+      <td>时间阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">mult×max_rtt + 0.5·mdev</code>，[5ms, 3s]</td>
+      <td>同左，取 <code class="language-plaintext highlighter-rouge">max(reorder_window, 该值)</code></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt × 1.25</code>，其中 1.25 可配，但不够灵活</td>
+    </tr>
+    <tr>
+      <td>尾丢包</td>
+      <td>❌ 靠 TLP/PTO + 兜底</td>
+      <td>✅ 原生覆盖</td>
+      <td>❌ 靠 PTO</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="8-总结">8. 总结</h2>
+
+<p>该算法优化用两套可切换的丢包检测把<code class="language-plaintext highlighter-rouge">实时低时延</code>和<code class="language-plaintext highlighter-rouge">抗乱序稳健</code>拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。]]></summary></entry><entry><title type="html">golang 问题记录</title><link href="https://gbcpp.github.io/notes/golang-issues.html" rel="alternate" type="text/html" title="golang 问题记录" /><published>2025-01-21T00:00:00+00:00</published><updated>2025-01-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/golang-issues</id><content type="html" xml:base="https://gbcpp.github.io/notes/golang-issues.html"><![CDATA[<p>  </p>
 <blockquote>
   <p>记录 Golang 学习、开发过程中的一些疑难杂症。</p>
 </blockquote>
@@ -1430,121 +1621,4 @@ helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module prov
   <li>更新 <code class="language-plaintext highlighter-rouge">go.sum</code></li>
 </ul>
 
-<p>重新执行 <code class="language-plaintext highlighter-rouge">go run</code> <code class="language-plaintext highlighter-rouge">go build</code> 问题解决。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[   记录 Golang 学习、开发过程中的一些疑难杂症。]]></summary></entry><entry><title type="html">直播回源优化</title><link href="https://gbcpp.github.io/notes/optimize-back-to-source.html" rel="alternate" type="text/html" title="直播回源优化" /><published>2025-01-20T00:00:00+00:00</published><updated>2025-01-20T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/optimize-back-to-source</id><content type="html" xml:base="https://gbcpp.github.io/notes/optimize-back-to-source.html"><![CDATA[<blockquote>
-  <p>该文档主要考虑的是针对需要回源时秒开的优化。</p>
-</blockquote>
-
-<h1 id="现状">现状</h1>
-
-<p>  当前 streamd server 在收到拉流请求时，若需要回源，在回源后 streamd 下发给 Player 数据时使用的是帧级别的下发，特别是在接收首个关键帧时，只有接收到完整的视频帧以后，方才开始下发给 Player，这样无形中增加了一定的数据接收+组帧的耗时，通过当前 superset 的数据分析，在需要回源的 case 中， streamd 等待接收首个视频关键帧的时长几乎全部超过 100ms 以上，这便为该次播放请求增加了固定时间的延迟，优化空间明显。</p>
-
-<h1 id="优化内容">优化内容</h1>
-
-<p>  针对当前数据转发的模式，将帧级别的转发模式优化为 Slice 级别的转发模式。</p>
-
-<h2 id="流程图">流程图</h2>
-
-<p><img src="/assets/img/blog/streamd-optimize.png" alt="数据转发流程图" /></p>
-
-<h2 id="优点">优点</h2>
-
-<ul>
-  <li>加快秒开速度，减少回源阶段 Block 等待时间，初步估计对回源 case 的秒开优化在百毫秒以上。</li>
-  <li>Streamd 下发数据时基于 Slice 进行下发，数据发送更加平滑，减少 Frame 级别的下发带来的网络拥塞，有益于卡顿率的降低。</li>
-</ul>
-
-<h2 id="缺点">缺点</h2>
-
-<p>  Streamd 服务在各协议的封装性上需要结构性的调整，数据流程改动较大，需要考虑不同 Protocol/Muxer/Demuxer 之间的兼容性，可能难以实现所有 Protocol/Muxer/Demuxer 之间的分片转发，但依然有很大的优化场景需求。
-最理想的情况为：源站提供 FLV 的数据拉流协议，而 Streamd 也是用 FLV 的回源拉流协议，Streamd 在接收端最多需要处理 FLV Header Tag 的部分信息，不阻塞 Slice 的下发。</p>
-
-<h2 id="flv-格式">FLV 格式</h2>
-
-<p><a href="https://blog.ibaoger.com/2017/06/04/flv-file-format/">Reference URL</a></p>
-
-<p><img src="/assets/img/blog/flv-format.png" alt="FLV format" /></p>
-
-<h1 id="srs-现状">SRS 现状</h1>
-
-<p>  那么问题来了， srs 是否已经考虑到这一点的优化空间呢？</p>
-
-<p>  对比查看 srs 是否使用的这种透明转发模式，还是帧转发模式？
-这里记录的为使用 HTTP-FLV 回源协议的代码流程。</p>
-
-<p>srs 需要回源时建议优先使用 Edge 模式，回源时，内部首先创建一个 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream</code> 实例，用于向源站发起连接，并用于实时的接收、处理数据，代码文件：<code class="language-plaintext highlighter-rouge">srs_app_edge.cpp</code>。</p>
-
-<p>通过 <code class="language-plaintext highlighter-rouge">connect</code> ==&gt; <code class="language-plaintext highlighter-rouge">do_connect</code> 发起向源站的连接请求，判定 http response status code 非 404、非 302 后，开始接收、处理媒体数据。</p>
-
-<p>事件轮询在 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::ingest()</code> 中，同步模式不断循环执行 <code class="language-plaintext highlighter-rouge">SrsEdgeFlvUpstream::recv_message()</code> 接收完整的数据，而后通过 <code class="language-plaintext highlighter-rouge">SrsEdgeIngester::process_publish_message</code> 将数据流转到后序处理的模块，比如 Source、Consumer 等，但在这之前重点是确认在 recv_message 中是否会 block 等待完整的一个 tag data。</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsEdgeFlvUpstream</span><span class="o">::</span><span class="n">recv_message</span><span class="p">(</span><span class="n">SrsCommonMessage</span><span class="o">**</span> <span class="n">pmsg</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
-
-    <span class="kt">char</span> <span class="n">type</span><span class="p">;</span>
-    <span class="kt">int32_t</span> <span class="n">size</span><span class="p">;</span>
-    <span class="kt">uint32_t</span> <span class="n">time</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_header</span><span class="p">(</span><span class="o">&amp;</span><span class="n">type</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">time</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag header"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">char</span><span class="o">*</span> <span class="n">data</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="p">[</span><span class="n">size</span><span class="p">];</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_tag_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">srs_freepa</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read tag data"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">char</span> <span class="n">pps</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">decoder_</span><span class="o">-&gt;</span><span class="n">read_previous_tag_size</span><span class="p">(</span><span class="n">pps</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read pts"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="kt">int</span> <span class="n">stream_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="n">SrsCommonMessage</span><span class="o">*</span> <span class="n">msg</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">srs_rtmp_create_msg</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">stream_id</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">msg</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"create message"</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="o">*</span><span class="n">pmsg</span> <span class="o">=</span> <span class="n">msg</span><span class="p">;</span>
-
-    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>可以看到首先读取 tag_header，然后从header 中获取 tag size 开始读取指定size 的tag data，<code class="language-plaintext highlighter-rouge">SrsFlvDecoder::read_tag_data()</code> ==» <code class="language-plaintext highlighter-rouge">SrsHttpFileReader:read()</code></p>
-
-<p>可以看到在 <code class="language-plaintext highlighter-rouge">SrsHttpFileReader::read(void* buf, size_t count, ssize_t* pnread)</code> 中其会持续的尝试去接收指定 size 大小的数据，直到接收完整，或者 io 报错，源码如下：</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">srs_error_t</span> <span class="n">SrsHttpFileReader</span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="kt">ssize_t</span><span class="o">*</span> <span class="n">pnread</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">srs_error_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">srs_success</span><span class="p">;</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="n">http</span><span class="o">-&gt;</span><span class="n">eof</span><span class="p">())</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
-    <span class="p">}</span>
-    
-    <span class="kt">int</span> <span class="n">total_read</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">total_read</span> <span class="o">&lt;</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">count</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">ssize_t</span> <span class="n">nread</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">http</span><span class="o">-&gt;</span><span class="n">read</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">buf</span> <span class="o">+</span> <span class="n">total_read</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">count</span> <span class="o">-</span> <span class="n">total_read</span><span class="p">),</span> <span class="o">&amp;</span><span class="n">nread</span><span class="p">))</span> <span class="o">!=</span> <span class="n">srs_success</span><span class="p">)</span> <span class="p">{</span>
-            <span class="k">return</span> <span class="n">srs_error_wrap</span><span class="p">(</span><span class="n">err</span><span class="p">,</span> <span class="s">"read"</span><span class="p">);</span>
-        <span class="p">}</span>
-        
-        <span class="k">if</span> <span class="p">(</span><span class="n">nread</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="n">srs_error_new</span><span class="p">(</span><span class="n">ERROR_HTTP_REQUEST_EOF</span><span class="p">,</span> <span class="s">"EOF"</span><span class="p">);</span>
-            <span class="k">break</span><span class="p">;</span>
-        <span class="p">}</span>
-        
-        <span class="n">srs_assert</span><span class="p">(</span><span class="n">nread</span><span class="p">);</span>
-        <span class="n">total_read</span> <span class="o">+=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">nread</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="n">pnread</span><span class="p">)</span> <span class="p">{</span>
-        <span class="o">*</span><span class="n">pnread</span> <span class="o">=</span> <span class="n">total_read</span><span class="p">;</span>
-    <span class="p">}</span>
-    
-    <span class="k">return</span> <span class="n">err</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p><strong>结论：</strong> 当前 srs 使用的是帧级别的转发模式，没有实现分片的透明转发。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[该文档主要考虑的是针对需要回源时秒开的优化。]]></summary></entry></feed>
+<p>重新执行 <code class="language-plaintext highlighter-rouge">go run</code> <code class="language-plaintext highlighter-rouge">go build</code> 问题解决。</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[   记录 Golang 学习、开发过程中的一些疑难杂症。]]></summary></entry></feed>

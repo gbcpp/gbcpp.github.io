@@ -189,7 +189,7 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  133  字
+              本文总共  209  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
@@ -222,6 +222,8 @@
           <article class="markdown-body post">
               
             <h2 id="bbr-状态机">BBR 状态机</h2>
+
+<p>BBR 的核心是估计链路的管道容量 BDP，即 $BDP = BtlBw \times RTprop$，其中 $BtlBw$ 为瓶颈带宽、$RTprop$ 为往返传播时延。</p>
 
 <p>BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：</p>
 
@@ -632,21 +634,22 @@
 	<!--
 Author: Ray-Eldath
 refer to:
- - http://docs.mathjax.org/en/latest/options/index.html
+ - https://docs.mathjax.org/en/latest/options/index.html
 -->
 
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-		jax: ["input/TeX", "output/HTML-CSS"],
-		tex2jax: {
-			inlineMath: [ ["$", "$"] ],
-			displayMath: [ ["$$", "$$"] ],
-			skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-		},
-		"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
-      });
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
     </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 
    
     <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>

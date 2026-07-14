@@ -48,6 +48,12 @@
   } ,
 
   {
+    "title"    : "QUIC 丢包检测算法优化",
+    "tags"     : "Protocol",
+    "url"      : "/protocol/loss-detect-algo.html"
+  } ,
+
+  {
     "title"    : "golang 问题记录",
     "tags"     : "Life",
     "url"      : "/notes/golang-issues.html"
