@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序 - Mr Chen</title>
+    <title>BBR 优化重点项 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序">
-    <meta name="keywords"  content="Windows">
+    <meta name="description" content="BBR 优化重点项">
+    <meta name="keywords"  content="Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序 - Mr Chen">
+    <meta property="og:title" content="BBR 优化重点项 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/tech/Win10-deploy-XP-Server2003-application.html">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/bbr-optimize-record.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/tech/Windows-10-Install-NetFrameWork-3-5.html">
     
-    
-    <meta property="og:next_url" content="/rtc/Windows-Build-WebRTC.html">
+    <meta property="og:next_url" content="/protocol/abnormal-network-detect.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2018-02-22 11:47:18 +0000" />
+    <meta property="post-date" content="2025-12-01 00:00:00 +0000" />
     
     
     
@@ -162,11 +160,11 @@
         <div class="post-tags">
           
             
-              <a href="/tags.html#Windows" class="post-tag">Windows</a>
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
             
           
         </div>
-        <h1>Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序</h1>
+        <h1>BBR 优化重点项</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="18-02-22">
+          <time class="post-meta-item" datetime="25-12-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="18-02-22">
+          <time class="post-meta-item" datetime="25-12-01">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  1.5k  字
+              本文总共  133  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 5 分钟
+              阅读全文大约需要 1 分钟
             </span>
             
               <span class="post-meta-item">
@@ -214,6 +212,8 @@
     </header>
     <div class="post-content visible">
       
+      <h2 class="post-subtitle">实时数据传输拥塞控制算法基于 BBR 优化重点方向</h2>
+      
 
       
       
@@ -221,42 +221,16 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="场景">场景</h1>
+            <h2 id="bbr-状态机">BBR 状态机</h2>
 
-<p>在 Windows 10 下通过 VS2015 开发的桌面程序，部署到 Windows Server 2003 系统中，运行不起来，运行会报 “不是有效的 Win32 应用程序” 或者是 “不能定位 XXX.XXX 到 api-ms-win-…-…-l1-1-0.dll”，这里原因有两个，一个是在编译时默认指定的平台工具集系统版本较高，另一个就是编译时依赖了只有 Windows Vista 以上版本的系统才支持的 UCRT 动态库，对此，只要按照以下方法重新编译下，即可解决低版本系统下运行的问题。</p>
+<p>BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：</p>
 
-<!--more-->
-
-<h1 id="解决低版本系统报错-不是有效的-win32-应用程序">解决低版本系统报错： “不是有效的 Win32 应用程序”</h1>
-
-<p>将工程的平台工具集即 <code class="language-plaintext highlighter-rouge">Platform Toolset</code> 由 <code class="language-plaintext highlighter-rouge">Visual Studio 2015 (v140)</code> 改为 <code class="language-plaintext highlighter-rouge">Visual Studio 2015 - Windows XP (v140_xp)</code>；</p>
-
-<p>重新编译后，通过 ExeScope 依次查看 <code class="language-plaintext highlighter-rouge">头部</code>–<code class="language-plaintext highlighter-rouge">可选头部</code>–<code class="language-plaintext highlighter-rouge">操作系统主版本</code> 发现其值为 0005，即说明该目标文件可以运行在 Windows version 为 5.0 以上的系统中了。</p>
-
-<h1 id="解决-无法定位到-ucrt-库">解决 “无法定位…到 ucrt 库”</h1>
-
-<p>VC++ 需要去除通用 CRT（UCRT）库的依赖。</p>
-
-<h2 id="什么是-ucrt-库">什么是 UCRT 库</h2>
-
-<p>首先介绍下什么是 CRT 库：</p>
-
-<p><code class="language-plaintext highlighter-rouge">C 运行时库 (CRT) 是集成了 ISO C99 标准库的 C++ 标准库。 实现 CRT 的 Visual C++ 库支持用于 .NET 开发的本机代码开发、本机和托管混合代码以及纯托管代码。 所有版本的 CRT 都支持多线程开发。 大多数的库都支持通过静态链接将库直接链接到代码中，或通过动态链接让代码使用常用 DLL 文件。</code></p>
-
-<p>UCRT（通用 CRT） 包含通过标准 C99 CRT 库导出的函数和全局函数。 UCRT 现为 Windows 组件，并作为 Windows 10 的一部分提供。 静态库、DLL 导入库和 UCRT 的头文件现在 Windows 10 SDK 中提供。 安装 Visual C++ 时，Visual Studio 安装程序将安装使用 UCRT 所需 Windows 10 SDK 的子集。 可以在 Visual Studio 2015 支持的任何 Windows 版本上使用 UCRT。 可以使用 vcredist 重新分发它，以便支持 Windows 10 以外的 Windows 版本。</p>
-
-<p>在 Visual Studio 2015 中，CRT 已重构为新的二进制文件。</p>
-
-<p>Windows 下所有的 ucrt 库均存放在 <code class="language-plaintext highlighter-rouge">C:\Program Files (x86)\Windows Kits\10\Redist\ucrt</code> 目录下，而这些库是只有 Windows Vista 以上版本的系统才支持的，所以不能依赖此动态库，解决方法便是在编译程序时，将所有的工程的 <code class="language-plaintext highlighter-rouge">属性</code>–<code class="language-plaintext highlighter-rouge">C/C++</code>–<code class="language-plaintext highlighter-rouge">Code Generation</code>–<code class="language-plaintext highlighter-rouge">Runtime Library</code> 改为 <code class="language-plaintext highlighter-rouge">Multi-threaded (/MT)</code> 即可，重新编译后，通过 Stud_PE 查看其依赖项已经没有了 api 开发的 curt 动态库，如：</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>api-ms-win-crt-runtime-l1-1-0.dll
-api-ms-win-crt-stdio-l1-1-0.dll
-api-ms-win-crt-math-l1-1-0.dll
-api-ms-win-crt-locale-l1-1-0.dll
-api-ms-win-crt-heap-l1-1-0.dll
-</code></pre></div></div>
-<p><strong>注意：这里是可以将工程的运行时库编译选项改为 MT 的情况下，如果你的工程不能改为 MT 那就只能将 UCRT 库全部带上了，但是如果是 UCRT 的动态库的话，是不支持 Windows XP 和 Server 2003 一下版本的系统的！</strong></p>
-
-<p>关于 CRT 库的更多的介绍，请参考微软官方的文档：https://msdn.microsoft.com/zh-cn/library/abx4dbyh.aspx</p>
+<pre><code class="language-mermaid">flowchart LR
+    STARTUP --&gt; DRAIN
+    DRAIN --&gt; PROBE_BW
+    PROBE_BW --&gt; PROBE_RTT
+    PROBE_RTT --&gt; PROBE_BW
+</code></pre>
 
             <div class="post-copyright">
               <p>
@@ -272,15 +246,15 @@ api-ms-win-crt-heap-l1-1-0.dll
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 Windows 10 开发部署支持 Windows XP 和 Windows Server 2003 的应用程序 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/tech/Win10-deploy-XP-Server2003-application.html" class="cplink">https://gbcpp.github.io/tech/Win10-deploy-XP-Server2003-application.html</a></p>
+              <p><span>本文标题：</span>《 BBR 优化重点项 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/bbr-optimize-record.html" class="cplink">https://gbcpp.github.io/protocol/bbr-optimize-record.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('场景')">场景</a></li><li><a onclick="scrollToAdjust('解决低版本系统报错-“不是有效的-win32-应用程序”')">解决低版本系统报错： “不是有效的 Win32 应用程序”</a></li><li><a onclick="scrollToAdjust('解决-“无法定位…到-ucrt-库”')">解决 “无法定位…到 ucrt 库”</a><ul><li><a onclick="scrollToAdjust('什么是-ucrt-库')">什么是 UCRT 库</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('bbr-状态机')">BBR 状态机</a></li></ul>
         </div>
       </div>
       
@@ -334,22 +308,13 @@ api-ms-win-crt-heap-l1-1-0.dll
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/tech/Windows-10-Install-NetFrameWork-3-5.html" class="read-next-link" aria-label="Windows 10 安装 .NetFrameWork 3.5"></a>
-          <section>
-            <span>Windows 10 安装 .NetFrameWork 3.5</span>
-            <p>Windows 10 下安装 .NetFrameWork 3.5</p>
-          </section>
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/rtc/Windows-Build-WebRTC.html" class="read-next-link" aria-label="Windows 下编译 WebRTC"></a>
+          <a href="/protocol/abnormal-network-detect.html" class="read-next-link" aria-label="基于 Ack 反馈实现的网络下行链路异常检测"></a>
             <section>
-              <span>Windows 下编译 WebRTC</span>
-              <p>一、系统环境准备</p>
+              <span>基于 Ack 反馈实现的网络下行链路异常检测</span>
+              <p>背景与问题</p>
             </section>
             
         </div>
@@ -365,7 +330,7 @@ api-ms-win-crt-heap-l1-1-0.dll
   
   <script>
     var gitalk = new Gitalk({
-      id: '2018-02-22 11:47:18 +0000',
+      id: '2025-12-01 00:00:00 +0000',
       clientID: '7795ee35cc3373147f6e',  //这里其实可以直接填值，但是考虑到页面安全性，还是通过配置的方式添加
       clientSecret: '3c90889603d18c17cfd73289591b50a716925392',
       repo: 'gbcpp.github.io',
@@ -578,7 +543,7 @@ api-ms-win-crt-heap-l1-1-0.dll
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/old_blog/2018-02-22-Win10-deploy-XP-Server2003-application.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2025-12-01-bbr-optimize-record.md")
           .then((response) => {
             return response.json();
           })
