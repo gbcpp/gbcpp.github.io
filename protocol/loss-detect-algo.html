@@ -234,7 +234,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h2 id="1-为什么需要自适应的丢包检测">1. 为什么需要「自适应」的丢包检测</h2>
+<h2 id="为什么需要自适应的丢包检测">为什么需要「自适应」的丢包检测</h2>
 
 <p>发送端判定一个包丢了，本质上只有两类信号：</p>
 
@@ -251,7 +251,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h2 id="2-首先查看-quic-实现机制">2. 首先查看 QUIC 实现机制</h2>
+<h2 id="首先查看-quic-实现机制">首先查看 QUIC 实现机制</h2>
 
 <p>实现类：<code class="language-plaintext highlighter-rouge">GeneralLossAlgorithm</code>，其中：</p>
 
@@ -283,7 +283,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h2 id="3-算法调优">3. 算法调优</h2>
+<h2 id="算法调优">算法调优</h2>
 
 <p>实现两种丢包检测算法，分别基于 packet number 和 Time，分别用于低延迟、低乱序窗口下的低延迟传输场景，和高延迟、高乱序窗口的场景，丢包判定趋于保守，以用于不同的网络场景。</p>
 
@@ -305,7 +305,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h3 id="31-adaptivesequence序号优先默认">3.1 AdaptiveSequence：序号优先（默认）</h3>
+<h3 id="adaptivesequence序号优先默认">AdaptiveSequence：序号优先（默认）</h3>
 
 <p>参考 <strong>TCP 3-dupack + Early Retransmit</strong> 思路：以<strong>序号跳变</strong>为主要判断依据，时间窗做门控，最后有一条纯时间判断兜底。</p>
 
@@ -337,7 +337,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h3 id="32-adaptivetime时间优先rack-风格">3.2. AdaptiveTime：时间优先（RACK 风格）</h3>
+<h3 id="adaptivetime时间优先rack-风格">AdaptiveTime：时间优先（RACK 风格）</h3>
 
 <p>思路贴近 <strong>RACK-TLP（RFC 8985）</strong>：以<strong>时间窗</strong>为主要判断依据，序号只在”无乱序”时做 fallback，并原生覆盖尾丢包。</p>
 
@@ -376,7 +376,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h2 id="4-三者横向对比">4. 三者横向对比</h2>
+<h2 id="三者横向对比">三者横向对比</h2>
 
 <table>
   <thead>
@@ -426,7 +426,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <hr>
 
-<h2 id="8-总结">8. 总结</h2>
+<h2 id="总结">总结</h2>
 
 <p>该算法优化用两套可切换的丢包检测把<code class="language-plaintext highlighter-rouge">实时低时延</code>和<code class="language-plaintext highlighter-rouge">抗乱序稳健</code>拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。</p>
 
@@ -452,7 +452,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('1.-为什么需要「自适应」的丢包检测')">1. 为什么需要「自适应」的丢包检测</a></li><li><a onclick="scrollToAdjust('2.-首先查看-quic-实现机制')">2. 首先查看 QUIC 实现机制</a></li><li><a onclick="scrollToAdjust('3.-算法调优')">3. 算法调优</a><ul><li><a onclick="scrollToAdjust('3.1-adaptivesequence序号优先（默认）')">3.1 AdaptiveSequence：序号优先（默认）</a></li><li><a onclick="scrollToAdjust('3.2.-adaptivetime时间优先（rack-风格）')">3.2. AdaptiveTime：时间优先（RACK 风格）</a></li></ul></li><li><a onclick="scrollToAdjust('4.-三者横向对比')">4. 三者横向对比</a></li><li><a onclick="scrollToAdjust('8.-总结')">8. 总结</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('为什么需要「自适应」的丢包检测')">为什么需要「自适应」的丢包检测</a></li><li><a onclick="scrollToAdjust('首先查看-quic-实现机制')">首先查看 QUIC 实现机制</a></li><li><a onclick="scrollToAdjust('算法调优')">算法调优</a><ul><li><a onclick="scrollToAdjust('adaptivesequence序号优先（默认）')">AdaptiveSequence：序号优先（默认）</a></li><li><a onclick="scrollToAdjust('adaptivetime时间优先（rack-风格）')">AdaptiveTime：时间优先（RACK 风格）</a></li></ul></li><li><a onclick="scrollToAdjust('三者横向对比')">三者横向对比</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul>
         </div>
       </div>
       

@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 14 Jul 2026 09:11:16 +0000</pubDate>
-    <lastBuildDate>Tue, 14 Jul 2026 09:11:16 +0000</lastBuildDate>
+    <pubDate>Tue, 14 Jul 2026 09:15:15 +0000</pubDate>
+    <lastBuildDate>Tue, 14 Jul 2026 09:15:15 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -233,7 +233,7 @@
   &lt;p&gt;BBR 依赖 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 估算 BDP/CWND，但 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 只会被更小的 RTT 刷新，或等 10s 过期后进入 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 &lt;strong&gt;上跳&lt;/strong&gt; 后立即抬高 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 并跳过常规过期逻辑；&lt;strong&gt;下跳&lt;/strong&gt; 时放开 recovery 限制，由主干自然下调。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h2 id=&quot;1-解决的问题&quot;&gt;1. 解决的问题&lt;/h2&gt;
+&lt;h2 id=&quot;解决的问题&quot;&gt;解决的问题&lt;/h2&gt;
 
 &lt;p&gt;BBR 的一切都建立在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;**min_rtt&lt;/code&gt;（链路往返最低延迟）** 之上：&lt;/p&gt;
 
@@ -284,7 +284,7 @@
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;2-架构与接入点&quot;&gt;2. 架构与接入点&lt;/h2&gt;
+&lt;h2 id=&quot;架构与接入点&quot;&gt;架构与接入点&lt;/h2&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/architecture.png&quot; alt=&quot;架构图&quot; /&gt;&lt;/p&gt;
 
@@ -297,7 +297,7 @@
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;3-数据结构状态变量&quot;&gt;3. 数据结构（状态变量）&lt;/h2&gt;
+&lt;h2 id=&quot;数据结构状态变量&quot;&gt;数据结构（状态变量）&lt;/h2&gt;
 
 &lt;p&gt;构造函数初值见 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_detector.h:12&lt;/code&gt;。&lt;/p&gt;
 
@@ -358,7 +358,7 @@
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;4-参数与阈值&quot;&gt;4. 参数与阈值&lt;/h2&gt;
+&lt;h2 id=&quot;参数与阈值&quot;&gt;参数与阈值&lt;/h2&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;图片同表格，有时候表格渲染可能是乱码，可以查看图片。&lt;/p&gt;
@@ -380,7 +380,7 @@
 | 下跳稳定性系数（硬编码 &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                       | &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | —   | &lt;/code&gt;var·10 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√10 ≈ 31.6%&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;（变异系数上限，**宽**）                        |
 | EWMA 系数                                 | &lt;/code&gt;1/8&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;, &lt;/code&gt;1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |&lt;/p&gt;
 
-&lt;h3 id=&quot;41-为什么上跳严下跳宽&quot;&gt;4.1 为什么上跳严、下跳宽？&lt;/h3&gt;
+&lt;h3 id=&quot;为什么上跳严下跳宽&quot;&gt;为什么上跳严、下跳宽？&lt;/h3&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;strong&gt;上跳&lt;/strong&gt; 会把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt; 抬高 → 直接放大 BDP 与 CWND。误判代价大（可能引入 bufferbloat），故要求 spike 轨道变异系数 &amp;lt; 14.1%（很稳）且幅度 &amp;lt; 1200ms（有上限）。&lt;/li&gt;
@@ -389,7 +389,7 @@
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;5-运行状态机&quot;&gt;5. 运行状态机&lt;/h2&gt;
+&lt;h2 id=&quot;运行状态机&quot;&gt;运行状态机&lt;/h2&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;这里描述的是检测器的 &lt;strong&gt;运行态&lt;/strong&gt;（操作语义），与对外输出的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;States&lt;/code&gt; 三值枚举不同——后者只是确认那一刻的方向标签。&lt;/p&gt;
@@ -431,20 +431,20 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h2 id=&quot;6-逐样本处理流程&quot;&gt;6. 逐样本处理流程&lt;/h2&gt;
+&lt;h2 id=&quot;逐样本处理流程&quot;&gt;逐样本处理流程&lt;/h2&gt;
 
 &lt;p&gt;入口 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaybeXXXHappened(now, crtt)&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;crtt&lt;/code&gt; 为最新 RTT（ms）。&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/sequeue.png&quot; alt=&quot;逐样本处理流程图&quot; /&gt;&lt;/p&gt;
 
-&lt;h3 id=&quot;61-越界判据&quot;&gt;6.1 越界判据&lt;/h3&gt;
+&lt;h3 id=&quot;越界判据&quot;&gt;越界判据&lt;/h3&gt;
 
 &lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rtt_dispersion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;36&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rtt_variance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MinimalRttDispersionThreshold&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|crtt − short_term_srtt| &amp;gt; max(6σ, 50ms)&lt;/code&gt;，即同时满足「偏离基线 &amp;gt;6 个标准差」&lt;strong&gt;且&lt;/strong&gt;「绝对偏离 &amp;gt;50ms」。&lt;/p&gt;
 
-&lt;h3 id=&quot;62-spike-轨道累积&quot;&gt;6.2 spike 轨道累积&lt;/h3&gt;
+&lt;h3 id=&quot;spike-轨道累积&quot;&gt;spike 轨道累积&lt;/h3&gt;
 
 &lt;p&gt;仅在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;now &amp;gt; first_spiked_time + 50ms&lt;/code&gt;（越过等待期）后执行：&lt;/p&gt;
 
@@ -454,7 +454,7 @@
   &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_rtt_count++&lt;/code&gt;。&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3 id=&quot;63-确认判据&quot;&gt;6.3 确认判据&lt;/h3&gt;
+&lt;h3 id=&quot;确认判据&quot;&gt;确认判据&lt;/h3&gt;
 
 &lt;p&gt;需同时满足 &lt;strong&gt;持续性&lt;/strong&gt; 与 &lt;strong&gt;稳定性 + 方向&lt;/strong&gt;：&lt;/p&gt;
 
@@ -491,7 +491,7 @@ AND (
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;7-典型时序上跳被确认&quot;&gt;7. 典型时序（上跳被确认）&lt;/h2&gt;
+&lt;h2 id=&quot;典型时序上跳被确认&quot;&gt;典型时序（上跳被确认）&lt;/h2&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/sequeue-diagrm.png&quot; alt=&quot;时序图&quot; /&gt;&lt;/p&gt;
 
@@ -499,7 +499,7 @@ AND (
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;8-误报防护机制&quot;&gt;8. 误报防护机制&lt;/h2&gt;
+&lt;h2 id=&quot;误报防护机制&quot;&gt;误报防护机制&lt;/h2&gt;
 
 &lt;table&gt;
   &lt;thead&gt;
@@ -550,7 +550,7 @@ AND (
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;9-设计观察与注意点&quot;&gt;9. 设计观察与注意点&lt;/h2&gt;
+&lt;h2 id=&quot;设计观察与注意点&quot;&gt;设计观察与注意点&lt;/h2&gt;
 
 &lt;ol&gt;
   &lt;li&gt;&lt;strong&gt;整型方差 + &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pow&lt;/code&gt; 截断&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int rtt_dispersion = pow(...)&lt;/code&gt; 用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;double&lt;/code&gt; 计算后截断为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int&lt;/code&gt;；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int&lt;/code&gt;，但属隐式窄化。&lt;/li&gt;
@@ -1550,7 +1550,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;1-为什么需要自适应的丢包检测&quot;&gt;1. 为什么需要「自适应」的丢包检测&lt;/h2&gt;
+&lt;h2 id=&quot;为什么需要自适应的丢包检测&quot;&gt;为什么需要「自适应」的丢包检测&lt;/h2&gt;
 
 &lt;p&gt;发送端判定一个包丢了，本质上只有两类信号：&lt;/p&gt;
 
@@ -1565,7 +1565,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;2-首先查看-quic-实现机制&quot;&gt;2. 首先查看 QUIC 实现机制&lt;/h2&gt;
+&lt;h2 id=&quot;首先查看-quic-实现机制&quot;&gt;首先查看 QUIC 实现机制&lt;/h2&gt;
 
 &lt;p&gt;实现类：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GeneralLossAlgorithm&lt;/code&gt;，其中：&lt;/p&gt;
 
@@ -1594,7 +1594,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;3-算法调优&quot;&gt;3. 算法调优&lt;/h2&gt;
+&lt;h2 id=&quot;算法调优&quot;&gt;算法调优&lt;/h2&gt;
 
 &lt;p&gt;实现两种丢包检测算法，分别基于 packet number 和 Time，分别用于低延迟、低乱序窗口下的低延迟传输场景，和高延迟、高乱序窗口的场景，丢包判定趋于保守，以用于不同的网络场景。&lt;/p&gt;
 
@@ -1616,7 +1616,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;31-adaptivesequence序号优先默认&quot;&gt;3.1 AdaptiveSequence：序号优先（默认）&lt;/h3&gt;
+&lt;h3 id=&quot;adaptivesequence序号优先默认&quot;&gt;AdaptiveSequence：序号优先（默认）&lt;/h3&gt;
 
 &lt;p&gt;参考 &lt;strong&gt;TCP 3-dupack + Early Retransmit&lt;/strong&gt; 思路：以&lt;strong&gt;序号跳变&lt;/strong&gt;为主要判断依据，时间窗做门控，最后有一条纯时间判断兜底。&lt;/p&gt;
 
@@ -1643,7 +1643,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;32-adaptivetime时间优先rack-风格&quot;&gt;3.2. AdaptiveTime：时间优先（RACK 风格）&lt;/h3&gt;
+&lt;h3 id=&quot;adaptivetime时间优先rack-风格&quot;&gt;AdaptiveTime：时间优先（RACK 风格）&lt;/h3&gt;
 
 &lt;p&gt;思路贴近 &lt;strong&gt;RACK-TLP（RFC 8985）&lt;/strong&gt;：以&lt;strong&gt;时间窗&lt;/strong&gt;为主要判断依据，序号只在”无乱序”时做 fallback，并原生覆盖尾丢包。&lt;/p&gt;
 
@@ -1679,7 +1679,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;4-三者横向对比&quot;&gt;4. 三者横向对比&lt;/h2&gt;
+&lt;h2 id=&quot;三者横向对比&quot;&gt;三者横向对比&lt;/h2&gt;
 
 &lt;table&gt;
   &lt;thead&gt;
@@ -1726,7 +1726,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;hr /&gt;
 
-&lt;h2 id=&quot;8-总结&quot;&gt;8. 总结&lt;/h2&gt;
+&lt;h2 id=&quot;总结&quot;&gt;总结&lt;/h2&gt;
 
 &lt;p&gt;该算法优化用两套可切换的丢包检测把&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;实时低时延&lt;/code&gt;和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;抗乱序稳健&lt;/code&gt;拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。&lt;/p&gt;
 </description>
