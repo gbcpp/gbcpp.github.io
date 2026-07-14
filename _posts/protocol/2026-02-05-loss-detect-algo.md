@@ -2,7 +2,7 @@
 layout: post
 title: 'QUIC 丢包检测算法优化'
 subtitle: ''
-date: 2025-02-05
+date: 2026-02-05
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'
@@ -10,6 +10,7 @@ author: Mr Chen
 categories: Protocol
 tags: 
 - Protocol
+mermaid: true
 ---
 
 > 针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。
@@ -41,7 +42,7 @@ tags:
 `reordering_threshold` 默认为 3，实际运行中通过 `SpuriousLossDetected` 进行检测调整。
 
 
-```mermaid
+```mermaid2
 flowchart TD
     A["least_in_flight 快进: 跳过已连续 ACK 的前缀"] --> B["从 least_in_flight 遍历至 largest_newly_acked"]
     B --> C{"包阈值命中?<br/>即 largest_newly_acked 减 pkt_no 大于等于 reordering_threshold 默认3"}
@@ -67,12 +68,12 @@ flowchart TD
 
 两中丢包检测算法的实现中，判断丢包基于时间兜底的公式均如下：
 
-```
+```text
 early_retransmit_delay = clamp(loss_delay_multiplier × max_rtt + 0.5 × mean_deviation, [5ms, 3s])
 其中 loss_delay_multiplier 可配置，配置范围 [1, 2]。
 ```
 
-```mermaid
+```mermaid2
 flowchart TD
     A["ACK 到达 或 丢包定时器触发"] --> B["启动检测是否丢包"]
     B --> C{"max_loss_delay 是否已初始化?"}
@@ -95,7 +96,7 @@ flowchart TD
 - **快速重置**：当检测到网络中不再存在乱序后，将乱序阈值设置为 min，避免无乱序后，依然保持乱序窗口导致丢包检测的延迟。
 - **尾丢包**：ACK 路径不快速覆盖，注释明确交给 TLP/PTO，靠周期性检测进行兜底。
 
-```mermaid
+```mermaid2
 flowchart TD
     S["按序号升序遍历 inflight 包 pkt"] --> A{"pkt 在 inflight 且 可重传?"}
     A -->|否| S
@@ -122,7 +123,7 @@ flowchart TD
 - **largest_acked 之后的尾包**：直接用包最大有效时间判断是否丢包，以此覆盖尾丢包检测（与 Sequence 版最大不同）。
 
 
-```mermaid
+```mermaid2
 flowchart TD
     A["先更新 reordering_window"] --> B{"近期乱序比例和乱序包数是否满足使用乱序窗口的门槛?"}
     B -->|是| C["reordering_window 等于 max_reorder_delay 加 min_rtt"]

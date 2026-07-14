@@ -3,7 +3,7 @@ layout: page
 home-title: Mr Chen's Blog
 description: What can i do, what shoud i do
 permalink: /en/index.html
-cover: /assets/img/benpao2.jpg
+cover: /assets/img/beijing.jpeg
 langs: ["zh-Hans", "en"]
 lang: "en"
 ---
