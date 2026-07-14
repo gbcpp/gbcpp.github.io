@@ -16,7 +16,7 @@ tags:
 > BBR 依赖 `min_rtt` 估算 BDP/CWND，但 `min_rtt` 只会被更小的 RTT 刷新，或等 10s 过期后进入 `PROBE_RTT` 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 `min_rtt` 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 **上跳** 后立即抬高 `min_rtt` 并跳过常规过期逻辑；**下跳** 时放开 recovery 限制，由主干自然下调。
 
 
-## 1. 解决的问题
+## 解决的问题
 
 BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
@@ -47,7 +47,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 ---
 
-## 2. 架构与接入点
+## 架构与接入点
 
 
 ![架构图](/assets/img/blog/delay-spike/architecture.png)
@@ -61,7 +61,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 ---
 
-## 3. 数据结构（状态变量）
+## 数据结构（状态变量）
 
 构造函数初值见 `delay_spike_detector.h:12`。
 
@@ -88,7 +88,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 ---
 
-## 4. 参数与阈值
+## 参数与阈值
 
 > 图片同表格，有时候表格渲染可能是乱码，可以查看图片。
 
@@ -109,14 +109,14 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 | EWMA 系数                                 | `1/8`, `1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |
 
 
-### 4.1 为什么上跳严、下跳宽？
+### 为什么上跳严、下跳宽？
 
 - **上跳** 会把 `min_rtt` 抬高 → 直接放大 BDP 与 CWND。误判代价大（可能引入 bufferbloat），故要求 spike 轨道变异系数 < 14.1%（很稳）且幅度 < 1200ms（有上限）。
 - **下跳** 只是放开恢复窗口钳制，真正的下修仍由主干「取更小值」把关，误判代价低，故放宽到 31.6% 以求 **快速反应**。
 
 ---
 
-## 5. 运行状态机
+## 运行状态机
 
 > 这里描述的是检测器的 **运行态**（操作语义），与对外输出的 `States` 三值枚举不同——后者只是确认那一刻的方向标签。
 
@@ -137,7 +137,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 
 
-## 6. 逐样本处理流程
+## 逐样本处理流程
 
 入口 `MaybeXXXHappened(now, crtt)`，`crtt` 为最新 RTT（ms）。
 
@@ -145,7 +145,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 
 
-### 6.1 越界判据
+### 越界判据
 
 ```cpp
 rtt_dispersion > max(36 * rtt_variance, MinimalRttDispersionThreshold)
@@ -153,7 +153,7 @@ rtt_dispersion > max(36 * rtt_variance, MinimalRttDispersionThreshold)
 
 `|crtt − short_term_srtt| > max(6σ, 50ms)`，即同时满足「偏离基线 >6 个标准差」**且**「绝对偏离 >50ms」。
 
-### 6.2 spike 轨道累积
+### spike 轨道累积
 
 仅在 `now > first_spiked_time + 50ms`（越过等待期）后执行：
 
@@ -161,7 +161,7 @@ rtt_dispersion > max(36 * rtt_variance, MinimalRttDispersionThreshold)
 - 后续：`spiked_srtt = (7·spiked_srtt + crtt) >> 3`；`spiked_rtt_variance = (3·spiked_rtt_variance + (crtt − spiked_srtt)²) >> 2`。
 - `spiked_rtt_count++`。
 
-### 6.3 确认判据
+### 确认判据
 
 需同时满足 **持续性** 与 **稳定性 + 方向**：
 
@@ -192,7 +192,7 @@ AND (
 
 ---
 
-## 7. 典型时序（上跳被确认）
+## 典型时序（上跳被确认）
 
 ![时序图](/assets/img/blog/delay-spike/sequeue-diagrm.png)
 
@@ -201,7 +201,7 @@ AND (
 
 ---
 
-## 8. 误报防护机制
+## 误报防护机制
 
 
 | 机制                 | 阈值                                      | 防的是什么                       |
@@ -217,7 +217,7 @@ AND (
 
 ---
 
-## 9. 设计观察与注意点
+## 设计观察与注意点
 
 1. **整型方差 + `pow` 截断**：`int rtt_dispersion = pow(...)` 用 `double` 计算后截断为 `int`；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 `int`，但属隐式窄化。
 2. **依赖 ACK 采样密度**：等待期后需在 (200ms, 1200ms] 内攒够 10 个样本，低速率/稀疏 ACK 的链路可能始终攒不够而无法触发——这是有意的保守取舍（实时高包率场景才是目标）。

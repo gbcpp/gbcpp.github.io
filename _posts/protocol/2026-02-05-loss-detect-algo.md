@@ -19,7 +19,7 @@ tags:
 
 ---
 
-## 1. 为什么需要「自适应」的丢包检测
+## 为什么需要「自适应」的丢包检测
 
 发送端判定一个包丢了，本质上只有两类信号：
 
@@ -32,7 +32,7 @@ tags:
 
 ---
 
-## 2. 首先查看 QUIC 实现机制
+## 首先查看 QUIC 实现机制
 
 实现类：`GeneralLossAlgorithm`，其中：
 
@@ -61,7 +61,7 @@ flowchart TD
 
 ---
 
-## 3. 算法调优
+## 算法调优
 
 实现两种丢包检测算法，分别基于 packet number 和 Time，分别用于低延迟、低乱序窗口下的低延迟传输场景，和高延迟、高乱序窗口的场景，丢包判定趋于保守，以用于不同的网络场景。
 
@@ -85,7 +85,7 @@ flowchart TD
 
 ---
 
-### 3.1 AdaptiveSequence：序号优先（默认）
+### AdaptiveSequence：序号优先（默认）
 
 参考 **TCP 3-dupack + Early Retransmit** 思路：以**序号跳变**为主要判断依据，时间窗做门控，最后有一条纯时间判断兜底。
 
@@ -111,7 +111,7 @@ flowchart TD
 
 ---
 
-### 3.2. AdaptiveTime：时间优先（RACK 风格）
+### AdaptiveTime：时间优先（RACK 风格）
 
 思路贴近 **RACK-TLP（RFC 8985）**：以**时间窗**为主要判断依据，序号只在"无乱序"时做 fallback，并原生覆盖尾丢包。
 
@@ -144,7 +144,7 @@ flowchart TD
 
 ---
 
-## 4. 三者横向对比
+## 三者横向对比
 
 | 维度 | New AdaptiveSequence | New AdaptiveTime | QUIC General |
 | --- | --- | --- | --- |
@@ -156,6 +156,6 @@ flowchart TD
 
 ---
 
-## 8. 总结
+## 总结
 
 该算法优化用两套可切换的丢包检测把`实时低时延`和`抗乱序稳健`拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。
