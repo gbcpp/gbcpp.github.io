@@ -76,13 +76,21 @@ comments:
   waline_url: 'https://h2o-ac-waline.deta.dev/'
   waline_reaction: false
   waline_locale: 
-  gitalk: true
+  # gitalk 已停用，改用 giscus（见下方 giscus 配置）
+  gitalk: false
   clientId: 7795ee35cc3373147f6e
   clientSecret: 3c90889603d18c17cfd73289591b50a716925392
   repo: gbcpp.github.io
   owner: gbcpp
   admin: gbcpp
   distractionFreeMode: true # 若设置为true，则当在评论框输入时，周围区域会变暗
+  # giscus（基于 GitHub Discussions，client secret 不落前端）
+  giscus: true
+  giscus_repo: 'gbcpp/gbcpp.github.io'
+  giscus_repo_id: 'R_kgDOKcVWMw'          # TODO: 从 https://giscus.app 获取
+  giscus_category: 'Announcements'
+  giscus_category_id: 'DIC_kwDOKcVWM84DBXoz'      # TODO: 从 https://giscus.app 获取
+  giscus_lang: 'zh-CN'
 
 # MathJax 公式支持 by Ray-Eldath
 mathjax: true
