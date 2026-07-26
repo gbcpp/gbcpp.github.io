@@ -5,9 +5,270 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 20 Jul 2026 03:33:21 +0000</pubDate>
-    <lastBuildDate>Mon, 20 Jul 2026 03:33:21 +0000</lastBuildDate>
+    <pubDate>Sun, 26 Jul 2026 01:53:17 +0000</pubDate>
+    <lastBuildDate>Sun, 26 Jul 2026 01:53:17 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟</title>
+        <description>&lt;h1 id=&quot;带宽受限检测算法让-bbr-知道什么时候该收着点&quot;&gt;带宽受限检测算法：让 BBR 知道「什么时候该收着点」&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;为什么要单独做带宽受限检测&quot;&gt;为什么要单独做「带宽受限检测」&lt;/h2&gt;
+
+&lt;p&gt;BBR 拥塞控制算法会周期性的通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_BW&lt;/code&gt; 阶段把发送速率抬到 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.25 × 估计带宽&lt;/code&gt;，试探”是不是还有更多带宽可用”。在带宽充足时这没问题；但当链路&lt;strong&gt;已经是瓶颈&lt;/strong&gt;时，这种试探只会把数据堆进网络缓冲区（bufferbloat）中，推高排队延迟、诱发丢包，严重影响实时音视频的传输体验。&lt;/p&gt;
+
+&lt;p&gt;但问题在于：&lt;strong&gt;CC 自己很难分清”我还能再快一点”和”链路已经喂不动了”&lt;/strong&gt;。该带宽受限检测算法与另外两种情况不同，需要分清楚：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;应用受限（即 app-limited）&lt;/strong&gt;：应用层本身没那么多数据要发，此时的带宽采样数据并非真正的网络容量。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;瞬时抖动&lt;/strong&gt;：RTT/Lost 的偶发毛刺，不代表持续受限。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;带宽受限检测&lt;/code&gt; 的职责就是给出一个可靠的布尔信号：&lt;strong&gt;当前是不是真的带宽受限&lt;/strong&gt;。一旦确认受限，BBR 就把探测增益从 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.25/0.75&lt;/code&gt; 压到温和的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.1/0.9&lt;/code&gt;，并停止用乐观的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;探测带宽&lt;/code&gt; 去放大拥塞窗口。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;整体数据流&quot;&gt;整体数据流&lt;/h2&gt;
+
+&lt;p&gt;检测器每次统计更新（协议内部触发）被调用一次，统计/输入一批新的链路指标，输出一个三态的受限程度，再映射成两个布尔量回喂给 BBR：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart LR
+    subgraph IN[&quot;输入信号 ConnectionStats 加 RttStats&quot;]
+        Q[&quot;smoothed_queueing_time EWMA 平滑排队时长&quot;]
+        BW[&quot;BWE 估计带宽&quot;]
+        RTT[&quot;smoothed_rtt 减 recent_min_rtt 排队延迟&quot;]
+        JIT[&quot;uplink_jitter 上行抖动&quot;]
+        LOSS[&quot;lost_ratio 丢包率&quot;]
+    end
+    IN --&amp;gt; UP[&quot;检测算法 入口&quot;]
+    MAXSRC[&quot;max_source_bitrate 应用源码率上限，上层可配&quot;] --&amp;gt; UP
+    UP --&amp;gt; ST[&quot;带宽不足：状态 0 或 1 或 2&quot;]
+    ST --&amp;gt; N[&quot;bandwidth_in_limit_now 状态等于 1&quot;]
+    ST --&amp;gt; R2[&quot;bandwidth_in_limit_recently 状态大于 0&quot;]
+    N --&amp;gt; BBR[&quot;BBR 压缩 PROBE_BW 增益 从 1.25/0.75 到 1.1/0.9&quot;]
+    R2 --&amp;gt; BBR2[&quot;BBR 不再用乐观 probed_bandwidth 放大 BDP&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_now&lt;/code&gt;:（状态 == 1，刚判定受限）&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_recently&lt;/code&gt;:（状态 &amp;gt; 0，近期处于受限）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;消费端（BBR 算法内）：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EnterProbeBandwidthMode&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;UpdateGainCyclePhase&lt;/code&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_now&lt;/code&gt; 为&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;时把探测增益压成 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.1/0.9&lt;/code&gt;；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GetTargetCongestionWindow&lt;/code&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_recently&lt;/code&gt; 为&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;时不采用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;probed_bandwidth&lt;/code&gt; 去扩大 BDP。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;判定条件四个信号的组合&quot;&gt;判定条件：四个信号的组合&lt;/h2&gt;
+
+&lt;p&gt;进入「受限」状态需要&lt;strong&gt;同时&lt;/strong&gt;满足下面的组合条件：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cond1 且 (cond2 或 cond3) 且 (非 StartUp mode) 且 cond4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;四个子条件各自捕获带宽受限的一个侧面：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;子条件&lt;/th&gt;
+      &lt;th&gt;判据&lt;/th&gt;
+      &lt;th&gt;直觉含义&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond1&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_queueing_time &amp;gt; 50ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;发送队列有积压&lt;/strong&gt; —— 发送侧网络里积压了超过 50ms 以上的队列（queue bytes / bwe）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond2&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_source_bitrate&lt;/code&gt; 有限 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;estimated_bandwidth &amp;lt; max_source_bitrate&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;供不应求&lt;/strong&gt; —— 估计带宽低于应用想发的最大码率&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond3&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt &amp;gt; recent_min_rtt + 50ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;排队延迟上升&lt;/strong&gt; —— RTT 比最近时间窗口测出的 min_rtt 高出 50ms 以上，典型 bufferbloat&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond4&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter_diverge &amp;gt; 15&lt;/code&gt; 或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter95 &amp;gt; 50&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;上行抖动大&lt;/strong&gt; —— 带宽受限时上行抖动显著&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;再叠加一个门槛：&lt;strong&gt;必须不在慢启动&lt;/strong&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;not in startup&lt;/code&gt;）。因为慢启动阶段带宽本就在爬升、队列堆积是正常现象，此时不应误判为受限。&lt;/p&gt;
+
+&lt;p&gt;逻辑设计的巧思：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond1&lt;/code&gt;（队列堆积）是&lt;strong&gt;必要前提&lt;/strong&gt;——没有积压就谈不上受限；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond2 或 cond3&lt;/code&gt; 是”带宽不够”的两种等价证据（一个看码率差、一个看延迟涨），满足其一即可；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cond4&lt;/code&gt;（抖动）作为&lt;strong&gt;链路特征佐证&lt;/strong&gt;，进一步排除”应用受限”这类假阳性（应用受限通常不会伴随上行抖动升高）。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
+    A[&quot;每次统计更新 Update&quot;] --&amp;gt; B{&quot;cond1 队列堆积?&amp;lt;br/&amp;gt;smoothed_queueing_time 大于 50ms&quot;}
+    B --&amp;gt;|否| R[&quot;转入 重置或降级 判定&quot;]
+    B --&amp;gt;|是| C{&quot;cond2 带宽低于APP Source Max码率 或 cond3 排队延迟上升?&quot;}
+    C --&amp;gt;|否| R
+    C --&amp;gt;|是| D{&quot;非慢启动?&quot;}
+    D --&amp;gt;|否| R
+    D --&amp;gt;|是| E{&quot;cond4 上行抖动大?&quot;}
+    E --&amp;gt;|否| R
+    E --&amp;gt;|是| F[&quot;判定带宽受限, 状态置 1, 记录时间戳&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;三态状态机从刚受限到持续受限再到解除&quot;&gt;三态状态机：从「刚受限」到「持续受限」再到「解除」&lt;/h2&gt;
+
+&lt;p&gt;检测器用一个整型 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no_sufficient_bandwidth ∈ {0, 1, 2}&lt;/code&gt; 表达受限的&lt;strong&gt;程度/时长&lt;/strong&gt;，配合时间戳完成迟滞控制。通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if / else if / else if&lt;/code&gt; 条件链按顺序（即优先级）进行判断：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;命中判定条件&lt;/strong&gt; → 置状态 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt;，刷新时间戳（re-arm）；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;否则命中重置条件&lt;/strong&gt; → 归 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0&lt;/code&gt;；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;否则若距进入已超过 1s&lt;/strong&gt; → 升级为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2&lt;/code&gt;（持续受限）。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram-v2
+    [*] --&amp;gt; S0
+    state &quot;S0 未受限 值0&quot; as S0
+    state &quot;S1 短时受限 值1&quot; as S1
+    state &quot;S2 持续受限 值2&quot; as S2
+    S0 --&amp;gt; S1 : &quot;满足受限判定条件并记录时间戳&quot;
+    S1 --&amp;gt; S1 : &quot;再次满足条件并刷新时间戳&quot;
+    S2 --&amp;gt; S1 : &quot;再次满足条件并刷新时间戳&quot;
+    S1 --&amp;gt; S2 : &quot;距进入超过 1s 且未触发重置&quot;
+    S1 --&amp;gt; S0 : &quot;触发重置条件&quot;
+    S2 --&amp;gt; S0 : &quot;触发重置条件&quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;重置条件&quot;&gt;重置条件&lt;/h3&gt;
+
+&lt;p&gt;只要曾进入过受限（时间戳有效），满足以下&lt;strong&gt;任一&lt;/strong&gt;即解除归零：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;无明显丢包&lt;/strong&gt;：距进入 &lt;strong&gt;超过 2s&lt;/strong&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost_ratio &amp;lt; 5%&lt;/code&gt;；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;有丢包但队列已排空&lt;/strong&gt;：距进入 &lt;strong&gt;超过 3s&lt;/strong&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost_ratio &amp;gt;= 5%&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_queueing_time &amp;lt; 30ms&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这里体现了对丢包的谨慎态度：&lt;strong&gt;有丢包时更晚解除（3s vs 2s），且额外要求队列已经排空&lt;/strong&gt;。因为丢包往往意味着真实拥塞，此时不能急着宣布”带宽恢复了”，要等队列确实排干净、多观察 1 秒，避免刚解除又立刻复发的抖动。&lt;/p&gt;
+
+&lt;h3 id=&quot;两个布尔量的语义差异&quot;&gt;两个布尔量的语义差异&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;输出&lt;/th&gt;
+      &lt;th&gt;条件&lt;/th&gt;
+      &lt;th&gt;用途&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsBWLimitedInShortTime()&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;状态 == 1（刚进入或刚刷新）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_now&lt;/code&gt;：立即、温和地压制本轮探测增益&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsBWLimited()&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;状态 &amp;gt; 0（1 或 2）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bandwidth_in_limit_recently&lt;/code&gt;：近期受限，抑制乐观的 BDP&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;一个关键细节：时间戳&lt;strong&gt;只在完整命中判定条件时刷新&lt;/strong&gt;。所以一旦进入受限，即使后续某帧不再完整满足条件（但也没到重置门槛），1 秒后它会自然沉降为状态 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2&lt;/code&gt;（持续受限），直到重置条件触发才归零。这种”进入快、退出慢”的迟滞设计，正是为了避免受限信号在临界点反复横跳。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;关键参数一览&quot;&gt;关键参数一览&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;参数&lt;/th&gt;
+      &lt;th&gt;值&lt;/th&gt;
+      &lt;th&gt;作用&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;队列堆积阈值（cond1）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;50ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;判定”有积压”的排队时长下限&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;排队延迟阈值（cond3）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;recent_min_rtt + 50ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;判定”延迟上升”的 RTT 增量&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;抖动阈值（cond4）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter_diverge &amp;gt; 15&lt;/code&gt; 或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter95 &amp;gt; 50&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;链路受限的抖动佐证&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;丢包阈值（hasloss）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost_ratio &amp;gt;= 5%&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;区分”有丢包”与”无丢包”的重置路径&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;升级为持续受限&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1s&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;进入后多久沉降为状态 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;重置（无丢包）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2s&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;无明显丢包时的解除时长&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;重置（有丢包）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3s&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_queueing_time &amp;lt; 30ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;有丢包时更晚、且需队列排空才解除&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;小结&quot;&gt;小结&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;带宽受限检测&lt;/code&gt; 是一个轻量但设计精巧的&lt;strong&gt;旁路判别器&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;多信号交叉验证&lt;/strong&gt;：队列（必要前提）+ 带宽/延迟（供需证据）+ 抖动（链路特征）+ 非StartUp（排除爬升期），四路信号 AND/OR 组合，有效区分”真受限”与”应用受限/瞬时抖动”；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;迟滞状态机&lt;/strong&gt;：三态 + 时间戳，进入快、退出慢，且对丢包场景采取更保守的解除策略，避免信号抖动；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;闭环反馈&lt;/strong&gt;：判定结果回喂 BBR，受限时压缩探测增益、抑制乐观 BDP，从源头上遏制 bufferbloat。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;总结：该算法用于通知 BBR 什么时候该适当的降低发送速率，是 RUT 在弱网/瓶颈链路下保持低延迟的关键模块。&lt;/p&gt;
+</description>
+        <pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html</guid>
+        
+        <category>Protocol</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
     
       <item>
         <title>QUIC 丢包检测算法优化</title>
@@ -1735,55 +1996,6 @@ defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHo
         <guid isPermaLink="true">https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</guid>
         
         <category>Protocol</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>golang 问题记录</title>
-        <description>&lt;p&gt;  &lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;记录 Golang 学习、开发过程中的一些疑难杂症。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;环境问题&quot;&gt;环境问题&lt;/h1&gt;
-
-&lt;h2 id=&quot;missing-gosum-entry-for-module&quot;&gt;missing go.sum entry for module&lt;/h2&gt;
-
-&lt;p&gt;曾经编译过的代码出现类似如下的错误 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;missing go.sum entry for module&lt;/code&gt;，各种依赖缺失的 mod，如下：&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;base/file.go:10:2: missing go.sum entry for module providing package github.com/astaxie/beego/logs; to add:
-	go mod download github.com/astaxie/beego
-base/name_generate.go:6:2: missing go.sum entry for module providing package github.com/google/uuid (imported by ben/base); to add:
-	go get ben/base
-helpers/data_analysis/base/bar_base.go:6:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/charts (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-helpers/data_analysis/base/metrics.go:9:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/components (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-helpers/data_analysis/base/bar_base.go:7:2: missing go.sum entry for module providing package github.com/go-echarts/go-echarts/v2/opts (imported by ben/helpers/data_analysis/base); to add:
-	go get ben/helpers/data_analysis/base
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;解决办法&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go mod tidy&lt;/code&gt; 来整理依赖，该命令有如下作用：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;删除不需要的依赖包&lt;/li&gt;
-  &lt;li&gt;下载新的依赖包&lt;/li&gt;
-  &lt;li&gt;更新 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go.sum&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;重新执行 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go run&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go build&lt;/code&gt; 问题解决。&lt;/p&gt;
-
-</description>
-        <pubDate>Tue, 21 Jan 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/golang-issues.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/golang-issues.html</guid>
-        
-        <category>Life</category>
         
         
         <category>Notes</category>

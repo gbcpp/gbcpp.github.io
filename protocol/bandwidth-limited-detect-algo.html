@@ -8,27 +8,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUIC 丢包检测算法优化 - Mr Chen</title>
+    <title>自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="QUIC 丢包检测算法优化">
+    <meta name="description" content="自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟">
     <meta name="keywords"  content="Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="QUIC 丢包检测算法优化 - Mr Chen">
+    <meta property="og:title" content="自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟 - Mr Chen">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gbcpp.github.io/protocol/loss-detect-algo.html">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html">
     <meta property="og:baseurl" content="">
     <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/protocol/bandwidth-limited-detect-algo.html">
     
-    
-    <meta property="og:next_url" content="/protocol/bbr-optimize-record.html">
+    <meta property="og:next_url" content="/protocol/loss-detect-algo.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2026-02-05 00:00:00 +0000" />
+    <meta property="post-date" content="2026-04-25 00:00:00 +0000" />
     
     
     
@@ -166,7 +164,7 @@
             
           
         </div>
-        <h1>QUIC 丢包检测算法优化</h1>
+        <h1>自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -174,13 +172,13 @@
             </svg>
             Mr Chen
           </span>
-          <time class="post-meta-item" datetime="26-02-05">
+          <time class="post-meta-item" datetime="26-04-25">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="26-02-05">
+          <time class="post-meta-item" datetime="26-04-25">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-update"></use>
             </svg>
@@ -191,13 +189,13 @@
                 <use xlink:href="#icon-words"></use>
               </svg>
               
-              本文总共  4.2k  字
+              本文总共  3.7k  字
             </span>
             <span class="post-meta-item">
               <svg class="icon time" aria-hidden="true">
                 <use xlink:href="#icon-time"></use>
               </svg>
-              阅读全文大约需要 13 分钟
+              阅读全文大约需要 11 分钟
             </span>
             
               <span class="post-meta-item">
@@ -223,212 +221,284 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <blockquote>
-  <p>针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。</p>
-</blockquote>
+            <h1 id="带宽受限检测算法让-bbr-知道什么时候该收着点">带宽受限检测算法：让 BBR 知道「什么时候该收着点」</h1>
 
 <blockquote>
-  <p>QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
-QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc</code> 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。</p>
+  <p>本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。</p>
 </blockquote>
 
 <hr>
 
-<h2 id="为什么需要自适应的丢包检测">为什么需要「自适应」的丢包检测</h2>
+<h2 id="为什么要单独做带宽受限检测">为什么要单独做「带宽受限检测」</h2>
 
-<p>发送端判定一个包丢了，本质上只有两类信号：</p>
+<p>BBR 拥塞控制算法会周期性的通过 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> 阶段把发送速率抬到 <code class="language-plaintext highlighter-rouge">1.25 × 估计带宽</code>，试探”是不是还有更多带宽可用”。在带宽充足时这没问题；但当链路<strong>已经是瓶颈</strong>时，这种试探只会把数据堆进网络缓冲区（bufferbloat）中，推高排队延迟、诱发丢包，严重影响实时音视频的传输体验。</p>
+
+<p>但问题在于：<strong>CC 自己很难分清”我还能再快一点”和”链路已经喂不动了”</strong>。该带宽受限检测算法与另外两种情况不同，需要分清楚：</p>
 
 <ul>
   <li>
-<strong>序号信号（packet threshold）</strong>：后面的包都 ACK 了，中间的还没来，且<code class="language-plaintext highlighter-rouge">空洞</code>足够大 —— 大概率丢了，对应 TCP 的 3 次重复 ACK 判定丢包的策略。</li>
+<strong>应用受限（即 app-limited）</strong>：应用层本身没那么多数据要发，此时的带宽采样数据并非真正的网络容量。</li>
   <li>
-<strong>时间信号（time threshold）</strong>：这个包发出去已经超过<code class="language-plaintext highlighter-rouge">合理的等待时间</code>还没 ACK —— 大概率丢了，对应 RACK / Early Retransmit。</li>
+<strong>瞬时抖动</strong>：RTT/Lost 的偶发毛刺，不代表持续受限。</li>
 </ul>
 
-<p>难点在于<strong>乱序（reordering）</strong>：网络会把包的顺序打乱，一个迟到的包不等于丢失的包。判早了 ==» 伪重传，浪费带宽、误伤拥塞控制；判晚了==»恢复延迟高，实时业务卡、慢。</p>
-
-<p>所以最佳的实现需要<strong>自适应</strong>：根据实测的乱序程度，动态调整”空洞多大算丢”和”等多久算丢”。</p>
+<p><code class="language-plaintext highlighter-rouge">带宽受限检测</code> 的职责就是给出一个可靠的布尔信号：<strong>当前是不是真的带宽受限</strong>。一旦确认受限，BBR 就把探测增益从 <code class="language-plaintext highlighter-rouge">1.25/0.75</code> 压到温和的 <code class="language-plaintext highlighter-rouge">1.1/0.9</code>，并停止用乐观的 <code class="language-plaintext highlighter-rouge">探测带宽</code> 去放大拥塞窗口。</p>
 
 <hr>
 
-<h2 id="首先查看-quic-实现机制">首先查看 QUIC 实现机制</h2>
+<h2 id="整体数据流">整体数据流</h2>
 
-<p>实现类：<code class="language-plaintext highlighter-rouge">GeneralLossAlgorithm</code>，其中：</p>
+<p>检测器每次统计更新（协议内部触发）被调用一次，统计/输入一批新的链路指标，输出一个三态的受限程度，再映射成两个布尔量回喂给 BBR：</p>
 
-<p><code class="language-plaintext highlighter-rouge">least_in_flight</code> 为最小的 inflight 的包序号。</p>
-
-<p><code class="language-plaintext highlighter-rouge">reordering_threshold</code> 默认为 3，实际运行中通过 <code class="language-plaintext highlighter-rouge">SpuriousLossDetected</code> 进行检测调整。</p>
-
-<pre><code class="language-mermaid2">flowchart TD
-    A["least_in_flight 快进: 跳过已连续 ACK 的前缀"] --&gt; B["从 least_in_flight 遍历至 largest_newly_acked"]
-    B --&gt; C{"包阈值命中?&lt;br/&gt;即 largest_newly_acked 减 pkt_no 大于等于 reordering_threshold 默认3"}
-    C --&gt;|是| LOST["判定丢失"]
-    C --&gt;|否| D{"时间阈值命中?&lt;br/&gt;now 大于等于 sent_time 加 max_rtt 乘 1.25 (1.25 系数可配置)"}
-    D --&gt;|是| LOST
-    D --&gt;|否| E["记录 loss_detection_timeout, 置 least_in_flight 等于 pkt_no, 停止"]
-    LOST --&gt; B
+<pre><code class="language-mermaid">flowchart LR
+    subgraph IN["输入信号 ConnectionStats 加 RttStats"]
+        Q["smoothed_queueing_time EWMA 平滑排队时长"]
+        BW["BWE 估计带宽"]
+        RTT["smoothed_rtt 减 recent_min_rtt 排队延迟"]
+        JIT["uplink_jitter 上行抖动"]
+        LOSS["lost_ratio 丢包率"]
+    end
+    IN --&gt; UP["检测算法 入口"]
+    MAXSRC["max_source_bitrate 应用源码率上限，上层可配"] --&gt; UP
+    UP --&gt; ST["带宽不足：状态 0 或 1 或 2"]
+    ST --&gt; N["bandwidth_in_limit_now 状态等于 1"]
+    ST --&gt; R2["bandwidth_in_limit_recently 状态大于 0"]
+    N --&gt; BBR["BBR 压缩 PROBE_BW 增益 从 1.25/0.75 到 1.1/0.9"]
+    R2 --&gt; BBR2["BBR 不再用乐观 probed_bandwidth 放大 BDP"]
 </code></pre>
 
-<p>要点：</p>
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_now</code>:（状态 == 1，刚判定受限）</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_recently</code>:（状态 &gt; 0，近期处于受限）</li>
+</ul>
+
+<p>消费端（BBR 算法内）：</p>
 
 <ul>
   <li>
-<strong>单趟同时判 packet 与 time</strong>：任一命中即丢，<code class="language-plaintext highlighter-rouge">reordering_threshold_</code> 默认 <strong>3</strong>,运行中根据统计实时调整，但仅向上取大(Bug)，时间阈值固定 <code class="language-plaintext highlighter-rouge">max_rtt × 1.25</code>（<code class="language-plaintext highlighter-rouge">reordering_shift_ 默认 2，可以配置</code>）。</li>
+<code class="language-plaintext highlighter-rouge">EnterProbeBandwidthMode</code> / <code class="language-plaintext highlighter-rouge">UpdateGainCyclePhase</code>：<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_now</code> 为<code class="language-plaintext highlighter-rouge">true</code>时把探测增益压成 <code class="language-plaintext highlighter-rouge">1.1/0.9</code>；</li>
   <li>
-<strong>自适应</strong>：<code class="language-plaintext highlighter-rouge">use_adaptive_reordering_threshold_</code>（默认开）伪丢包时抬包阈值；<code class="language-plaintext highlighter-rouge">use_adaptive_time_threshold_</code>（默认关）伪丢包时降 shift 放宽时间窗。</li>
-  <li>
-<strong>runt 包保护</strong> <code class="language-plaintext highlighter-rouge">use_packet_threshold_for_runt_packets_</code> 默认开启，个人观点认为不需要这种策略，保持默认值即可。</li>
-  <li>尾丢包同样交给 PTO（与 RUT 序号版一致）。</li>
+<code class="language-plaintext highlighter-rouge">GetTargetCongestionWindow</code>：<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_recently</code> 为<code class="language-plaintext highlighter-rouge">true</code>时不采用 <code class="language-plaintext highlighter-rouge">probed_bandwidth</code> 去扩大 BDP。</li>
 </ul>
 
 <hr>
 
-<h2 id="算法调优">算法调优</h2>
+<h2 id="判定条件四个信号的组合">判定条件：四个信号的组合</h2>
 
-<p>实现两种丢包检测算法，分别基于 packet number 和 Time，分别用于低延迟、低乱序窗口下的低延迟传输场景，和高延迟、高乱序窗口的场景，丢包判定趋于保守，以用于不同的网络场景。</p>
+<p>进入「受限」状态需要<strong>同时</strong>满足下面的组合条件：</p>
 
-<p>两中丢包检测算法的实现中，判断丢包基于时间兜底的公式均如下：</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>early_retransmit_delay = clamp(loss_delay_multiplier × max_rtt + 0.5 × mean_deviation, [5ms, 3s])
-其中 loss_delay_multiplier 可配置，配置范围 [1, 2]。
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cond1 且 (cond2 或 cond3) 且 (非 StartUp mode) 且 cond4
 </code></pre></div></div>
 
-<pre><code class="language-mermaid2">flowchart TD
-    A["ACK 到达 或 丢包定时器触发"] --&gt; B["启动检测是否丢包"]
-    B --&gt; C{"max_loss_delay 是否已初始化?"}
-    C --&gt;|"接收 ACK 触发路径"| D["detect_end 等于 largest_acked, 走自适应阈值并更新 loss_detection_timeout"]
-    C --&gt;|"定时器检查路径"| E["detect_end 等于 largest_sent, 以大延迟兜底清理超期包 (含尾包)"]
-    D--&gt;I["返回 lost_packets 集合"]
-    E--&gt;I["返回 lost_packets 集合"]
-    I --&gt; J["MarkAsLost 并上报拥塞控制"]
-</code></pre>
-
-<hr>
-
-<h3 id="adaptivesequence序号优先默认">AdaptiveSequence：序号优先（默认）</h3>
-
-<p>参考 <strong>TCP 3-dupack + Early Retransmit</strong> 思路：以<strong>序号跳变</strong>为主要判断依据，时间窗做门控，最后有一条纯时间判断兜底。</p>
-
-<ul>
-  <li>
-<strong>条件 A（序号）</strong>：<code class="language-plaintext highlighter-rouge">pkt_no + reordering_threshold_ &lt; largest_acked</code>，即包序号在乱序窗口之外。</li>
-  <li>
-<strong>条件 B（时间）</strong>：<code class="language-plaintext highlighter-rouge">IsExpired(now, loss_delay)</code>，对遍历到的所有包生效（尾包在周期性检查时靠大 hint（默认 3秒） 兜底）。</li>
-  <li>
-<strong>闭环自适应</strong>（<code class="language-plaintext highlighter-rouge">SpuriousLossDetected</code>）：以一定包数为窗（默认300）统计伪重传率，如果<code class="language-plaintext highlighter-rouge">&gt; 1%</code> 则阈值 <code class="language-plaintext highlighter-rouge">+1</code>，如果<code class="language-plaintext highlighter-rouge">&lt; 0.1%</code> 则 <code class="language-plaintext highlighter-rouge">-1</code>，限制在配置范围内，建议[1,100]；如果遇到 <code class="language-plaintext highlighter-rouge">round_trip_delay &gt; 3 × max_rtt</code> 的伪丢包判为”非乱序”而剔除。</li>
-  <li>
-<strong>快速重置</strong>：当检测到网络中不再存在乱序后，将乱序阈值设置为 min，避免无乱序后，依然保持乱序窗口导致丢包检测的延迟。</li>
-  <li>
-<strong>尾丢包</strong>：ACK 路径不快速覆盖，注释明确交给 TLP/PTO，靠周期性检测进行兜底。</li>
-</ul>
-
-<pre><code class="language-mermaid2">flowchart TD
-    S["按序号升序遍历 inflight 包 pkt"] --&gt; A{"pkt 在 inflight 且 可重传?"}
-    A --&gt;|否| S
-    A --&gt;|是| B{"pkt_no 大于 detect_end?"}
-    B --&gt;|是| Z["结束遍历"]
-    B --&gt;|否| C{"序号差达阈值 且 已超 reorder 时间窗?&lt;br/&gt;pkt_no 加 reordering_threshold 小于 largest_acked"}
-    C --&gt;|是| L["判定丢失, 继续下一个"]
-    C --&gt;|否| D{"已超时间阈值 loss_delay?"}
-    D --&gt;|是| L
-    D --&gt;|否| E["记录 loss_detection_timeout 并停止"]
-    L --&gt; S
-</code></pre>
-
-<hr>
-
-<h3 id="adaptivetime时间优先rack-风格">AdaptiveTime：时间优先（RACK 风格）</h3>
-
-<p>思路贴近 <strong>RACK-TLP（RFC 8985）</strong>：以<strong>时间窗</strong>为主要判断依据，序号只在”无乱序”时做 fallback，并原生覆盖尾丢包。</p>
-
-<ul>
-  <li>
-<strong>动态时间窗</strong> 首先确定乱序时间窗口：如果有检测到乱序，则乱序窗口为 <code class="language-plaintext highlighter-rouge">max_reorder_delay</code> + <code class="language-plaintext highlighter-rouge">min_rtt</code>，否则为 0。</li>
-  <li>
-<strong>largest_acked 之前的包</strong>：
-    <ul>
-      <li>窗为 0（无乱序）→ fallback 到序号跳变 <code class="language-plaintext highlighter-rouge">pkt_no + min_reordering_threshold_ &lt; largest_acked</code>；</li>
-      <li>否则 RACK 判丢依据 <code class="language-plaintext highlighter-rouge">IsExpired(now, max(reordering_window_, early_retransmit_delay))</code>，其中 early_retransmit_delay = smoothed_rtt * loss_delay_multipier + mead_deviation / 2, loss_delay_multipier 配置范围 [1, 2]。</li>
-    </ul>
-  </li>
-  <li>
-<strong>largest_acked 之后的尾包</strong>：直接用包最大有效时间判断是否丢包，以此覆盖尾丢包检测（与 Sequence 版最大不同）。</li>
-</ul>
-
-<pre><code class="language-mermaid2">flowchart TD
-    A["先更新 reordering_window"] --&gt; B{"近期乱序比例和乱序包数是否满足使用乱序窗口的门槛?"}
-    B --&gt;|是| C["reordering_window 等于 max_reorder_delay 加 min_rtt"]
-    B --&gt;|否| D["reordering_window 置零"]
-    C --&gt; E["遍历所有 inflight 包"]
-    D --&gt; E
-    E --&gt; F{"pkt_no 小于 largest_acked?"}
-    F --&gt;|"是, 前向包"| G{"reordering_window 为 0?"}
-    G --&gt;|"是, 无乱序"| H{"序号差达 min 阈值?"}
-    H --&gt;|是| LOST["判定丢失"]
-    H --&gt;|否| CONT["继续下一个"]
-    G --&gt;|"否, 有乱序"| I{"RACK 时间到期?&lt;br/&gt;now 减 sent_time 大于等于 loss_delay"}
-    I --&gt;|是| LOST
-    I --&gt;|否| T["记录 loss_detection_timeout 并停止"]
-    F --&gt;|"否, 尾包"| J{"尾包时间到期?"}
-    J --&gt;|是| LOST
-    J --&gt;|否| CONT
-</code></pre>
-
-<hr>
-
-<h2 id="三者横向对比">三者横向对比</h2>
+<p>四个子条件各自捕获带宽受限的一个侧面：</p>
 
 <table>
   <thead>
     <tr>
-      <th>维度</th>
-      <th>New AdaptiveSequence</th>
-      <th>New AdaptiveTime</th>
-      <th>QUIC General</th>
+      <th>子条件</th>
+      <th>判据</th>
+      <th>直觉含义</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>对标</td>
-      <td>TCP 3-dupack + Early Retransmit</td>
-      <td>RACK-TLP (RFC 8985)</td>
-      <td>QUIC 双阈值</td>
-    </tr>
-    <tr>
-      <td>判断主依据</td>
-      <td>序号阈值（时间窗兜底）</td>
-      <td>时间窗 RACK（无乱序时，使用序号判断）</td>
-      <td>包序号阈值 与 时间阈值并列</td>
-    </tr>
-    <tr>
-      <td>序号阈值默认</td>
-      <td>动态检测调整</td>
-      <td>固定容忍 1 个包的乱序</td>
-      <td>默认为3，可动态调整向上，但不下降探测</td>
-    </tr>
-    <tr>
-      <td>时间阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">cond1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_queueing_time &gt; 50ms</code></td>
       <td>
-<code class="language-plaintext highlighter-rouge">mult×max_rtt + 0.5·mdev</code>，[5ms, 3s]</td>
-      <td>同左，取 <code class="language-plaintext highlighter-rouge">max(reorder_window, 该值)</code>
+<strong>发送队列有积压</strong> —— 发送侧网络里积压了超过 50ms 以上的队列（queue bytes / bwe）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">cond2</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">max_source_bitrate</code> 有限 且 <code class="language-plaintext highlighter-rouge">estimated_bandwidth &lt; max_source_bitrate</code>
 </td>
       <td>
-<code class="language-plaintext highlighter-rouge">smoothed_rtt × 1.25</code>，其中 1.25 可配，但不够灵活</td>
+<strong>供不应求</strong> —— 估计带宽低于应用想发的最大码率</td>
     </tr>
     <tr>
-      <td>尾丢包</td>
-      <td>❌ 靠 TLP/PTO + 兜底</td>
-      <td>✅ 原生覆盖</td>
-      <td>❌ 靠 PTO</td>
+      <td><code class="language-plaintext highlighter-rouge">cond3</code></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt &gt; recent_min_rtt + 50ms</code></td>
+      <td>
+<strong>排队延迟上升</strong> —— RTT 比最近时间窗口测出的 min_rtt 高出 50ms 以上，典型 bufferbloat</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">cond4</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">uplink_jitter_diverge &gt; 15</code> 或 <code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 50</code>
+</td>
+      <td>
+<strong>上行抖动大</strong> —— 带宽受限时上行抖动显著</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>再叠加一个门槛：<strong>必须不在慢启动</strong>（<code class="language-plaintext highlighter-rouge">not in startup</code>）。因为慢启动阶段带宽本就在爬升、队列堆积是正常现象，此时不应误判为受限。</p>
+
+<p>逻辑设计的巧思：</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">cond1</code>（队列堆积）是<strong>必要前提</strong>——没有积压就谈不上受限；</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">cond2 或 cond3</code> 是”带宽不够”的两种等价证据（一个看码率差、一个看延迟涨），满足其一即可；</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">cond4</code>（抖动）作为<strong>链路特征佐证</strong>，进一步排除”应用受限”这类假阳性（应用受限通常不会伴随上行抖动升高）。</li>
+</ul>
+
+<pre><code class="language-mermaid">flowchart TD
+    A["每次统计更新 Update"] --&gt; B{"cond1 队列堆积?&lt;br/&gt;smoothed_queueing_time 大于 50ms"}
+    B --&gt;|否| R["转入 重置或降级 判定"]
+    B --&gt;|是| C{"cond2 带宽低于APP Source Max码率 或 cond3 排队延迟上升?"}
+    C --&gt;|否| R
+    C --&gt;|是| D{"非慢启动?"}
+    D --&gt;|否| R
+    D --&gt;|是| E{"cond4 上行抖动大?"}
+    E --&gt;|否| R
+    E --&gt;|是| F["判定带宽受限, 状态置 1, 记录时间戳"]
+</code></pre>
+
+<hr>
+
+<h2 id="三态状态机从刚受限到持续受限再到解除">三态状态机：从「刚受限」到「持续受限」再到「解除」</h2>
+
+<p>检测器用一个整型 <code class="language-plaintext highlighter-rouge">no_sufficient_bandwidth ∈ {0, 1, 2}</code> 表达受限的<strong>程度/时长</strong>，配合时间戳完成迟滞控制。通过 <code class="language-plaintext highlighter-rouge">if / else if / else if</code> 条件链按顺序（即优先级）进行判断：</p>
+
+<ol>
+  <li>
+<strong>命中判定条件</strong> → 置状态 <code class="language-plaintext highlighter-rouge">1</code>，刷新时间戳（re-arm）；</li>
+  <li>
+<strong>否则命中重置条件</strong> → 归 <code class="language-plaintext highlighter-rouge">0</code>；</li>
+  <li>
+<strong>否则若距进入已超过 1s</strong> → 升级为 <code class="language-plaintext highlighter-rouge">2</code>（持续受限）。</li>
+</ol>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; S0
+    state "S0 未受限 值0" as S0
+    state "S1 短时受限 值1" as S1
+    state "S2 持续受限 值2" as S2
+    S0 --&gt; S1 : "满足受限判定条件并记录时间戳"
+    S1 --&gt; S1 : "再次满足条件并刷新时间戳"
+    S2 --&gt; S1 : "再次满足条件并刷新时间戳"
+    S1 --&gt; S2 : "距进入超过 1s 且未触发重置"
+    S1 --&gt; S0 : "触发重置条件"
+    S2 --&gt; S0 : "触发重置条件"
+</code></pre>
+
+<h3 id="重置条件">重置条件</h3>
+
+<p>只要曾进入过受限（时间戳有效），满足以下<strong>任一</strong>即解除归零：</p>
+
+<ul>
+  <li>
+<strong>无明显丢包</strong>：距进入 <strong>超过 2s</strong> 且 <code class="language-plaintext highlighter-rouge">lost_ratio &lt; 5%</code>；</li>
+  <li>
+<strong>有丢包但队列已排空</strong>：距进入 <strong>超过 3s</strong> 且 <code class="language-plaintext highlighter-rouge">lost_ratio &gt;= 5%</code> 且 <code class="language-plaintext highlighter-rouge">smoothed_queueing_time &lt; 30ms</code>。</li>
+</ul>
+
+<p>这里体现了对丢包的谨慎态度：<strong>有丢包时更晚解除（3s vs 2s），且额外要求队列已经排空</strong>。因为丢包往往意味着真实拥塞，此时不能急着宣布”带宽恢复了”，要等队列确实排干净、多观察 1 秒，避免刚解除又立刻复发的抖动。</p>
+
+<h3 id="两个布尔量的语义差异">两个布尔量的语义差异</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>输出</th>
+      <th>条件</th>
+      <th>用途</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">IsBWLimitedInShortTime()</code></td>
+      <td>状态 == 1（刚进入或刚刷新）</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_now</code>：立即、温和地压制本轮探测增益</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">IsBWLimited()</code></td>
+      <td>状态 &gt; 0（1 或 2）</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">bandwidth_in_limit_recently</code>：近期受限，抑制乐观的 BDP</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>一个关键细节：时间戳<strong>只在完整命中判定条件时刷新</strong>。所以一旦进入受限，即使后续某帧不再完整满足条件（但也没到重置门槛），1 秒后它会自然沉降为状态 <code class="language-plaintext highlighter-rouge">2</code>（持续受限），直到重置条件触发才归零。这种”进入快、退出慢”的迟滞设计，正是为了避免受限信号在临界点反复横跳。</p>
+
+<hr>
+
+<h2 id="关键参数一览">关键参数一览</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>值</th>
+      <th>作用</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>队列堆积阈值（cond1）</td>
+      <td><code class="language-plaintext highlighter-rouge">50ms</code></td>
+      <td>判定”有积压”的排队时长下限</td>
+    </tr>
+    <tr>
+      <td>排队延迟阈值（cond3）</td>
+      <td><code class="language-plaintext highlighter-rouge">recent_min_rtt + 50ms</code></td>
+      <td>判定”延迟上升”的 RTT 增量</td>
+    </tr>
+    <tr>
+      <td>抖动阈值（cond4）</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">uplink_jitter_diverge &gt; 15</code> 或 <code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 50</code>
+</td>
+      <td>链路受限的抖动佐证</td>
+    </tr>
+    <tr>
+      <td>丢包阈值（hasloss）</td>
+      <td><code class="language-plaintext highlighter-rouge">lost_ratio &gt;= 5%</code></td>
+      <td>区分”有丢包”与”无丢包”的重置路径</td>
+    </tr>
+    <tr>
+      <td>升级为持续受限</td>
+      <td><code class="language-plaintext highlighter-rouge">1s</code></td>
+      <td>进入后多久沉降为状态 2</td>
+    </tr>
+    <tr>
+      <td>重置（无丢包）</td>
+      <td><code class="language-plaintext highlighter-rouge">2s</code></td>
+      <td>无明显丢包时的解除时长</td>
+    </tr>
+    <tr>
+      <td>重置（有丢包）</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">3s</code> 且 <code class="language-plaintext highlighter-rouge">smoothed_queueing_time &lt; 30ms</code>
+</td>
+      <td>有丢包时更晚、且需队列排空才解除</td>
     </tr>
   </tbody>
 </table>
 
 <hr>
 
-<h2 id="总结">总结</h2>
+<h2 id="小结">小结</h2>
 
-<p>该算法优化用两套可切换的丢包检测把<code class="language-plaintext highlighter-rouge">实时低时延</code>和<code class="language-plaintext highlighter-rouge">抗乱序稳健</code>拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。</p>
+<p><code class="language-plaintext highlighter-rouge">带宽受限检测</code> 是一个轻量但设计精巧的<strong>旁路判别器</strong>：</p>
+
+<ul>
+  <li>
+<strong>多信号交叉验证</strong>：队列（必要前提）+ 带宽/延迟（供需证据）+ 抖动（链路特征）+ 非StartUp（排除爬升期），四路信号 AND/OR 组合，有效区分”真受限”与”应用受限/瞬时抖动”；</li>
+  <li>
+<strong>迟滞状态机</strong>：三态 + 时间戳，进入快、退出慢，且对丢包场景采取更保守的解除策略，避免信号抖动；</li>
+  <li>
+<strong>闭环反馈</strong>：判定结果回喂 BBR，受限时压缩探测增益、抑制乐观 BDP，从源头上遏制 bufferbloat。</li>
+</ul>
+
+<p>总结：该算法用于通知 BBR 什么时候该适当的降低发送速率，是 RUT 在弱网/瓶颈链路下保持低延迟的关键模块。</p>
 
             <div class="post-copyright">
               <p>
@@ -444,15 +514,15 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 QUIC 丢包检测算法优化 》</p>
-              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/loss-detect-algo.html" class="cplink">https://gbcpp.github.io/protocol/loss-detect-algo.html</a></p>
+              <p><span>本文标题：</span>《 自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html" class="cplink">https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
           </article>
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('为什么需要「自适应」的丢包检测')">为什么需要「自适应」的丢包检测</a></li><li><a onclick="scrollToAdjust('首先查看-quic-实现机制')">首先查看 QUIC 实现机制</a></li><li><a onclick="scrollToAdjust('算法调优')">算法调优</a><ul><li><a onclick="scrollToAdjust('adaptivesequence序号优先（默认）')">AdaptiveSequence：序号优先（默认）</a></li><li><a onclick="scrollToAdjust('adaptivetime时间优先（rack-风格）')">AdaptiveTime：时间优先（RACK 风格）</a></li></ul></li><li><a onclick="scrollToAdjust('三者横向对比')">三者横向对比</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul>
+          <ul><li><a onclick="scrollToAdjust('带宽受限检测算法让-bbr-知道「什么时候该收着点」')">带宽受限检测算法：让 BBR 知道「什么时候该收着点」</a><ul><li><a onclick="scrollToAdjust('为什么要单独做「带宽受限检测」')">为什么要单独做「带宽受限检测」</a></li><li><a onclick="scrollToAdjust('整体数据流')">整体数据流</a></li><li><a onclick="scrollToAdjust('判定条件四个信号的组合')">判定条件：四个信号的组合</a></li><li><a onclick="scrollToAdjust('三态状态机从「刚受限」到「持续受限」再到「解除」')">三态状态机：从「刚受限」到「持续受限」再到「解除」</a><ul><li><a onclick="scrollToAdjust('重置条件')">重置条件</a></li><li><a onclick="scrollToAdjust('两个布尔量的语义差异')">两个布尔量的语义差异</a></li></ul></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('小结')">小结</a></li></ul></li></ul>
         </div>
       </div>
       
@@ -520,22 +590,13 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
       </section>
       <section class="post-footer-item read-next">
         
-        <div class="read-next-item">
-          <a href="/protocol/bandwidth-limited-detect-algo.html" class="read-next-link" aria-label="自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟"></a>
-          <section>
-            <span>自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟</span>
-            <p>带宽受限检测算法：让 BBR 知道「什么时候该收着点」</p>
-          </section>
-          
-      </div>
-        
 
         
         <div class="read-next-item">
-          <a href="/protocol/bbr-optimize-record.html" class="read-next-link" aria-label="BBR 优化重点项"></a>
+          <a href="/protocol/loss-detect-algo.html" class="read-next-link" aria-label="QUIC 丢包检测算法优化"></a>
             <section>
-              <span>BBR 优化重点项</span>
-              <p>BBR 状态机</p>
+              <span>QUIC 丢包检测算法优化</span>
+              <p>  针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输...</p>
             </section>
             
         </div>
@@ -750,7 +811,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
           $(".post time span.create-at").html(local_post_date["date"]);
 
-          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2026-02-05-loss-detect-algo.md")
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2026-04-25-bandwidth-limited-detect-algo.md")
           .then((response) => {
             return response.json();
           })
