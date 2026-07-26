@@ -5,13 +5,13 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 26 Jul 2026 01:53:17 +0000</pubDate>
-    <lastBuildDate>Sun, 26 Jul 2026 01:53:17 +0000</lastBuildDate>
+    <pubDate>Sun, 26 Jul 2026 01:56:44 +0000</pubDate>
+    <lastBuildDate>Sun, 26 Jul 2026 01:56:44 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
-        <title>自定义网络协议如何检测网络受限状态，控制发送速率，保持低延迟</title>
-        <description>&lt;h1 id=&quot;带宽受限检测算法让-bbr-知道什么时候该收着点&quot;&gt;带宽受限检测算法：让 BBR 知道「什么时候该收着点」&lt;/h1&gt;
+        <title>自定义网络协议如何检测网络受限状态，控制发送速率</title>
+        <description>&lt;h1 id=&quot;带宽受限检测算法让-cc-知道什么时候该收着点&quot;&gt;带宽受限检测算法：让 CC 知道「什么时候该收着点」&lt;/h1&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。&lt;/p&gt;
