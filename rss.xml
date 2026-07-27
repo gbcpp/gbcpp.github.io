@@ -5,13 +5,13 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 26 Jul 2026 01:56:44 +0000</pubDate>
-    <lastBuildDate>Sun, 26 Jul 2026 01:56:44 +0000</lastBuildDate>
+    <pubDate>Mon, 27 Jul 2026 02:46:33 +0000</pubDate>
+    <lastBuildDate>Mon, 27 Jul 2026 02:46:33 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
         <title>自定义网络协议如何检测网络受限状态，控制发送速率</title>
-        <description>&lt;h1 id=&quot;带宽受限检测算法让-cc-知道什么时候该收着点&quot;&gt;带宽受限检测算法：让 CC 知道「什么时候该收着点」&lt;/h1&gt;
+        <description>&lt;h1 id=&quot;带宽受限检测算法&quot;&gt;带宽受限检测算法&lt;/h1&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。&lt;/p&gt;
@@ -273,11 +273,8 @@
       <item>
         <title>QUIC 丢包检测算法优化</title>
         <description>&lt;blockquote&gt;
-  &lt;p&gt;针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
+  &lt;p&gt;针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。
+QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
 QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc&lt;/code&gt; 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。&lt;/p&gt;
 &lt;/blockquote&gt;
 

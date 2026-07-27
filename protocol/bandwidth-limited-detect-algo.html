@@ -212,7 +212,7 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle"></h2>
+      <h2 class="post-subtitle">如何让 CC 知道什么时候该收着点</h2>
       
 
       
@@ -221,7 +221,7 @@
         <div class="contents">
           <article class="markdown-body post">
               
-            <h1 id="带宽受限检测算法让-cc-知道什么时候该收着点">带宽受限检测算法：让 CC 知道「什么时候该收着点」</h1>
+            <h1 id="带宽受限检测算法">带宽受限检测算法</h1>
 
 <blockquote>
   <p>本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。</p>
@@ -522,7 +522,7 @@
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('带宽受限检测算法让-cc-知道「什么时候该收着点」')">带宽受限检测算法：让 CC 知道「什么时候该收着点」</a><ul><li><a onclick="scrollToAdjust('为什么要单独做「带宽受限检测」')">为什么要单独做「带宽受限检测」</a></li><li><a onclick="scrollToAdjust('整体数据流')">整体数据流</a></li><li><a onclick="scrollToAdjust('判定条件四个信号的组合')">判定条件：四个信号的组合</a></li><li><a onclick="scrollToAdjust('三态状态机从「刚受限」到「持续受限」再到「解除」')">三态状态机：从「刚受限」到「持续受限」再到「解除」</a><ul><li><a onclick="scrollToAdjust('重置条件')">重置条件</a></li><li><a onclick="scrollToAdjust('两个布尔量的语义差异')">两个布尔量的语义差异</a></li></ul></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('小结')">小结</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('带宽受限检测算法')">带宽受限检测算法</a><ul><li><a onclick="scrollToAdjust('为什么要单独做「带宽受限检测」')">为什么要单独做「带宽受限检测」</a></li><li><a onclick="scrollToAdjust('整体数据流')">整体数据流</a></li><li><a onclick="scrollToAdjust('判定条件四个信号的组合')">判定条件：四个信号的组合</a></li><li><a onclick="scrollToAdjust('三态状态机从「刚受限」到「持续受限」再到「解除」')">三态状态机：从「刚受限」到「持续受限」再到「解除」</a><ul><li><a onclick="scrollToAdjust('重置条件')">重置条件</a></li><li><a onclick="scrollToAdjust('两个布尔量的语义差异')">两个布尔量的语义差异</a></li></ul></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('小结')">小结</a></li></ul></li></ul>
         </div>
       </div>
       
