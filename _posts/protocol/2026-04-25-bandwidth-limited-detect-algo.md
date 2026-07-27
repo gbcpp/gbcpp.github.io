@@ -1,7 +1,7 @@
 ---
 layout: post
 title: '自定义网络协议如何检测网络受限状态，控制发送速率'
-subtitle: ''
+subtitle: '如何让 CC 知道什么时候该收着点'
 date: 2026-04-25
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
@@ -13,7 +13,7 @@ tags:
 ---
 
 
-# 带宽受限检测算法：让 CC 知道「什么时候该收着点」
+# 带宽受限检测算法
 
 > 本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。
 

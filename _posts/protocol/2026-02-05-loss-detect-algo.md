@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'QUIC 丢包检测算法优化'
-subtitle: ''
+subtitle: '优化丢包检测算法区分不同的网络场景'
 date: 2026-02-05
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
@@ -14,7 +14,6 @@ mermaid: true
 ---
 
 > 针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。
-
 > QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
 > QUIC 源码：`quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc` 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。
 
