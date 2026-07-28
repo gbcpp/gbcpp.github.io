@@ -21,12 +21,14 @@
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/tech/new-theme-h2o.html">
+    <meta property="og:previous_url" content="/tech/mathjax-test.html">
     
+    
+    <meta property="og:next_url" content="/tech/new-theme-h2o.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2017-04-18 00:00:00 +0000" />
+    <meta property="post-date" content="2017-04-18 14:15:05 +0000" />
     
     
     
@@ -178,12 +180,6 @@
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="17-04-18">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-update"></use>
-            </svg>
-            <span class="update-at"></span>
-          </time>
             <span class="post-meta-item">
               <svg class="icon words" aria-hidden="true">
                 <use xlink:href="#icon-words"></use>
@@ -333,10 +329,10 @@
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/tech/new-theme-h2o.html" class="read-next-link" aria-label="H2O theme for Jekyll"></a>
+          <a href="/tech/mathjax-test.html" class="read-next-link" aria-label="MathJax Test"></a>
           <section>
-            <span>H2O theme for Jekyll</span>
-            <p>正如我在微博上所说的，使用Jekyll半年以来一直没有令我满意的主题模板，所以开始计划自己写一套好看又好用的主题模...</p>
+            <span>MathJax Test</span>
+            <p>mathjax in markdown :)</p>
           </section>
           
           <div class="filter"></div>
@@ -345,6 +341,18 @@
       </div>
         
 
+        
+        <div class="read-next-item">
+          <a href="/tech/new-theme-h2o.html" class="read-next-link" aria-label="H2O theme for Jekyll"></a>
+            <section>
+              <span>H2O theme for Jekyll</span>
+              <p>正如我在微博上所说的，使用Jekyll半年以来一直没有令我满意的主题模板，所以开始计划自己写一套好看又好用的主题模...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/hu.png" alt="">
+            
+        </div>
         
       </section>
       
@@ -542,9 +550,10 @@
           }
 
           var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          var display_formats = ['YYYY-MM-DD HH:mm:ss', 'YYYY DD MMM HH:mm:ss', 'YYYY年MM月DD日 HH:mm:ss'];
           function dateFormat(date, format){
             var date_org = dayjs(date, time_formats[format]);
-            var date     = date_org.format(time_formats[format]);
+            var date     = date_org.format(display_formats[format]);
             return {"date_org": date_org, "date": date}
           }
 
@@ -568,7 +577,6 @@
             }
 
             var local_update_at = dateFormat(update_at, post_date_format);
-            $('.post time span.update-at').html(local_update_at["date"]);
 
             var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
             $(".post-copyright .tips span").append(relative_time);

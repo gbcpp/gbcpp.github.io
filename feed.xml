@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-28T12:11:25+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="如何区分随机丢包与拥塞丢包" /><published>2026-05-05T00:00:00+00:00</published><updated>2026-05-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-28T12:35:15+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="如何区分随机丢包与拥塞丢包" /><published>2026-05-05T06:13:00+00:00</published><updated>2026-05-05T06:13:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
 
 <blockquote>
   <p>本文介绍丢包类型检测算法模块的功能与算法逻辑：如何用「Jitter + 排队延迟 + 突发形态 + 丢包率」多路信号，把丢包区分为<strong>拥塞丢包（congestion loss）与随机丢包（random loss）</strong>，并把结论反馈给拥塞控制算法，以保住决策是否需要降速。</p>
@@ -338,7 +338,7 @@
   <li><strong>基线自适应</strong>：维护 min RTT / min jitter 基线，并在真实延迟阶跃时重置，避免基线漂移导致长期误判；</li>
   <li><strong>非对称迟滞投票</strong>：3 轮历史寄存器 + “拥塞好进难出、随机高门槛”的判定，兼顾灵敏与稳健；</li>
   <li><strong>闭环价值</strong>：结论直接决定 CC 对丢包”退不退避”，使 CC 在无线/弱网下既能抗随机丢包、又不放任真实拥塞的关键判别模块。</li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[丢包类型检测算法]]></summary></entry><entry><title type="html">自定义网络协议如何检测网络受限状态，控制发送速率</title><link href="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html" rel="alternate" type="text/html" title="自定义网络协议如何检测网络受限状态，控制发送速率" /><published>2026-04-25T00:00:00+00:00</published><updated>2026-04-25T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html"><![CDATA[<h1 id="带宽受限检测算法">带宽受限检测算法</h1>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[丢包类型检测算法]]></summary></entry><entry><title type="html">自定义网络协议如何检测网络受限状态，控制发送速率</title><link href="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html" rel="alternate" type="text/html" title="自定义网络协议如何检测网络受限状态，控制发送速率" /><published>2026-04-25T01:52:35+00:00</published><updated>2026-04-25T01:52:35+00:00</updated><id>https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html"><![CDATA[<h1 id="带宽受限检测算法">带宽受限检测算法</h1>
 
 <blockquote>
   <p>本文介绍带宽受限检测算法的实现原理：通过「queueing + rtt + jitter + lost」四类信号综合判定链路是否是真正的带宽受限，又如何把这个判定回喂给 CC，让拥塞控制在瓶颈链路上主动收敛探测、避免把队列越灌越满。</p>
@@ -584,7 +584,7 @@
   <li><strong>闭环反馈</strong>：判定结果回喂 BBR，受限时压缩探测增益、抑制乐观 BDP，从源头上遏制 bufferbloat。</li>
 </ul>
 
-<p>总结：该算法用于通知 BBR 什么时候该适当的降低发送速率，是 RUT 在弱网/瓶颈链路下保持低延迟的关键模块。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[带宽受限检测算法]]></summary></entry><entry><title type="html">QUIC 丢包检测算法优化</title><link href="https://gbcpp.github.io/protocol/loss-detect-algo.html" rel="alternate" type="text/html" title="QUIC 丢包检测算法优化" /><published>2026-02-05T00:00:00+00:00</published><updated>2026-02-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-detect-algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-detect-algo.html"><![CDATA[<blockquote>
+<p>总结：该算法用于通知 BBR 什么时候该适当的降低发送速率，是 RUT 在弱网/瓶颈链路下保持低延迟的关键模块。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[带宽受限检测算法]]></summary></entry><entry><title type="html">QUIC 丢包检测算法优化</title><link href="https://gbcpp.github.io/protocol/loss-detect-algo.html" rel="alternate" type="text/html" title="QUIC 丢包检测算法优化" /><published>2026-02-05T09:10:35+00:00</published><updated>2026-02-05T09:10:35+00:00</updated><id>https://gbcpp.github.io/protocol/loss-detect-algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-detect-algo.html"><![CDATA[<blockquote>
   <p>针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。
 QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。
 QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc</code> 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。</p>
@@ -770,18 +770,184 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <h2 id="总结">总结</h2>
 
-<p>该算法优化用两套可切换的丢包检测把<code class="language-plaintext highlighter-rouge">实时低时延</code>和<code class="language-plaintext highlighter-rouge">抗乱序稳健</code>拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。 QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。 QUIC 源码：quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。]]></summary></entry><entry><title type="html">BBR 优化重点项</title><link href="https://gbcpp.github.io/protocol/bbr-optimize-record.html" rel="alternate" type="text/html" title="BBR 优化重点项" /><published>2025-12-01T00:00:00+00:00</published><updated>2025-12-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/bbr-optimize-record</id><content type="html" xml:base="https://gbcpp.github.io/protocol/bbr-optimize-record.html"><![CDATA[<h2 id="bbr-状态机">BBR 状态机</h2>
+<p>该算法优化用两套可切换的丢包检测把<code class="language-plaintext highlighter-rouge">实时低时延</code>和<code class="language-plaintext highlighter-rouge">抗乱序稳健</code>拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。</p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输需求下更加激进，通过更快、更早的判定丢包以进行重传，才能降低整体的端到端延迟；在高延迟、高乱序场景下偏向保守，降低误判概率。 QUIC 的丢包检测实现中存在乱序窗口不能灵活调整下限的问题。 QUIC 源码：quiche/gquiche/quic/core/congestion_control/general_loss_algorithm.cc 成员变量 reordering_threshold_ 只有上升取大的机制，而没有下降重制的机制，在灵活多变的用户网络中存在明显的弊端，当用户网络乱序特性消失后，QUIC 中永远保留了最大的乱序窗口，导致丢包检测一直延后这样的一个窗口，不利于低延迟传输。]]></summary></entry><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T09:00:44+00:00</published><updated>2025-11-01T09:00:44+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
 
-<p>BBR 的核心是估计链路的管道容量 BDP，即 $BDP = BtlBw \times RTprop$，其中 $BtlBw$ 为瓶颈带宽、$RTprop$ 为往返传播时延。</p>
+<table>
+  <tbody>
+    <tr>
+      <td>RUT 是基于 UDP 实现的同时支持可靠和不可靠差异化 Qos 的传输协议，发送端的拥塞控制、重传决策都强依赖于 <strong>ACK 的到达节奏</strong>。在真实弱网中，反馈链路（incoming</td>
+      <td>downlink，承载对端发回的 ACK）经常出现两种典型的异常状态：</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：</p>
+<ol>
+  <li><strong>ACK 卡顿（ACK stuck）</strong>：反馈链路被瞬时阻塞，ACK 长时间不到。发送端误以为数据丢了，触发不必要的超时重传，或者在静默期（quiescence）Timer 偏长，醒得太晚。</li>
+  <li><strong>ACK 突发（ACK burst）</strong>：链路阻塞解除后，被排队积压的 ACK 在极短时间内集中涌入。这是 “反馈链路异常” 的特征之——：数据本身可能没丢，只是 ACK 在回来的路上被攒了一波。</li>
+</ol>
 
-<pre><code class="language-mermaid">flowchart LR
-    STARTUP --&gt; DRAIN
-    DRAIN --&gt; PROBE_BW
-    PROBE_BW --&gt; PROBE_RTT
-    PROBE_RTT --&gt; PROBE_BW
-</code></pre>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[BBR 状态机]]></summary></entry><entry><title type="html">如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title><link href="https://gbcpp.github.io/protocol/delay-spike-detect.html" rel="alternate" type="text/html" title="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/delay-spike-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/delay-spike-detect.html"><![CDATA[<blockquote>
+<p>简单的 “基于 RTT 阈值” 判断无法区分 “前向链路差” 还是 “反馈链路差”。本算法的目标是：<strong>仅凭 ACK 到达的时间分布与数量分布，识别出反馈链路的异常，并为 RTO 重传策略提供更精准的 ACK 超时时间点。</strong></p>
+
+<h2 id="设计目标">设计目标</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>目标</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>链路方向判定</td>
+      <td>当判定为 ACK 突发时，向上层报告 <code class="language-plaintext highlighter-rouge">Direction::kIncoming</code> 异常</td>
+    </tr>
+    <tr>
+      <td>ACK 卡顿超时</td>
+      <td>给出一个动态的 ACK 等待截止时间，供 <code class="language-plaintext highlighter-rouge">重传决策模块 RetransmitManager</code> 使用</td>
+    </tr>
+    <tr>
+      <td>零额外探测</td>
+      <td>完全复用已有的 <code class="language-plaintext highlighter-rouge">OnPacketSent</code> / <code class="language-plaintext highlighter-rouge">OnAckFrame</code> 上层驱动事件，无需主动探测包</td>
+    </tr>
+    <tr>
+      <td>极低开销</td>
+      <td>仅维护几个标记位 + 一个三态状态机；开关用位域，仅需 1 个字节开销</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>两个能力可独立开关：</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">enable_link_detection_</code>：链路方向检测（burst 突发判定）</li>
+  <li><code class="language-plaintext highlighter-rouge">enable_ack_stuck_detection_</code>：ACK 卡顿检测</li>
+</ul>
+
+<h2 id="核心状态与数据结构">核心状态与数据结构</h2>
+
+<blockquote>
+  <p>EWMA: 指数加权移动平均算法。</p>
+</blockquote>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="n">State</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span> <span class="n">STATE_NORMAL</span><span class="p">,</span> <span class="n">STATE_ACK_SPARSE</span><span class="p">,</span> <span class="n">STATE_ACK_BURST</span> <span class="p">};</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code></td>
+      <td>相邻两次 ACK 事件时间间隔的 EWMA（0.7 旧 + 0.3 新）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code></td>
+      <td>每 50ms 窗口内 ACK 包数量的 EWMA</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_pkt_counter</code></td>
+      <td>当前 50ms 窗口已累计的 ACK 包数</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">last_ack_event_time</code></td>
+      <td>上一次收到 ACK 反馈包的时间</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ack_burst_start_time</code></td>
+      <td>进入异常态的起始时间（用于 500ms 后状态的清除）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">cal_ack_num_update_time</code></td>
+      <td>窗口统计的对齐时间戳</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>位域技巧</strong>：两个开关与 <code class="language-plaintext highlighter-rouge">enable_anything</code> 共用一个 union。热路径入口只需 <code class="language-plaintext highlighter-rouge">if (!enable_anything) return;</code> 一次判断即可同时短路两个特性，避免分别取两个 bool 进行判断。</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">union</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="p">{</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_link_detection</span>      <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">enable_ack_stuck_detection</span> <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="kt">uint8_t</span> <span class="n">unused</span>                     <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="kt">uint8_t</span> <span class="n">enable_anything</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h2 id="关键算法实现">关键算法实现</h2>
+
+<h3 id="稀疏判定-maybeburstackcoming">稀疏判定 <code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code></h3>
+
+<p>判断是否 “ACK 突然变得稀疏 Sparse”，这是 Burst 突发到来的征兆，需同时满足以下条件：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 即 Ack 平均到达间隔时间的平均值，已初始化；</li>
+  <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; kAckDiffMinGap</code>（50ms）；</li>
+  <li><code class="language-plaintext highlighter-rouge">rtt_diverge &gt; kRttDivergeThreshold(60ms)</code>（<code class="language-plaintext highlighter-rouge">rtt_diverge</code> 为 <code class="language-plaintext highlighter-rouge">latest_rtt - smoothed_rtt</code>，满足该条件时，说明网络队列在增长）；</li>
+  <li>且本次间隔显著超过历史均值，满足以下任一：
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg + 3*50ms</code>（绝对超出）</li>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*10 且 &gt; 2*50ms</code>（相对暴增）</li>
+      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*9 且 cwnd 余量 &lt; 1000</code>（窗口快打满时更敏感）</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="状态迁移">状态迁移</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NORMAL ──(检测到稀疏)──► ACK_SPARSE ──(随后涌入大量 ACK)──► ACK_BURST
+   ▲                                                          │
+   └──────────────(异常起点超过 500ms 老化｜过期｜清除)───────────────────┘
+</code></pre></div></div>
+
+<ul>
+  <li><strong>NORMAL → ACK_SPARSE</strong>：<code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code> 命中时，刷新 <code class="language-plaintext highlighter-rouge">ack_burst_start_time</code>。</li>
+  <li><strong>ACK_SPARSE → ACK_BURST</strong>：在 500ms 窗口内，ACK 数量相对均值暴涨——<code class="language-plaintext highlighter-rouge">ack_pkt_counter &gt; avg*2 且 avg+7 &lt; counter</code>，或 <code class="language-plaintext highlighter-rouge">avg+5 &lt; counter 且 bytes_in_flight &lt; cwnd/5</code>（在途数据已大量被确认）。此时确认是积压 ACK 的集中释放。</li>
+  <li><strong>任意态 → NORMAL</strong>：<code class="language-plaintext highlighter-rouge">ack_burst_start_time</code> 未初始化，或距异常起点已超过 <strong>500ms</strong>（复位）。</li>
+</ul>
+
+<p>只有处于 <code class="language-plaintext highlighter-rouge">STATE_ACK_BURST</code> 状态且开启链路检测时，<code class="language-plaintext highlighter-rouge">GetAbnormalLink()</code> 才返回 <code class="language-plaintext highlighter-rouge">kIncoming</code>。</p>
+
+<h3 id="均值更新策略">均值更新策略</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 仅在 <strong>NORMAL 态</strong> 且 <code class="language-plaintext highlighter-rouge">ack_diff &gt; 0</code> 时用 EWMA 更新，避免异常态污染基线。</li>
+  <li><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code> 在 <code class="language-plaintext highlighter-rouge">UpdateAckPacketNum</code> 中每超过 50ms 结算一次窗口，同样<strong>只在 NORMAL 态更新</strong>，结算后计数清零。首次直接取值，之后 EWMA。</li>
+</ul>
+
+<h3 id="ack-卡顿超时-getackstucktimeout">ACK 卡顿超时 <code class="language-plaintext highlighter-rouge">GetAckStuckTimeout</code></h3>
+
+<p>为重传管理器计算出”再等多久还没收到 ACK 包就算当前链路卡住了”，<strong>如果重传管理器的该定时器超时未收到 Ack，那么将通过上层设置 Pacer 开启一段时间的非受限模式,即在未来的 1 秒内可以立即发送任何数据，不受 Pacer Bucket 的限制，直到接收到新的 Ack 反馈包以后将此状态消除</strong>。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
+     expected_next_ack_time + 60ms )
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bytes_in_flight == 0</code> 或基线未建立时返回 0（不启用）。下界由历史 ACK 节奏决定，并保证不早于”期望下次 ACK 时间 + RTT 抖动容忍”。</p>
+
+<h2 id="时序图">时序图</h2>
+
+<p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
+
+<p><img src="/assets/img/blog/abnormal_dectect_1.jpeg" alt="时序图" /></p>
+
+<h2 id="状态机图">状态机图</h2>
+
+<p><img src="/assets/img/blog/abnormal_dectect_2.jpeg" alt="状态转换图" /></p>
+
+<h2 id="设计权衡与局限">设计权衡与局限</h2>
+
+<ul>
+  <li><strong>只测反馈方向</strong>：当前 <code class="language-plaintext highlighter-rouge">GetAbnormalLink</code> 只产出 <code class="language-plaintext highlighter-rouge">kIncoming</code>，因为 “ACK 突发” 是反馈链路的特征信号；前向链路异常由丢包/拥塞算法另行判断。</li>
+  <li><strong>基线纯净性</strong>：均值统计严格只在 NORMAL 态更新，保证异常期间不会自我污染，但代价是异常持续时基线被 “冻结”。</li>
+  <li><strong>500ms 老化</strong>：在保证及时复位与避免抖动误判之间取的折中值；超长抖动场景可能反复进出异常态，对于超大延迟 + jitter 的场景不友好。</li>
+  <li><strong>无主动探测</strong>：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。</li>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景与问题]]></summary></entry><entry><title type="html">如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性</title><link href="https://gbcpp.github.io/protocol/delay-spike-detect.html" rel="alternate" type="text/html" title="如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性" /><published>2025-11-01T07:17:34+00:00</published><updated>2025-11-01T07:17:34+00:00</updated><id>https://gbcpp.github.io/protocol/delay-spike-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/delay-spike-detect.html"><![CDATA[<blockquote>
   <p>BBR 依赖 <code class="language-plaintext highlighter-rouge">min_rtt</code> 估算 BDP/CWND，但 <code class="language-plaintext highlighter-rouge">min_rtt</code> 只会被更小的 RTT 刷新，或等 10s 过期后进入 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 <code class="language-plaintext highlighter-rouge">min_rtt</code> 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 <strong>上跳</strong> 后立即抬高 <code class="language-plaintext highlighter-rouge">min_rtt</code> 并跳过常规过期逻辑；<strong>下跳</strong> 时放开 recovery 限制，由主干自然下调。</p>
 </blockquote>
 
@@ -1107,184 +1273,7 @@ AND (
 <ol>
   <li><strong>整型方差 + <code class="language-plaintext highlighter-rouge">pow</code> 截断</strong>：<code class="language-plaintext highlighter-rouge">int rtt_dispersion = pow(...)</code> 用 <code class="language-plaintext highlighter-rouge">double</code> 计算后截断为 <code class="language-plaintext highlighter-rouge">int</code>；在常见 RTT 范围（偏差 ≤1200ms → 1.44e6）内不会溢出 <code class="language-plaintext highlighter-rouge">int</code>，但属隐式窄化。</li>
   <li><strong>依赖 ACK 采样密度</strong>：等待期后需在 (200ms, 1200ms] 内攒够 10 个样本，低速率/稀疏 ACK 的链路可能始终攒不够而无法触发——这是有意的保守取舍（实时高包率场景才是目标）。</li>
-</ol>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[BBR 依赖 min_rtt 估算 BDP/CWND，但 min_rtt 只会被更小的 RTT 刷新，或等 10s 过期后进入 PROBE_RTT 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 min_rtt 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 上跳 后立即抬高 min_rtt 并跳过常规过期逻辑；下跳 时放开 recovery 限制，由主干自然下调。]]></summary></entry><entry><title type="html">基于 Ack 反馈实现的网络下行链路异常检测</title><link href="https://gbcpp.github.io/protocol/abnormal-network-detect.html" rel="alternate" type="text/html" title="基于 Ack 反馈实现的网络下行链路异常检测" /><published>2025-11-01T00:00:00+00:00</published><updated>2025-11-01T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/abnormal-network-detect</id><content type="html" xml:base="https://gbcpp.github.io/protocol/abnormal-network-detect.html"><![CDATA[<h2 id="背景与问题">背景与问题</h2>
-
-<table>
-  <tbody>
-    <tr>
-      <td>RUT 是基于 UDP 实现的同时支持可靠和不可靠差异化 Qos 的传输协议，发送端的拥塞控制、重传决策都强依赖于 <strong>ACK 的到达节奏</strong>。在真实弱网中，反馈链路（incoming</td>
-      <td>downlink，承载对端发回的 ACK）经常出现两种典型的异常状态：</td>
-    </tr>
-  </tbody>
-</table>
-
-<ol>
-  <li><strong>ACK 卡顿（ACK stuck）</strong>：反馈链路被瞬时阻塞，ACK 长时间不到。发送端误以为数据丢了，触发不必要的超时重传，或者在静默期（quiescence）Timer 偏长，醒得太晚。</li>
-  <li><strong>ACK 突发（ACK burst）</strong>：链路阻塞解除后，被排队积压的 ACK 在极短时间内集中涌入。这是 “反馈链路异常” 的特征之——：数据本身可能没丢，只是 ACK 在回来的路上被攒了一波。</li>
-</ol>
-
-<p>简单的 “基于 RTT 阈值” 判断无法区分 “前向链路差” 还是 “反馈链路差”。本算法的目标是：<strong>仅凭 ACK 到达的时间分布与数量分布，识别出反馈链路的异常，并为 RTO 重传策略提供更精准的 ACK 超时时间点。</strong></p>
-
-<h2 id="设计目标">设计目标</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>目标</th>
-      <th>说明</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>链路方向判定</td>
-      <td>当判定为 ACK 突发时，向上层报告 <code class="language-plaintext highlighter-rouge">Direction::kIncoming</code> 异常</td>
-    </tr>
-    <tr>
-      <td>ACK 卡顿超时</td>
-      <td>给出一个动态的 ACK 等待截止时间，供 <code class="language-plaintext highlighter-rouge">重传决策模块 RetransmitManager</code> 使用</td>
-    </tr>
-    <tr>
-      <td>零额外探测</td>
-      <td>完全复用已有的 <code class="language-plaintext highlighter-rouge">OnPacketSent</code> / <code class="language-plaintext highlighter-rouge">OnAckFrame</code> 上层驱动事件，无需主动探测包</td>
-    </tr>
-    <tr>
-      <td>极低开销</td>
-      <td>仅维护几个标记位 + 一个三态状态机；开关用位域，仅需 1 个字节开销</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>两个能力可独立开关：</p>
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">enable_link_detection_</code>：链路方向检测（burst 突发判定）</li>
-  <li><code class="language-plaintext highlighter-rouge">enable_ack_stuck_detection_</code>：ACK 卡顿检测</li>
-</ul>
-
-<h2 id="核心状态与数据结构">核心状态与数据结构</h2>
-
-<blockquote>
-  <p>EWMA: 指数加权移动平均算法。</p>
-</blockquote>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="n">State</span> <span class="o">:</span> <span class="kt">uint8_t</span> <span class="p">{</span> <span class="n">STATE_NORMAL</span><span class="p">,</span> <span class="n">STATE_ACK_SPARSE</span><span class="p">,</span> <span class="n">STATE_ACK_BURST</span> <span class="p">};</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>字段</th>
-      <th>含义</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code></td>
-      <td>相邻两次 ACK 事件时间间隔的 EWMA（0.7 旧 + 0.3 新）</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code></td>
-      <td>每 50ms 窗口内 ACK 包数量的 EWMA</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ack_pkt_counter</code></td>
-      <td>当前 50ms 窗口已累计的 ACK 包数</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">last_ack_event_time</code></td>
-      <td>上一次收到 ACK 反馈包的时间</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ack_burst_start_time</code></td>
-      <td>进入异常态的起始时间（用于 500ms 后状态的清除）</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">cal_ack_num_update_time</code></td>
-      <td>窗口统计的对齐时间戳</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><strong>位域技巧</strong>：两个开关与 <code class="language-plaintext highlighter-rouge">enable_anything</code> 共用一个 union。热路径入口只需 <code class="language-plaintext highlighter-rouge">if (!enable_anything) return;</code> 一次判断即可同时短路两个特性，避免分别取两个 bool 进行判断。</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">union</span> <span class="p">{</span>
-    <span class="k">struct</span> <span class="p">{</span>
-        <span class="kt">uint8_t</span> <span class="n">enable_link_detection</span>      <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
-        <span class="kt">uint8_t</span> <span class="n">enable_ack_stuck_detection</span> <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
-        <span class="kt">uint8_t</span> <span class="n">unused</span>                     <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="kt">uint8_t</span> <span class="n">enable_anything</span><span class="p">;</span>
-<span class="p">};</span>
-</code></pre></div></div>
-
-<h2 id="关键算法实现">关键算法实现</h2>
-
-<h3 id="稀疏判定-maybeburstackcoming">稀疏判定 <code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code></h3>
-
-<p>判断是否 “ACK 突然变得稀疏 Sparse”，这是 Burst 突发到来的征兆，需同时满足以下条件：</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 即 Ack 平均到达间隔时间的平均值，已初始化；</li>
-  <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; kAckDiffMinGap</code>（50ms）；</li>
-  <li><code class="language-plaintext highlighter-rouge">rtt_diverge &gt; kRttDivergeThreshold(60ms)</code>（<code class="language-plaintext highlighter-rouge">rtt_diverge</code> 为 <code class="language-plaintext highlighter-rouge">latest_rtt - smoothed_rtt</code>，满足该条件时，说明网络队列在增长）；</li>
-  <li>且本次间隔显著超过历史均值，满足以下任一：
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg + 3*50ms</code>（绝对超出）</li>
-      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*10 且 &gt; 2*50ms</code>（相对暴增）</li>
-      <li><code class="language-plaintext highlighter-rouge">ack_diff &gt; avg*9 且 cwnd 余量 &lt; 1000</code>（窗口快打满时更敏感）</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="状态迁移">状态迁移</h3>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NORMAL ──(检测到稀疏)──► ACK_SPARSE ──(随后涌入大量 ACK)──► ACK_BURST
-   ▲                                                          │
-   └──────────────(异常起点超过 500ms 老化｜过期｜清除)───────────────────┘
-</code></pre></div></div>
-
-<ul>
-  <li><strong>NORMAL → ACK_SPARSE</strong>：<code class="language-plaintext highlighter-rouge">MaybeBurstAckComing</code> 命中时，刷新 <code class="language-plaintext highlighter-rouge">ack_burst_start_time</code>。</li>
-  <li><strong>ACK_SPARSE → ACK_BURST</strong>：在 500ms 窗口内，ACK 数量相对均值暴涨——<code class="language-plaintext highlighter-rouge">ack_pkt_counter &gt; avg*2 且 avg+7 &lt; counter</code>，或 <code class="language-plaintext highlighter-rouge">avg+5 &lt; counter 且 bytes_in_flight &lt; cwnd/5</code>（在途数据已大量被确认）。此时确认是积压 ACK 的集中释放。</li>
-  <li><strong>任意态 → NORMAL</strong>：<code class="language-plaintext highlighter-rouge">ack_burst_start_time</code> 未初始化，或距异常起点已超过 <strong>500ms</strong>（复位）。</li>
-</ul>
-
-<p>只有处于 <code class="language-plaintext highlighter-rouge">STATE_ACK_BURST</code> 状态且开启链路检测时，<code class="language-plaintext highlighter-rouge">GetAbnormalLink()</code> 才返回 <code class="language-plaintext highlighter-rouge">kIncoming</code>。</p>
-
-<h3 id="均值更新策略">均值更新策略</h3>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">avg_ack_time_diff</code> 仅在 <strong>NORMAL 态</strong> 且 <code class="language-plaintext highlighter-rouge">ack_diff &gt; 0</code> 时用 EWMA 更新，避免异常态污染基线。</li>
-  <li><code class="language-plaintext highlighter-rouge">avg_ack_pkt_num</code> 在 <code class="language-plaintext highlighter-rouge">UpdateAckPacketNum</code> 中每超过 50ms 结算一次窗口，同样<strong>只在 NORMAL 态更新</strong>，结算后计数清零。首次直接取值，之后 EWMA。</li>
-</ul>
-
-<h3 id="ack-卡顿超时-getackstucktimeout">ACK 卡顿超时 <code class="language-plaintext highlighter-rouge">GetAckStuckTimeout</code></h3>
-
-<p>为重传管理器计算出”再等多久还没收到 ACK 包就算当前链路卡住了”，<strong>如果重传管理器的该定时器超时未收到 Ack，那么将通过上层设置 Pacer 开启一段时间的非受限模式,即在未来的 1 秒内可以立即发送任何数据，不受 Pacer Bucket 的限制，直到接收到新的 Ack 反馈包以后将此状态消除</strong>。</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>max( now + min(avg + 3*50ms, max(avg*9, 50ms)),
-     expected_next_ack_time + 60ms )
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">bytes_in_flight == 0</code> 或基线未建立时返回 0（不启用）。下界由历史 ACK 节奏决定，并保证不早于”期望下次 ACK 时间 + RTT 抖动容忍”。</p>
-
-<h2 id="时序图">时序图</h2>
-
-<p>下面的时序图展示一次”反馈链路阻塞 → 恢复”过程中，各组件的交互与状态迁移。</p>
-
-<p><img src="/assets/img/blog/abnormal_dectect_1.jpeg" alt="时序图" /></p>
-
-<h2 id="状态机图">状态机图</h2>
-
-<p><img src="/assets/img/blog/abnormal_dectect_2.jpeg" alt="状态转换图" /></p>
-
-<h2 id="设计权衡与局限">设计权衡与局限</h2>
-
-<ul>
-  <li><strong>只测反馈方向</strong>：当前 <code class="language-plaintext highlighter-rouge">GetAbnormalLink</code> 只产出 <code class="language-plaintext highlighter-rouge">kIncoming</code>，因为 “ACK 突发” 是反馈链路的特征信号；前向链路异常由丢包/拥塞算法另行判断。</li>
-  <li><strong>基线纯净性</strong>：均值统计严格只在 NORMAL 态更新，保证异常期间不会自我污染，但代价是异常持续时基线被 “冻结”。</li>
-  <li><strong>500ms 老化</strong>：在保证及时复位与避免抖动误判之间取的折中值；超长抖动场景可能反复进出异常态，对于超大延迟 + jitter 的场景不友好。</li>
-  <li><strong>无主动探测</strong>：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。</li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[背景与问题]]></summary></entry><entry><title type="html">私有协议带宽探测的设计与实现</title><link href="https://gbcpp.github.io/protocol/probe-bandwidth.html" rel="alternate" type="text/html" title="私有协议带宽探测的设计与实现" /><published>2025-10-30T00:00:00+00:00</published><updated>2025-10-30T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/probe-bandwidth</id><content type="html" xml:base="https://gbcpp.github.io/protocol/probe-bandwidth.html"><![CDATA[<blockquote>
+</ol>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[BBR 依赖 min_rtt 估算 BDP/CWND，但 min_rtt 只会被更小的 RTT 刷新，或等 10s 过期后进入 PROBE_RTT 重探。当链路传播时延发生持久阶跃（如路由切换、弱网追加延迟）时，旧 min_rtt 会长期偏低，导致 BDP 低估、CWND 被压、吞吐饿死；阶跃过渡期还可能因伪丢包触发 recovery 窗口进一步限流。该算法模块在 ACK 路径上用双轨道 EWMA + 6σ/持续性/稳定性判据，区分「稳定 RTT 阶跃」与「瞬时抖动」。确认 上跳 后立即抬高 min_rtt 并跳过常规过期逻辑；下跳 时放开 recovery 限制，由主干自然下调。]]></summary></entry><entry><title type="html">私有协议带宽探测的设计与实现</title><link href="https://gbcpp.github.io/protocol/probe-bandwidth.html" rel="alternate" type="text/html" title="私有协议带宽探测的设计与实现" /><published>2025-10-30T03:26:01+00:00</published><updated>2025-10-30T03:26:01+00:00</updated><id>https://gbcpp.github.io/protocol/probe-bandwidth</id><content type="html" xml:base="https://gbcpp.github.io/protocol/probe-bandwidth.html"><![CDATA[<blockquote>
   <p>带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制<strong>业务发多快、就只能看见多快</strong>的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。</p>
 </blockquote>
 
@@ -1362,7 +1351,7 @@ AND (
 
 <p>从时序上讲，探测由三类事件串联：<strong>心跳</strong>定节奏、<strong>发包</strong>执行 cluster、<strong>ACK</strong> 回填样本并驱动升档或结束。</p>
 
-<p><img src="/assets/img/blog/probe-bandwidth/09-callbacks.jpeg" alt="三类回调的总览" /></p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制业务发多快、就只能看见多快的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。]]></summary></entry><entry><title type="html">RUT protocol design</title><link href="https://gbcpp.github.io/protocol/rut-protocol-design.html" rel="alternate" type="text/html" title="RUT protocol design" /><published>2025-09-21T00:00:00+00:00</published><updated>2025-09-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/rut-protocol-design</id><content type="html" xml:base="https://gbcpp.github.io/protocol/rut-protocol-design.html"><![CDATA[<h2 id="设计思想">设计思想</h2>
+<p><img src="/assets/img/blog/probe-bandwidth/09-callbacks.jpeg" alt="三类回调的总览" /></p>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[带宽探测通过主动制造可控的数据突发，去探测真实的链路带宽上限，来弥补被动拥塞控制业务发多快、就只能看见多快的不足，这在实时音视频以及移动网络场景里，做到尽量把码率拉满、又不至于把链路打爆的前提。]]></summary></entry><entry><title type="html">RUT protocol design</title><link href="https://gbcpp.github.io/protocol/rut-protocol-design.html" rel="alternate" type="text/html" title="RUT protocol design" /><published>2025-09-21T12:26:17+00:00</published><updated>2025-09-21T12:26:17+00:00</updated><id>https://gbcpp.github.io/protocol/rut-protocol-design</id><content type="html" xml:base="https://gbcpp.github.io/protocol/rut-protocol-design.html"><![CDATA[<h2 id="设计思想">设计思想</h2>
 
 <p>整体参考 quic，将协议格式在传输上进行分层，首先是 Packet 层，每次收发都是一个 Packet，比如用于握手建连的 InitialPacket 和建连后的 DataPacket。
 在 Packet 内，是第二层，即 Frame 层，比如包括承载应用层数据的 StreamFrame，以及协议内 CC 用于实时反馈的 FeedbackFrame 和 pingpong frame 等。</p>
@@ -1696,7 +1685,7 @@ payload: 表示此控制帧的载荷，长度包含在frame_length中。
 
   <span class="n">kMax</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
 <span class="p">};</span>
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><category term="RUT" /><summary type="html"><![CDATA[设计思想]]></summary></entry><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T00:00:00+00:00</published><updated>2025-05-21T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><category term="RUT" /><summary type="html"><![CDATA[设计思想]]></summary></entry><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T14:02:52+00:00</published><updated>2025-05-21T14:02:52+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
   <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
 </blockquote>
 
@@ -2050,7 +2039,7 @@ memleak <span class="nt">-O</span> /lib/x86_64-linux-gnu/libc.so.6 <span class="
 
 <h2 id="参考资料">参考资料</h2>
 
-<p>BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="bcc" /><category term="ebpf" /><summary type="html"><![CDATA[BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。]]></summary></entry><entry><title type="html">Mac 系统环境配置异常记录</title><link href="https://gbcpp.github.io/notes/mac-env-fix.html" rel="alternate" type="text/html" title="Mac 系统环境配置异常记录" /><published>2025-04-02T00:00:00+00:00</published><updated>2025-04-02T00:00:00+00:00</updated><id>https://gbcpp.github.io/notes/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/notes/mac-env-fix.html"><![CDATA[<blockquote>
+<p>BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="bcc" /><category term="ebpf" /><summary type="html"><![CDATA[BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。]]></summary></entry><entry><title type="html">Mac 系统环境配置异常记录</title><link href="https://gbcpp.github.io/notes/mac-env-fix.html" rel="alternate" type="text/html" title="Mac 系统环境配置异常记录" /><published>2025-04-02T07:53:48+00:00</published><updated>2025-04-02T07:53:48+00:00</updated><id>https://gbcpp.github.io/notes/mac-env-fix</id><content type="html" xml:base="https://gbcpp.github.io/notes/mac-env-fix.html"><![CDATA[<blockquote>
   <p>整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。</p>
 </blockquote>
 
@@ -2087,4 +2076,88 @@ defaults delete <span class="nt">-g</span> ApplePressAndHoldEnabled
 
 <blockquote>
   <p>上述命令执行完后，均需要重启 IDE。</p>
-</blockquote>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。]]></summary></entry></feed>
+</blockquote>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Life" /><summary type="html"><![CDATA[整理记录 Mac 下开发、学习环境中遇到的疑难杂症及其解决过程和方案。]]></summary></entry><entry><title type="html">HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title><link href="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html" rel="alternate" type="text/html" title="HTTP3/QUIC 在部分iPhone设备下卡顿问题排查" /><published>2025-02-24T02:44:38+00:00</published><updated>2025-02-24T02:44:38+00:00</updated><id>https://gbcpp.github.io/notes/quic-stuck-on-iphone</id><content type="html" xml:base="https://gbcpp.github.io/notes/quic-stuck-on-iphone.html"><![CDATA[<blockquote>
+  <p>  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。</p>
+</blockquote>
+
+<h2 id="排查过程">排查过程</h2>
+
+<h3 id="协议对比">协议对比</h3>
+
+<p>在指定的 iPhone 设备上通过后台控制、确认播放端使用的 HTTP 版本，明确在正常的网络环境下使用 TCP 的播放效果要明显优于基于 UDP 的 HTTP3，明显问题现象。</p>
+
+<h3 id="mtu-问题">MTU 问题</h3>
+
+<p>通过打开 quic-go 中的 debug log，看到播放端在出现卡顿时，出现大概率的 <code class="language-plaintext highlighter-rouge">lost packet</code>，怀疑是 quic-go 的 MTU 探测问题，探测到错误的 max packet size 导致发送了过大的数据包触发的 IP 分片导致的丢失。</p>
+
+<p>  。。。。。。   此处省略一万字，debug 排查 guic-go 中的 MTU 探测模块代码逻辑简单、清晰，没有代码问题。</p>
+
+<p>那么如果将 quic-go 中的 MTU 探测关闭，让其一直固定使用 initial 的 max packet size：1252，会有问题吗？</p>
+
+<p>通过 quic-go 的配置 <code class="language-plaintext highlighter-rouge">DisablePathMTUDiscovery</code> 将其置为 <code class="language-plaintext highlighter-rouge">true</code>, 其默认为 <code class="language-plaintext highlighter-rouge">false</code>，进行测试验证后，发现卡顿现象消失了，可以明确问题就是 MTU 的问题了，链路上发送了超过实际 MTU 大小的数据，触发的 IP 分片导致大量的丢包，从而出现的卡顿。</p>
+
+<h3 id="抓包验证">抓包验证</h3>
+
+<p>依然开启 quic-go 的 MTU-Discorver 功能: <code class="language-plaintext highlighter-rouge">DisablePathMTUDiscovery</code> 将其置为 <code class="language-plaintext highlighter-rouge">false</code>。</p>
+
+<ul>
+  <li>Server 测抓包</li>
+</ul>
+
+<p>Server 测通过 <code class="language-plaintext highlighter-rouge">tcpdump</code> 抓包即可，命令： <code class="language-plaintext highlighter-rouge">tcpdump -i any -s 1500 udp src port 4443 -v</code> 抓取自己从 HTTP3 端口 4443 发送方向的数据包，重点是查看数据包的大小是否有在本地发送时出现切包的情况。</p>
+
+<ul>
+  <li>iPhone 设备测抓包</li>
+</ul>
+
+<p>通过 <code class="language-plaintext highlighter-rouge">xcode</code> 工具集中的 <code class="language-plaintext highlighter-rouge">rvictl</code> 结合 <code class="language-plaintext highlighter-rouge">wireshark</code> 进行抓包。</p>
+
+<p>首先 Mac 上需要安装 <code class="language-plaintext highlighter-rouge">xcode</code> 开发工具，将 iPhone 连接 Mac 后，通过 xcode 查看该 iPhone 设备的 Identifier ID，在 <code class="language-plaintext highlighter-rouge">xcode</code> 的 <code class="language-plaintext highlighter-rouge">window</code> 菜单 ==<code class="language-plaintext highlighter-rouge">》Device</code> 选项 进行查看：</p>
+
+<p><img src="/assets/img/blog/xcode-identifier.png" alt="获取 iPhone ID" /></p>
+
+<p><strong>启动虚拟网卡：</strong></p>
+
+<p>Terminal 中命令启动：<code class="language-plaintext highlighter-rouge">rvictl -s 00008130-00012C163EC2001C </code>，如果失败，会有 <code class="language-plaintext highlighter-rouge">FAILED</code> 的输出提示。</p>
+
+<p><strong>启动 WireShark：</strong></p>
+
+<p>需要 <code class="language-plaintext highlighter-rouge">root </code>权限，从 Terminal 中进行启动： <code class="language-plaintext highlighter-rouge">sudo wireshark</code>，选择网卡 <strong>rvi</strong> 网卡进行抓取，可以添加过滤条件，如：<code class="language-plaintext highlighter-rouge">udp.port == 4443</code></p>
+
+<ul>
+  <li>复现抓包</li>
+</ul>
+
+<p>手机测通过 HTTP3 拉流复现后，分别查看 Server 和 iPhone 测的抓包结果进行分析：</p>
+
+<p>下图可以看到server 在发送 1400+ 的数据包的时候，是未分片且带有 <code class="language-plaintext highlighter-rouge">DF</code> flag 的，<strong>server 发送的所有数据包均是如此</strong>：</p>
+
+<p><img src="/assets/img/blog/server-quic-capture0.png" alt="Server 抓包截图（未切片）" /></p>
+
+<p>iPhone 测抓包可以看到首先收到的 1400+ 的 数据包是带有 <code class="language-plaintext highlighter-rouge">DF</code> flag 的，同时也没有进行切片，如下图：</p>
+
+<p><img src="/assets/img/blog/client-quic-capture.png" alt="iPhone 抓包1（首先无分片）" /></p>
+
+<p>但是在后面很快就出现了 IP 分片，且去除了 DF flag 的数据包，iPhone 测只能接收到一半的数据包：</p>
+
+<p><img src="/assets/img/blog/client-quic-capture2.png" alt="iPhone 抓包2（被分片）" /></p>
+
+<blockquote>
+  <p>注意：该问题在仅在我司的 Wifi 网络环境下存在，4G/5G 网络条件下不存在。</p>
+</blockquote>
+
+<h2 id="结论">结论</h2>
+
+<p>   通过上述抓包可以看到是因为链路中某个路由设备对 MTU 大于 1400 的数据包进行了强行切片，分成了 2 片进行发送，这里存在两个问题：</p>
+
+<p>1、该路由设备放行了前面一小部分大于 1400 的数据包，接收端接收并 Ack 给了发送端，导致发送端的 Mtu 探测模块爬升到了更高的值，但是后面该路由设备又对 1400+ 的数据包改变了策略，不允许通过，而 quic-go 中的 mtu 探测模块又没有向下探测 mtu 的能力，导致业务遇到该场景必死无疑。</p>
+
+<p>2、发送端发送的数据包已经明确设置了 <code class="language-plaintext highlighter-rouge">DF</code> 即 <code class="language-plaintext highlighter-rouge">Don't fragment</code> 的 flag，路由设备在收到超过自己 MTU 设备时应该直接丢掉，而非先进行放行，然后强行忽略 DF flag 进行切片转发，让接收端产生误判。</p>
+
+<p>   对比抓取其它使用 HTTP3/QUIC 协议的 APP 数据包，比如油管的短视频和直播，可以看到其并未向上探测 MTU，使用的是固定的 1250 这样的一个 MTU 大小。</p>
+
+<p>   使用 1300 以内的 MTU 大小是网络兼容性最好选择，但是会牺牲一定的服务器网络数据包处理的性能，像 Google 这样的 APP 亦是如此。如果需要追求极致性能，还有一个解决方案，那就是为 MTU 探测模块增加向下探测的能力，比如这种场景，已经探测到了 1400 的大小，但是后续路由器开启切片导致大量的丢包，协议内部开始向下探测 MTU 大小，或者重新从 1000/1200 开始探测即可。</p>
+
+<h2 id="后续">后续</h2>
+
+<p>   无</p>]]></content><author><name>Mr Chen</name></author><category term="Notes" /><category term="Protocol" /><summary type="html"><![CDATA[  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。]]></summary></entry></feed>

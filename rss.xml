@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 28 Jul 2026 12:11:25 +0000</pubDate>
-    <lastBuildDate>Tue, 28 Jul 2026 12:11:25 +0000</lastBuildDate>
+    <pubDate>Tue, 28 Jul 2026 12:35:15 +0000</pubDate>
+    <lastBuildDate>Tue, 28 Jul 2026 12:35:15 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -354,7 +354,7 @@
 &lt;/ul&gt;
 
 </description>
-        <pubDate>Tue, 05 May 2026 00:00:00 +0000</pubDate>
+        <pubDate>Tue, 05 May 2026 06:13:00 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/loss-differentiation_algo.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/loss-differentiation_algo.html</guid>
         
@@ -615,7 +615,7 @@
 
 &lt;p&gt;总结：该算法用于通知 BBR 什么时候该适当的降低发送速率，是 RUT 在弱网/瓶颈链路下保持低延迟的关键模块。&lt;/p&gt;
 </description>
-        <pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate>
+        <pubDate>Sat, 25 Apr 2026 01:52:35 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/bandwidth-limited-detect-algo.html</guid>
         
@@ -816,35 +816,9 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;p&gt;该算法优化用两套可切换的丢包检测把&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;实时低时延&lt;/code&gt;和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;抗乱序稳健&lt;/code&gt;拆成了两条路径，比 QUIC 单一 General 算法更贴合 RTC 场景。&lt;/p&gt;
 </description>
-        <pubDate>Thu, 05 Feb 2026 00:00:00 +0000</pubDate>
+        <pubDate>Thu, 05 Feb 2026 09:10:35 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/loss-detect-algo.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/loss-detect-algo.html</guid>
-        
-        <category>Protocol</category>
-        
-        
-        <category>Protocol</category>
-        
-      </item>
-    
-      <item>
-        <title>BBR 优化重点项</title>
-        <description>&lt;h2 id=&quot;bbr-状态机&quot;&gt;BBR 状态机&lt;/h2&gt;
-
-&lt;p&gt;BBR 的核心是估计链路的管道容量 BDP，即 $BDP = BtlBw \times RTprop$，其中 $BtlBw$ 为瓶颈带宽、$RTprop$ 为往返传播时延。&lt;/p&gt;
-
-&lt;p&gt;BBR 通过四个阶段动态探测带宽与最小 RTT，在不同阶段间循环切换：&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart LR
-    STARTUP --&amp;gt; DRAIN
-    DRAIN --&amp;gt; PROBE_BW
-    PROBE_BW --&amp;gt; PROBE_RTT
-    PROBE_RTT --&amp;gt; PROBE_BW
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-        <pubDate>Mon, 01 Dec 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/protocol/bbr-optimize-record.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/protocol/bbr-optimize-record.html</guid>
         
         <category>Protocol</category>
         
@@ -1034,7 +1008,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
   &lt;li&gt;&lt;strong&gt;无主动探测&lt;/strong&gt;：完全被动，无额外流量发送，但检测灵敏度受发送速率影响——发包过少时样本不足，检测的及时性和准确性受限。&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-        <pubDate>Sat, 01 Nov 2025 00:00:00 +0000</pubDate>
+        <pubDate>Sat, 01 Nov 2025 09:00:44 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/abnormal-network-detect.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/abnormal-network-detect.html</guid>
         
@@ -1376,7 +1350,7 @@ AND (
 &lt;/ol&gt;
 
 </description>
-        <pubDate>Sat, 01 Nov 2025 00:00:00 +0000</pubDate>
+        <pubDate>Sat, 01 Nov 2025 07:17:34 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/delay-spike-detect.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/delay-spike-detect.html</guid>
         
@@ -1469,7 +1443,7 @@ AND (
 
 &lt;p&gt;&lt;img src=&quot;/assets/img/blog/probe-bandwidth/09-callbacks.jpeg&quot; alt=&quot;三类回调的总览&quot; /&gt;&lt;/p&gt;
 </description>
-        <pubDate>Thu, 30 Oct 2025 00:00:00 +0000</pubDate>
+        <pubDate>Thu, 30 Oct 2025 03:26:01 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/probe-bandwidth.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/probe-bandwidth.html</guid>
         
@@ -1818,7 +1792,7 @@ payload: 表示此控制帧的载荷，长度包含在frame_length中。
 &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 </description>
-        <pubDate>Sun, 21 Sep 2025 00:00:00 +0000</pubDate>
+        <pubDate>Sun, 21 Sep 2025 12:26:17 +0000</pubDate>
         <link>https://gbcpp.github.io/protocol/rut-protocol-design.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/protocol/rut-protocol-design.html</guid>
         
@@ -2189,7 +2163,7 @@ memleak &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; /lib/x86_64-linux-gnu/l
 
 &lt;p&gt;BCC 官方文档：https://github.com/iovisor/bcc/blob/master/INSTALL.md&lt;/p&gt;
 </description>
-        <pubDate>Wed, 21 May 2025 00:00:00 +0000</pubDate>
+        <pubDate>Wed, 21 May 2025 14:02:52 +0000</pubDate>
         <link>https://gbcpp.github.io/notes/install-bcc.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/notes/install-bcc.html</guid>
         
@@ -2244,11 +2218,111 @@ defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHo
 &lt;/blockquote&gt;
 
 </description>
-        <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+        <pubDate>Wed, 02 Apr 2025 07:53:48 +0000</pubDate>
         <link>https://gbcpp.github.io/notes/mac-env-fix.html</link>
         <guid isPermaLink="true">https://gbcpp.github.io/notes/mac-env-fix.html</guid>
         
         <category>Life</category>
+        
+        
+        <category>Notes</category>
+        
+      </item>
+    
+      <item>
+        <title>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;排查过程&quot;&gt;排查过程&lt;/h2&gt;
+
+&lt;h3 id=&quot;协议对比&quot;&gt;协议对比&lt;/h3&gt;
+
+&lt;p&gt;在指定的 iPhone 设备上通过后台控制、确认播放端使用的 HTTP 版本，明确在正常的网络环境下使用 TCP 的播放效果要明显优于基于 UDP 的 HTTP3，明显问题现象。&lt;/p&gt;
+
+&lt;h3 id=&quot;mtu-问题&quot;&gt;MTU 问题&lt;/h3&gt;
+
+&lt;p&gt;通过打开 quic-go 中的 debug log，看到播放端在出现卡顿时，出现大概率的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost packet&lt;/code&gt;，怀疑是 quic-go 的 MTU 探测问题，探测到错误的 max packet size 导致发送了过大的数据包触发的 IP 分片导致的丢失。&lt;/p&gt;
+
+&lt;p&gt;  。。。。。。   此处省略一万字，debug 排查 guic-go 中的 MTU 探测模块代码逻辑简单、清晰，没有代码问题。&lt;/p&gt;
+
+&lt;p&gt;那么如果将 quic-go 中的 MTU 探测关闭，让其一直固定使用 initial 的 max packet size：1252，会有问题吗？&lt;/p&gt;
+
+&lt;p&gt;通过 quic-go 的配置 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;, 其默认为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;，进行测试验证后，发现卡顿现象消失了，可以明确问题就是 MTU 的问题了，链路上发送了超过实际 MTU 大小的数据，触发的 IP 分片导致大量的丢包，从而出现的卡顿。&lt;/p&gt;
+
+&lt;h3 id=&quot;抓包验证&quot;&gt;抓包验证&lt;/h3&gt;
+
+&lt;p&gt;依然开启 quic-go 的 MTU-Discorver 功能: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Server 测抓包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Server 测通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump&lt;/code&gt; 抓包即可，命令： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump -i any -s 1500 udp src port 4443 -v&lt;/code&gt; 抓取自己从 HTTP3 端口 4443 发送方向的数据包，重点是查看数据包的大小是否有在本地发送时出现切包的情况。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;iPhone 设备测抓包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 工具集中的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl&lt;/code&gt; 结合 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wireshark&lt;/code&gt; 进行抓包。&lt;/p&gt;
+
+&lt;p&gt;首先 Mac 上需要安装 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 开发工具，将 iPhone 连接 Mac 后，通过 xcode 查看该 iPhone 设备的 Identifier ID，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;window&lt;/code&gt; 菜单 ==&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;》Device&lt;/code&gt; 选项 进行查看：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/xcode-identifier.png&quot; alt=&quot;获取 iPhone ID&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;启动虚拟网卡：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Terminal 中命令启动：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl -s 00008130-00012C163EC2001C &lt;/code&gt;，如果失败，会有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; 的输出提示。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;启动 WireShark：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;需要 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root &lt;/code&gt;权限，从 Terminal 中进行启动： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo wireshark&lt;/code&gt;，选择网卡 &lt;strong&gt;rvi&lt;/strong&gt; 网卡进行抓取，可以添加过滤条件，如：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;udp.port == 4443&lt;/code&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;复现抓包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;手机测通过 HTTP3 拉流复现后，分别查看 Server 和 iPhone 测的抓包结果进行分析：&lt;/p&gt;
+
+&lt;p&gt;下图可以看到server 在发送 1400+ 的数据包的时候，是未分片且带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，&lt;strong&gt;server 发送的所有数据包均是如此&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/server-quic-capture0.png&quot; alt=&quot;Server 抓包截图（未切片）&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;iPhone 测抓包可以看到首先收到的 1400+ 的 数据包是带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，同时也没有进行切片，如下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture.png&quot; alt=&quot;iPhone 抓包1（首先无分片）&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;但是在后面很快就出现了 IP 分片，且去除了 DF flag 的数据包，iPhone 测只能接收到一半的数据包：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture2.png&quot; alt=&quot;iPhone 抓包2（被分片）&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;注意：该问题在仅在我司的 Wifi 网络环境下存在，4G/5G 网络条件下不存在。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;结论&quot;&gt;结论&lt;/h2&gt;
+
+&lt;p&gt;   通过上述抓包可以看到是因为链路中某个路由设备对 MTU 大于 1400 的数据包进行了强行切片，分成了 2 片进行发送，这里存在两个问题：&lt;/p&gt;
+
+&lt;p&gt;1、该路由设备放行了前面一小部分大于 1400 的数据包，接收端接收并 Ack 给了发送端，导致发送端的 Mtu 探测模块爬升到了更高的值，但是后面该路由设备又对 1400+ 的数据包改变了策略，不允许通过，而 quic-go 中的 mtu 探测模块又没有向下探测 mtu 的能力，导致业务遇到该场景必死无疑。&lt;/p&gt;
+
+&lt;p&gt;2、发送端发送的数据包已经明确设置了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; 即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Don&apos;t fragment&lt;/code&gt; 的 flag，路由设备在收到超过自己 MTU 设备时应该直接丢掉，而非先进行放行，然后强行忽略 DF flag 进行切片转发，让接收端产生误判。&lt;/p&gt;
+
+&lt;p&gt;   对比抓取其它使用 HTTP3/QUIC 协议的 APP 数据包，比如油管的短视频和直播，可以看到其并未向上探测 MTU，使用的是固定的 1250 这样的一个 MTU 大小。&lt;/p&gt;
+
+&lt;p&gt;   使用 1300 以内的 MTU 大小是网络兼容性最好选择，但是会牺牲一定的服务器网络数据包处理的性能，像 Google 这样的 APP 亦是如此。如果需要追求极致性能，还有一个解决方案，那就是为 MTU 探测模块增加向下探测的能力，比如这种场景，已经探测到了 1400 的大小，但是后续路由器开启切片导致大量的丢包，协议内部开始向下探测 MTU 大小，或者重新从 1000/1200 开始探测即可。&lt;/p&gt;
+
+&lt;h2 id=&quot;后续&quot;&gt;后续&lt;/h2&gt;
+
+&lt;p&gt;   无&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 24 Feb 2025 02:44:38 +0000</pubDate>
+        <link>https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</guid>
+        
+        <category>Protocol</category>
         
         
         <category>Notes</category>

@@ -18,12 +18,6 @@
   } ,
 
   {
-    "title"    : "BBR 优化重点项",
-    "tags"     : "Protocol",
-    "url"      : "/protocol/bbr-optimize-record.html"
-  } ,
-
-  {
     "title"    : "基于 Ack 反馈实现的网络下行链路异常检测",
     "tags"     : "Protocol",
     "url"      : "/protocol/abnormal-network-detect.html"
@@ -126,27 +120,27 @@
   } ,
 
   {
-    "title"    : "NeoVim 安装配置记录",
-    "tags"     : "develop",
-    "url"      : "/notes/neovim.html"
-  } ,
-
-  {
     "title"    : "Blog title",
     "tags"     : "Life",
     "url"      : "/notes/blog-templete.html"
   } ,
 
   {
-    "title"    : "float 和 int 在 Linux 下的计算性能对比",
-    "tags"     : "Linux float",
-    "url"      : "/notes/float-performance.html"
+    "title"    : "NeoVim 安装配置记录",
+    "tags"     : "develop",
+    "url"      : "/notes/neovim.html"
   } ,
 
   {
     "title"    : "float 和 int 在 Linux 下的计算性能对比",
     "tags"     : "Linux float",
     "url"      : "/tech/float-performance-comparation.html"
+  } ,
+
+  {
+    "title"    : "float 和 int 在 Linux 下的计算性能对比",
+    "tags"     : "Linux float",
+    "url"      : "/notes/float-performance.html"
   } ,
 
   {
@@ -300,14 +294,14 @@
   } ,
 
   {
-    "title"    : "H2O theme for Jekyll",
-    "tags"     : "jekyll 前端开发 设计",
-    "url"      : "/tech/new-theme-h2o.html"
-  } ,
-
-  {
     "title"    : "Hello Jekyll",
     "tags"     : "jekyll",
     "url"      : "/notes/hello-jekyll.html"
+  } ,
+
+  {
+    "title"    : "H2O theme for Jekyll",
+    "tags"     : "jekyll 前端开发 设计",
+    "url"      : "/tech/new-theme-h2o.html"
   } 
 ]

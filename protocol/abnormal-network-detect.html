@@ -21,14 +21,14 @@
     <meta property="og:site_name" content="Mr Chen">
     <meta property="og:gray" content="false">
     
-    <meta property="og:previous_url" content="/protocol/bbr-optimize-record.html">
+    <meta property="og:previous_url" content="/protocol/loss-detect-algo.html">
     
     
     <meta property="og:next_url" content="/protocol/delay-spike-detect.html">
     
     <meta property="post-date-format" content="0">
     
-    <meta property="post-date" content="2025-11-01 00:00:00 +0000" />
+    <meta property="post-date" content="2025-11-01 09:00:44 +0000" />
     
     
     
@@ -179,12 +179,6 @@
               <use xlink:href="#icon-calendar"></use>
             </svg>
             <span class="create-at"></span>
-          </time>
-          <time class="post-meta-item" datetime="25-11-01">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-update"></use>
-            </svg>
-            <span class="update-at"></span>
           </time>
             <span class="post-meta-item">
               <svg class="icon words" aria-hidden="true">
@@ -514,10 +508,10 @@
       <section class="post-footer-item read-next">
         
         <div class="read-next-item">
-          <a href="/protocol/bbr-optimize-record.html" class="read-next-link" aria-label="BBR 优化重点项"></a>
+          <a href="/protocol/loss-detect-algo.html" class="read-next-link" aria-label="QUIC 丢包检测算法优化"></a>
           <section>
-            <span>BBR 优化重点项</span>
-            <p>BBR 状态机</p>
+            <span>QUIC 丢包检测算法优化</span>
+            <p>  针对 QUIC 中丢包检测算法做相应的优化，使其在不同的场景下更加的灵活，做到灵活调整，在 RTC 低延迟传输...</p>
           </section>
           
       </div>
@@ -729,9 +723,10 @@
           }
 
           var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          var display_formats = ['YYYY-MM-DD HH:mm:ss', 'YYYY DD MMM HH:mm:ss', 'YYYY年MM月DD日 HH:mm:ss'];
           function dateFormat(date, format){
             var date_org = dayjs(date, time_formats[format]);
-            var date     = date_org.format(time_formats[format]);
+            var date     = date_org.format(display_formats[format]);
             return {"date_org": date_org, "date": date}
           }
 
@@ -755,7 +750,6 @@
             }
 
             var local_update_at = dateFormat(update_at, post_date_format);
-            $('.post time span.update-at').html(local_update_at["date"]);
 
             var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
             $(".post-copyright .tips span").append(relative_time);

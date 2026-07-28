@@ -180,12 +180,6 @@
             </svg>
             <span class="create-at"></span>
           </time>
-          <time class="post-meta-item" datetime="19-05-07">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-update"></use>
-            </svg>
-            <span class="update-at"></span>
-          </time>
             <span class="post-meta-item">
               <svg class="icon words" aria-hidden="true">
                 <use xlink:href="#icon-words"></use>
@@ -688,9 +682,10 @@
           }
 
           var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          var display_formats = ['YYYY-MM-DD HH:mm:ss', 'YYYY DD MMM HH:mm:ss', 'YYYY年MM月DD日 HH:mm:ss'];
           function dateFormat(date, format){
             var date_org = dayjs(date, time_formats[format]);
-            var date     = date_org.format(time_formats[format]);
+            var date     = date_org.format(display_formats[format]);
             return {"date_org": date_org, "date": date}
           }
 
@@ -714,7 +709,6 @@
             }
 
             var local_update_at = dateFormat(update_at, post_date_format);
-            $('.post time span.update-at').html(local_update_at["date"]);
 
             var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
             $(".post-copyright .tips span").append(relative_time);
