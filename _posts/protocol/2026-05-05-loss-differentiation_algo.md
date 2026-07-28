@@ -1,7 +1,7 @@
 ---
 layout: post
-title: '，区分随机丢包与拥塞丢包'
-subtitle: '如何区分 RandomLoss 和 CongestionLoss'
+title: '如何区分随机丢包与拥塞丢包'
+subtitle: 'RandomLoss Or CongestionLoss'
 date: 2026-05-05
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
@@ -131,7 +131,7 @@ sequenceDiagram
 | `avg_loss_rate`        | 非对称 EWMA（涨得快、跌得慢）                                 | 长期极高 → 判拥塞            |
 
 
-### 拥塞判定 `is_congest`
+### 拥塞判定
 
 先按丢包率分档算 `guest_congest`（"看起来像拥塞吗"），核心思路：**拥塞必须同时具备"延迟/抖动升高"与"突发成片丢包"两类特征**，且丢包率越高要求的突发证据越强：
 
@@ -154,7 +154,7 @@ is_congest = (guest_congest 且 congest_condition)
 
 即：**拥塞特征成立且流量足够**，或**丢包陡增**，或**检测到限速**，或**长期平均丢包率高到不可能全是随机**（≥80%，可配置）。
 
-### 随机判定 `is_random`
+### 随机判定
 
 初始条件很直接：`jitter_diverge ≤ 50` 且 `rtt_diff ≤ 50` —— **丢包发生时延迟和抖动都没涨**，就像随机误码。此外还有一组基于突发形态的补充规则：**突发段很多（**`burst_cnt ≥ 7/10/12`**）但突发占比低（**`burst_ratio` **小）且抖动发散受限** → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（`likely_random_loss`）做迟滞。
 
