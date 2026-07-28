@@ -5,9 +5,365 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 27 Jul 2026 02:46:33 +0000</pubDate>
-    <lastBuildDate>Mon, 27 Jul 2026 02:46:33 +0000</lastBuildDate>
+    <pubDate>Tue, 28 Jul 2026 06:13:41 +0000</pubDate>
+    <lastBuildDate>Tue, 28 Jul 2026 06:13:41 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
+    
+      <item>
+        <title>，区分随机丢包与拥塞丢包</title>
+        <description>&lt;h1 id=&quot;丢包类型检测算法&quot;&gt;丢包类型检测算法&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文介绍丢包类型检测算法模块的功能与算法逻辑：如何用「Jitter + 排队延迟 + 突发形态 + 丢包率」多路信号，把丢包区分为&lt;strong&gt;拥塞丢包（congestion loss）与随机丢包（random loss）&lt;/strong&gt;，并把结论反馈给拥塞控制算法，以保住决策是否需要降速。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;为什么要区分丢包类型&quot;&gt;为什么要区分丢包类型&lt;/h2&gt;
+
+&lt;p&gt;对拥塞控制来说，丢包有两种截然不同的成因：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;拥塞丢包&lt;/strong&gt;：瓶颈链路缓冲区被灌满、溢出丢包。它是真实拥塞的信号，&lt;strong&gt;必须退避&lt;/strong&gt;（收缩窗口、进入 recovery），否则会加剧拥塞。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;随机丢包&lt;/strong&gt;：无线误码、链路层偶发丢包，与拥塞无关。此时&lt;strong&gt;不该退避&lt;/strong&gt;，退避就白白损失吞吐，在弱网/无线场景尤其重要。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如果把随机丢包误判为拥塞 → 无谓降速、吞吐塌陷；如果把拥塞丢包误判为随机 → 继续猛发、拥塞雪崩。所以这是一个&lt;strong&gt;高价值、需精细调参的启发式判别&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;判别结果&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loss_type&lt;/code&gt; 直接改变 CC 的行为：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;loss_type&lt;/th&gt;
+      &lt;th&gt;CC 的反应&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kRandomLoss&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;把丢的包当作已送达补偿进带宽估计、跳过恢复状态机、将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_BW&lt;/code&gt; 下 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cwnd_gain&lt;/code&gt; 翻倍&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kCongestionLoss&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;正常走 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CONSERVATION → GROWTH&lt;/code&gt; 恢复、收缩恢复窗口&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kUnknown&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;保持默认行为&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;数据流与消费端&quot;&gt;数据流与消费端&lt;/h2&gt;
+
+&lt;p&gt;算法模块被定时驱动（500ms），输入链路统计，输出丢包类型与抖动发散度：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart LR
+    subgraph IN[&quot;输入 ConnectionStats 加 RttStats&quot;]
+        L[&quot;lost_ratio 丢包率&quot;]
+        BL[&quot;max_continuous_lost_ratio 连续丢包的最大丢包率&quot;]
+        BC[&quot;most_frequent_continuous_loss 突发次数&quot;]
+        JT[&quot;uplink_jitter_avg 上行链路的平均 Jitter&quot;]
+        RT[&quot;smoothed_rtt 与 recent_min_rtt&quot;]
+        TP[&quot;traffic_policing 是否是被限速标记&quot;]
+    end
+    IN --&amp;gt; U[&quot;Update 每秒更新检测一次&quot;]
+    U --&amp;gt; CT[&quot;CurrentLossType&quot;]
+    U --&amp;gt; LT[&quot;LatestLossType&quot;]
+    U --&amp;gt; JD[&quot;JitterDiverge&quot;]
+    CT --&amp;gt; CC[&quot;CC 决策&quot;]
+    LT --&amp;gt; CC
+    CC --&amp;gt; R1[&quot;随机丢包: 不退避, 丢包当送达补偿, 提升 cwnd 增益&quot;]
+    CC --&amp;gt; R2[&quot;拥塞丢包: 进入 CONSERVATION 或 GROWTH 恢复, 收缩窗口&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PacketLossType&lt;/code&gt; 枚举：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kUnknown = 0&lt;/code&gt;、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kCongestionLoss = 1&lt;/code&gt;、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kRandomLoss = 2&lt;/code&gt;。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;整体架构双层-update--双历史寄存器--投票&quot;&gt;整体架构：双层 Update + 双历史寄存器 + 投票&lt;/h2&gt;
+
+&lt;p&gt;算法有三个关键设计：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;双层&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Update&lt;/code&gt;：外层(上层定时触发 )做&lt;strong&gt;节流与基线维护&lt;/strong&gt;，内层(内部出发点)做&lt;strong&gt;单轮分类&lt;/strong&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;两个 3 bit 滑动历史寄存器&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest_loss&lt;/code&gt; 与 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_random_loss&lt;/code&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;std::bitset&amp;lt;3&amp;gt;&lt;/code&gt;），各自记录最近 3 轮的判决。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;投票 + 迟滞&lt;/strong&gt;：最终对外结论不是看单轮，而是对最近 3 轮做&lt;strong&gt;非对称投票&lt;/strong&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;sequenceDiagram
+    autonumber
+    participant P as LinkStatsUpdated
+    participant LDA as 外层 Update
+    participant CLS as 内层 Update 分类
+    participant H as 历史寄存器
+
+    P-&amp;gt;&amp;gt;LDA: Update(now, connection_stats, rtt_stats)
+    alt 距上次统计不足 1 秒
+        LDA-&amp;gt;&amp;gt;LDA: 仅 UpdateRtt 维护 min_smoothed_rtt
+    else 距上次超过 1 秒 且 指标齐全
+        LDA-&amp;gt;&amp;gt;LDA: 检查延迟阶跃并按需重置 min 基线
+        LDA-&amp;gt;&amp;gt;CLS: 组装 NetStats 送入分类
+        CLS-&amp;gt;&amp;gt;CLS: 计算 is_congest 与 is_random
+        CLS-&amp;gt;&amp;gt;H: 两寄存器左移一位并置位 bit0
+    end
+    P-&amp;gt;&amp;gt;LDA: CurrentLossType / LatestLossType / JitterDiverge
+    LDA--&amp;gt;&amp;gt;P: 丢包类型与抖动发散度
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;外层-update节流与基线维护&quot;&gt;外层 Update：节流与基线维护&lt;/h2&gt;
+
+&lt;p&gt;外层&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Update&lt;/code&gt;负责让分类&lt;strong&gt;每秒至多跑一次&lt;/strong&gt;(定时器控制)，并维护两条关键基线：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;触发门槛&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_avg&lt;/code&gt; 平均 jitter、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost_ratio&lt;/code&gt; 丢包率、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_continuous_lost_ratio&lt;/code&gt; 连续的最大丢包率，即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max burst lost ratio&lt;/code&gt; 都就绪，&lt;strong&gt;且&lt;/strong&gt;距上次分类 &lt;strong&gt;超过 1 秒&lt;/strong&gt;。否则只用当前 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt&lt;/code&gt; 维护 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_smoothed_rtt&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_smoothed_rtt&lt;/code&gt;：观测到的最小平滑 RTT，作为&lt;strong&gt;传播时延基线&lt;/strong&gt;；&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff = smooth_rtt - min_smoothed_rtt&lt;/code&gt; 即排队延迟。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_jitter_&lt;/code&gt; &lt;strong&gt;/&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge_&lt;/code&gt;：最小抖动基线与「当前抖动相对基线的发散量」&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge_ = average_jitter - min_jitter_&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;延迟阶跃时重置基线&lt;/strong&gt;：当 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;recent_min_rtt &amp;gt; min_smoothed_rtt + 80ms&lt;/code&gt; 且 RTT 已稳定 ≥2s，或稳定 &amp;gt;8s 时，判定路径传播时延发生了真实阶跃 → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetMinJitter&lt;/code&gt; 并把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_smoothed_rtt&lt;/code&gt; 重置到当前值。避免基线长期停留在旧水平、导致 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge&lt;/code&gt; 永久偏大而误判。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;RTT 稳定性跟踪&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mean_deviation &amp;lt;= max(5ms, smoothed_rtt × 4%)&lt;/code&gt; 视为稳定，记录稳定起始时间 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_var_stable_start_time&lt;/code&gt;；一旦不稳定即清零。它是上面「延迟阶跃重置」的前置门控。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;内层-update单轮分类逻辑&quot;&gt;内层 Update：单轮分类逻辑&lt;/h2&gt;
+
+&lt;p&gt;内层 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Update(NetStats)&lt;/code&gt; 是算法核心，围绕几个派生信号做判断：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;信号&lt;/th&gt;
+      &lt;th&gt;含义&lt;/th&gt;
+      &lt;th&gt;指向&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smooth_rtt - min_smoothed_rtt&lt;/code&gt;，排队延迟&lt;/td&gt;
+      &lt;td&gt;大 → 拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;抖动相对基线的发散量&lt;/td&gt;
+      &lt;td&gt;大 → 拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_loss_rate / loss_rate&lt;/code&gt;，丢包中连续突发丢包率的占比&lt;/td&gt;
+      &lt;td&gt;大 → 拥塞（队列溢出成片丢）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;most_often_burst_cnt&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;最频繁的连续丢包段长度/次数&lt;/td&gt;
+      &lt;td&gt;小且突发集中 → 拥塞；多而分散 → 随机&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;congest_condition&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;流量足够大才判：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(≥200kbps 且 ≥30 包)&lt;/code&gt; 或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(≥100kbps 且 ≥60 包)&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;样本不足不下拥塞结论&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loss_boost&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;丢包率突增：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt; prev + 0.6&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt; avg + 0.5&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;陡增 → 拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;avg_loss_rate&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;非对称 EWMA（涨得快、跌得慢）&lt;/td&gt;
+      &lt;td&gt;长期极高 → 判拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;拥塞判定-is_congest&quot;&gt;拥塞判定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_congest&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;先按丢包率分档算 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;guest_congest&lt;/code&gt;（”看起来像拥塞吗”），核心思路：&lt;strong&gt;拥塞必须同时具备”延迟/抖动升高”与”突发成片丢包”两类特征&lt;/strong&gt;，且丢包率越高要求的突发证据越强：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;丢包率区间&lt;/th&gt;
+      &lt;th&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;guest_congest&lt;/code&gt; 判据（简化）&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;(0.05, 0.1)&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_cnt ≤ 2&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio &amp;gt; 0.25&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge &amp;gt; 20&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff &amp;gt; 20&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[0.1, 0.65)&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;延迟抖动升高 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_cnt ≤ 3&lt;/code&gt; 且突发占比达标；或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio &amp;gt; 0.75&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loss ≥ 0.2&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[0.7, 1]&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;延迟抖动升高 且突发占比更高门槛；或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio &amp;gt; 0.8&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_cnt ≤ 3&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;最终：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;is_congest = (guest_congest 且 congest_condition)
+             或 loss_boost
+             或 is_traffic_policing
+             或 avg_loss_rate &amp;gt;= max_random_loss_rate(默认 0.8)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;即：&lt;strong&gt;拥塞特征成立且流量足够&lt;/strong&gt;，或&lt;strong&gt;丢包陡增&lt;/strong&gt;，或&lt;strong&gt;检测到限速&lt;/strong&gt;，或&lt;strong&gt;长期平均丢包率高到不可能全是随机&lt;/strong&gt;（≥80%，可配置）。&lt;/p&gt;
+
+&lt;h3 id=&quot;随机判定-is_random&quot;&gt;随机判定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_random&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;初始条件很直接：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge ≤ 50&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff ≤ 50&lt;/code&gt; —— &lt;strong&gt;丢包发生时延迟和抖动都没涨&lt;/strong&gt;，就像随机误码。此外还有一组基于突发形态的补充规则：&lt;strong&gt;突发段很多（&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_cnt ≥ 7/10/12&lt;/code&gt;&lt;strong&gt;）但突发占比低（&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio&lt;/code&gt; &lt;strong&gt;小）且抖动发散受限&lt;/strong&gt; → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_random_loss&lt;/code&gt;）做迟滞。&lt;/p&gt;
+
+&lt;p&gt;最后一道闸：&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;is_random = is_random 且 (非 is_congest) 且 loss_rate &amp;gt; 0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;拥塞优先&lt;/strong&gt;：一旦判为拥塞，随机判定立即作废；无丢包则不判随机。&lt;/p&gt;
+
+&lt;h3 id=&quot;单轮流程图&quot;&gt;单轮流程图&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
+    A[&quot;每轮 NetStats 输入, 每秒至多一次&quot;] --&amp;gt; B[&quot;更新 min_rtt, min_jitter, jitter_diverge, rtt_diff&quot;]
+    B --&amp;gt; C[&quot;burst_ratio 等于 burst_loss_rate 除以 loss_rate&quot;]
+    C --&amp;gt; D[&quot;按 loss_rate 分档计算 guest_congest&quot;]
+    D --&amp;gt; E{&quot;is_congest?&amp;lt;br/&amp;gt;拥塞特征且流量足够 或 loss_boost 或 限速 或 平均丢包超 80%&quot;}
+    E --&amp;gt;|是| F[&quot;本轮判为 拥塞丢包&quot;]
+    E --&amp;gt;|否| G{&quot;is_random?&amp;lt;br/&amp;gt;无拥塞特征 且 突发形态像随机 且 loss_rate 大于 0&quot;}
+    G --&amp;gt;|是| H[&quot;本轮判为 随机丢包&quot;]
+    G --&amp;gt;|否| I[&quot;本轮无明确结论&quot;]
+    F --&amp;gt; J[&quot;congest 寄存器 左移并置 bit0&quot;]
+    H --&amp;gt; K[&quot;random 寄存器 左移并置 bit0&quot;]
+    I --&amp;gt; L[&quot;两寄存器仅左移&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;投票从-3-轮历史到最终结论&quot;&gt;投票：从 3 轮历史到最终结论&lt;/h2&gt;
+
+&lt;p&gt;每轮把两个寄存器左移一位、按本轮结果置 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bit0&lt;/code&gt;，于是它们始终保存&lt;strong&gt;最近 3 轮&lt;/strong&gt;的判决。对外结论对二者做&lt;strong&gt;非对称投票&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
+    subgraph HIST[&quot;最近 3 轮判决 bitset 3 位&quot;]
+        CG[&quot;likely_congest_loss&quot;]
+        RD[&quot;likely_random_loss&quot;]
+    end
+    CG --&amp;gt; CUR{&quot;IsLikelyCongestLoss?&amp;lt;br/&amp;gt;congest bit0 为 1, 或 最近一轮非随机且 congest 计数 大于等于 2&quot;}
+    RD --&amp;gt; CUR
+    CUR --&amp;gt;|是| T1[&quot;CurrentLossType 等于 拥塞丢包&quot;]
+    CUR --&amp;gt;|否| CUR2{&quot;IsLikelyRandomLoss?&amp;lt;br/&amp;gt;最近两轮均无拥塞 且 random 计数 大于等于 2&quot;}
+    CUR2 --&amp;gt;|是| T2[&quot;CurrentLossType 等于 随机丢包&quot;]
+    CUR2 --&amp;gt;|否| T3[&quot;CurrentLossType 等于 未知&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;判定函数的&lt;strong&gt;非对称设计&lt;/strong&gt;是整套算法的核心：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;拥塞容易确认&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsLikelyCongestLoss&lt;/code&gt; 只要&lt;strong&gt;最近一轮&lt;/strong&gt;判了拥塞（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bit0&lt;/code&gt;）即成立，或 3 轮里 ≥2 轮拥塞且最近一轮非随机。因为漏判拥塞的代价（雪崩）远大于误判。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;随机需要干净证据&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsLikelyRandomLoss&lt;/code&gt; 要求&lt;strong&gt;最近两轮都没有拥塞&lt;/strong&gt;且 3 轮里 ≥2 轮随机。因为误判随机会导致过量发送。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LatestLossType&lt;/code&gt; 更保守：只有「窗口投票」与「最新一轮」都指向随机（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsLikelyRandomLoss&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IsLatestStatLikelyRandom&lt;/code&gt;）才返回随机，否则一律当拥塞 —— 用于对时效更敏感的场景。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一句话概括判决哲学：&lt;strong&gt;拥塞是”安全默认”，好进难出；随机是”高门槛特权”，需持续且干净的证据才认定。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;关键参数一览&quot;&gt;关键参数一览&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;参数&lt;/th&gt;
+      &lt;th&gt;值&lt;/th&gt;
+      &lt;th&gt;作用&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;分类节流周期&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1s&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;每秒至多分类一次&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;延迟阶跃阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;recent_min_rtt &amp;gt; min_rtt + 80ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;触发基线重置&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;RTT 稳定判据&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mean_deviation ≤ max(5ms, srtt × 4%)&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;基线重置的前置门控&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;稳定时长门控&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;≥2s&lt;/code&gt;（配阶跃）或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt;8s&lt;/code&gt;（单独）&lt;/td&gt;
+      &lt;td&gt;触发基线重置&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;随机初判阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge ≤ 50&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff ≤ 50&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;无延迟抖动升高即像随机&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;拥塞流量门槛&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;≥200kbps &amp;amp; ≥30 包&lt;/code&gt; 或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;≥100kbps &amp;amp; ≥60 包&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;样本充分才判拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;丢包陡增&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt; prev + 0.6&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt; avg + 0.5&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;直接判拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;最大随机丢包率&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0.8&lt;/code&gt;（可配 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SetMaxRandomLossRate&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;平均丢包超此值直接判拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;历史窗口&lt;/td&gt;
+      &lt;td&gt;3 轮（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bitset&amp;lt;3&amp;gt;&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;投票窗口&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;avg_loss EWMA&lt;/td&gt;
+      &lt;td&gt;涨 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;5/8·old+3/8·new&lt;/code&gt;，跌 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;7/8·old+1/8·new&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;对丢包上升更敏感&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;总结&quot;&gt;总结&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;丢包网络类型算法&lt;/code&gt; 是一个典型的&lt;strong&gt;多信号 + 迟滞投票&lt;/strong&gt;判别器：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;多信号交叉&lt;/strong&gt;：用「排队延迟 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff&lt;/code&gt; + 抖动发散 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge&lt;/code&gt; + 突发占比 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio&lt;/code&gt; + 突发次数」共同刻画拥塞的”延迟升高且成片丢包”特征，用「延迟抖动不升 + 丢包零散」刻画随机特征；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;基线自适应&lt;/strong&gt;：维护 min RTT / min jitter 基线，并在真实延迟阶跃时重置，避免基线漂移导致长期误判；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;非对称迟滞投票&lt;/strong&gt;：3 轮历史寄存器 + “拥塞好进难出、随机高门槛”的判定，兼顾灵敏与稳健；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;闭环价值&lt;/strong&gt;：结论直接决定 CC 对丢包”退不退避”，使 CC 在无线/弱网下既能抗随机丢包、又不放任真实拥塞的关键判别模块。&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 05 May 2026 00:00:00 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/loss-differentiation_algo.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/loss-differentiation_algo.html</guid>
+        
+        <category>Protocol</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
     
       <item>
         <title>自定义网络协议如何检测网络受限状态，控制发送速率</title>
@@ -1893,106 +2249,6 @@ defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHo
         <guid isPermaLink="true">https://gbcpp.github.io/notes/mac-env-fix.html</guid>
         
         <category>Life</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;排查过程&quot;&gt;排查过程&lt;/h2&gt;
-
-&lt;h3 id=&quot;协议对比&quot;&gt;协议对比&lt;/h3&gt;
-
-&lt;p&gt;在指定的 iPhone 设备上通过后台控制、确认播放端使用的 HTTP 版本，明确在正常的网络环境下使用 TCP 的播放效果要明显优于基于 UDP 的 HTTP3，明显问题现象。&lt;/p&gt;
-
-&lt;h3 id=&quot;mtu-问题&quot;&gt;MTU 问题&lt;/h3&gt;
-
-&lt;p&gt;通过打开 quic-go 中的 debug log，看到播放端在出现卡顿时，出现大概率的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost packet&lt;/code&gt;，怀疑是 quic-go 的 MTU 探测问题，探测到错误的 max packet size 导致发送了过大的数据包触发的 IP 分片导致的丢失。&lt;/p&gt;
-
-&lt;p&gt;  。。。。。。   此处省略一万字，debug 排查 guic-go 中的 MTU 探测模块代码逻辑简单、清晰，没有代码问题。&lt;/p&gt;
-
-&lt;p&gt;那么如果将 quic-go 中的 MTU 探测关闭，让其一直固定使用 initial 的 max packet size：1252，会有问题吗？&lt;/p&gt;
-
-&lt;p&gt;通过 quic-go 的配置 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;, 其默认为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;，进行测试验证后，发现卡顿现象消失了，可以明确问题就是 MTU 的问题了，链路上发送了超过实际 MTU 大小的数据，触发的 IP 分片导致大量的丢包，从而出现的卡顿。&lt;/p&gt;
-
-&lt;h3 id=&quot;抓包验证&quot;&gt;抓包验证&lt;/h3&gt;
-
-&lt;p&gt;依然开启 quic-go 的 MTU-Discorver 功能: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Server 测抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Server 测通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump&lt;/code&gt; 抓包即可，命令： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump -i any -s 1500 udp src port 4443 -v&lt;/code&gt; 抓取自己从 HTTP3 端口 4443 发送方向的数据包，重点是查看数据包的大小是否有在本地发送时出现切包的情况。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;iPhone 设备测抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 工具集中的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl&lt;/code&gt; 结合 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wireshark&lt;/code&gt; 进行抓包。&lt;/p&gt;
-
-&lt;p&gt;首先 Mac 上需要安装 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 开发工具，将 iPhone 连接 Mac 后，通过 xcode 查看该 iPhone 设备的 Identifier ID，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;window&lt;/code&gt; 菜单 ==&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;》Device&lt;/code&gt; 选项 进行查看：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/xcode-identifier.png&quot; alt=&quot;获取 iPhone ID&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;启动虚拟网卡：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;Terminal 中命令启动：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl -s 00008130-00012C163EC2001C &lt;/code&gt;，如果失败，会有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; 的输出提示。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;启动 WireShark：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;需要 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root &lt;/code&gt;权限，从 Terminal 中进行启动： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo wireshark&lt;/code&gt;，选择网卡 &lt;strong&gt;rvi&lt;/strong&gt; 网卡进行抓取，可以添加过滤条件，如：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;udp.port == 4443&lt;/code&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;复现抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;手机测通过 HTTP3 拉流复现后，分别查看 Server 和 iPhone 测的抓包结果进行分析：&lt;/p&gt;
-
-&lt;p&gt;下图可以看到server 在发送 1400+ 的数据包的时候，是未分片且带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，&lt;strong&gt;server 发送的所有数据包均是如此&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/server-quic-capture0.png&quot; alt=&quot;Server 抓包截图（未切片）&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;iPhone 测抓包可以看到首先收到的 1400+ 的 数据包是带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，同时也没有进行切片，如下图：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture.png&quot; alt=&quot;iPhone 抓包1（首先无分片）&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;但是在后面很快就出现了 IP 分片，且去除了 DF flag 的数据包，iPhone 测只能接收到一半的数据包：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture2.png&quot; alt=&quot;iPhone 抓包2（被分片）&quot; /&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;注意：该问题在仅在我司的 Wifi 网络环境下存在，4G/5G 网络条件下不存在。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;结论&quot;&gt;结论&lt;/h2&gt;
-
-&lt;p&gt;   通过上述抓包可以看到是因为链路中某个路由设备对 MTU 大于 1400 的数据包进行了强行切片，分成了 2 片进行发送，这里存在两个问题：&lt;/p&gt;
-
-&lt;p&gt;1、该路由设备放行了前面一小部分大于 1400 的数据包，接收端接收并 Ack 给了发送端，导致发送端的 Mtu 探测模块爬升到了更高的值，但是后面该路由设备又对 1400+ 的数据包改变了策略，不允许通过，而 quic-go 中的 mtu 探测模块又没有向下探测 mtu 的能力，导致业务遇到该场景必死无疑。&lt;/p&gt;
-
-&lt;p&gt;2、发送端发送的数据包已经明确设置了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; 即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Don&apos;t fragment&lt;/code&gt; 的 flag，路由设备在收到超过自己 MTU 设备时应该直接丢掉，而非先进行放行，然后强行忽略 DF flag 进行切片转发，让接收端产生误判。&lt;/p&gt;
-
-&lt;p&gt;   对比抓取其它使用 HTTP3/QUIC 协议的 APP 数据包，比如油管的短视频和直播，可以看到其并未向上探测 MTU，使用的是固定的 1250 这样的一个 MTU 大小。&lt;/p&gt;
-
-&lt;p&gt;   使用 1300 以内的 MTU 大小是网络兼容性最好选择，但是会牺牲一定的服务器网络数据包处理的性能，像 Google 这样的 APP 亦是如此。如果需要追求极致性能，还有一个解决方案，那就是为 MTU 探测模块增加向下探测的能力，比如这种场景，已经探测到了 1400 的大小，但是后续路由器开启切片导致大量的丢包，协议内部开始向下探测 MTU 大小，或者重新从 1000/1200 开始探测即可。&lt;/p&gt;
-
-&lt;h2 id=&quot;后续&quot;&gt;后续&lt;/h2&gt;
-
-&lt;p&gt;   无&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 24 Feb 2025 00:00:00 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</guid>
-        
-        <category>Protocol</category>
         
         
         <category>Notes</category>

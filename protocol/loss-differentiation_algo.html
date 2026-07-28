@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>，区分随机丢包与拥塞丢包 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="，区分随机丢包与拥塞丢包">
+    <meta name="keywords"  content="Protocol">
+    <!-- Open Graph -->
+    <meta property="og:title" content="，区分随机丢包与拥塞丢包 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/loss-differentiation_algo.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    
+    <meta property="og:next_url" content="/protocol/bandwidth-limited-detect-algo.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2026-05-05 00:00:00 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+            
+          
+        </div>
+        <h1>，区分随机丢包与拥塞丢包</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="26-05-05">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+          <time class="post-meta-item" datetime="26-05-05">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-update"></use>
+            </svg>
+            <span class="update-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  5.5k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 16 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">如何区分 RandomLoss 和 CongestionLoss</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h1 id="丢包类型检测算法">丢包类型检测算法</h1>
+
+<blockquote>
+  <p>本文介绍丢包类型检测算法模块的功能与算法逻辑：如何用「Jitter + 排队延迟 + 突发形态 + 丢包率」多路信号，把丢包区分为<strong>拥塞丢包（congestion loss）与随机丢包（random loss）</strong>，并把结论反馈给拥塞控制算法，以保住决策是否需要降速。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="为什么要区分丢包类型">为什么要区分丢包类型</h2>
+
+<p>对拥塞控制来说，丢包有两种截然不同的成因：</p>
+
+<ul>
+  <li>
+<strong>拥塞丢包</strong>：瓶颈链路缓冲区被灌满、溢出丢包。它是真实拥塞的信号，<strong>必须退避</strong>（收缩窗口、进入 recovery），否则会加剧拥塞。</li>
+  <li>
+<strong>随机丢包</strong>：无线误码、链路层偶发丢包，与拥塞无关。此时<strong>不该退避</strong>，退避就白白损失吞吐，在弱网/无线场景尤其重要。</li>
+</ul>
+
+<p>如果把随机丢包误判为拥塞 → 无谓降速、吞吐塌陷；如果把拥塞丢包误判为随机 → 继续猛发、拥塞雪崩。所以这是一个<strong>高价值、需精细调参的启发式判别</strong>。</p>
+
+<p>判别结果<code class="language-plaintext highlighter-rouge">loss_type</code> 直接改变 CC 的行为：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>loss_type</th>
+      <th>CC 的反应</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kRandomLoss</code></td>
+      <td>把丢的包当作已送达补偿进带宽估计、跳过恢复状态机、将 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> 下 <code class="language-plaintext highlighter-rouge">cwnd_gain</code> 翻倍</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kCongestionLoss</code></td>
+      <td>正常走 <code class="language-plaintext highlighter-rouge">CONSERVATION → GROWTH</code> 恢复、收缩恢复窗口</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kUnknown</code></td>
+      <td>保持默认行为</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2 id="数据流与消费端">数据流与消费端</h2>
+
+<p>算法模块被定时驱动（500ms），输入链路统计，输出丢包类型与抖动发散度：</p>
+
+<pre><code class="language-mermaid">flowchart LR
+    subgraph IN["输入 ConnectionStats 加 RttStats"]
+        L["lost_ratio 丢包率"]
+        BL["max_continuous_lost_ratio 连续丢包的最大丢包率"]
+        BC["most_frequent_continuous_loss 突发次数"]
+        JT["uplink_jitter_avg 上行链路的平均 Jitter"]
+        RT["smoothed_rtt 与 recent_min_rtt"]
+        TP["traffic_policing 是否是被限速标记"]
+    end
+    IN --&gt; U["Update 每秒更新检测一次"]
+    U --&gt; CT["CurrentLossType"]
+    U --&gt; LT["LatestLossType"]
+    U --&gt; JD["JitterDiverge"]
+    CT --&gt; CC["CC 决策"]
+    LT --&gt; CC
+    CC --&gt; R1["随机丢包: 不退避, 丢包当送达补偿, 提升 cwnd 增益"]
+    CC --&gt; R2["拥塞丢包: 进入 CONSERVATION 或 GROWTH 恢复, 收缩窗口"]
+</code></pre>
+
+<p><code class="language-plaintext highlighter-rouge">PacketLossType</code> 枚举：<code class="language-plaintext highlighter-rouge">kUnknown = 0</code>、<code class="language-plaintext highlighter-rouge">kCongestionLoss = 1</code>、<code class="language-plaintext highlighter-rouge">kRandomLoss = 2</code>。</p>
+
+<hr>
+
+<h2 id="整体架构双层-update--双历史寄存器--投票">整体架构：双层 Update + 双历史寄存器 + 投票</h2>
+
+<p>算法有三个关键设计：</p>
+
+<ol>
+  <li>
+<strong>双层</strong> <code class="language-plaintext highlighter-rouge">Update</code>：外层(上层定时触发 )做<strong>节流与基线维护</strong>，内层(内部出发点)做<strong>单轮分类</strong>。</li>
+  <li>
+<strong>两个 3 bit 滑动历史寄存器</strong>：<code class="language-plaintext highlighter-rouge">likely_congest_loss</code> 与 <code class="language-plaintext highlighter-rouge">likely_random_loss</code>（<code class="language-plaintext highlighter-rouge">std::bitset&lt;3&gt;</code>），各自记录最近 3 轮的判决。</li>
+  <li>
+<strong>投票 + 迟滞</strong>：最终对外结论不是看单轮，而是对最近 3 轮做<strong>非对称投票</strong>。</li>
+</ol>
+
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant P as LinkStatsUpdated
+    participant LDA as 外层 Update
+    participant CLS as 内层 Update 分类
+    participant H as 历史寄存器
+
+    P-&gt;&gt;LDA: Update(now, connection_stats, rtt_stats)
+    alt 距上次统计不足 1 秒
+        LDA-&gt;&gt;LDA: 仅 UpdateRtt 维护 min_smoothed_rtt
+    else 距上次超过 1 秒 且 指标齐全
+        LDA-&gt;&gt;LDA: 检查延迟阶跃并按需重置 min 基线
+        LDA-&gt;&gt;CLS: 组装 NetStats 送入分类
+        CLS-&gt;&gt;CLS: 计算 is_congest 与 is_random
+        CLS-&gt;&gt;H: 两寄存器左移一位并置位 bit0
+    end
+    P-&gt;&gt;LDA: CurrentLossType / LatestLossType / JitterDiverge
+    LDA--&gt;&gt;P: 丢包类型与抖动发散度
+</code></pre>
+
+<hr>
+
+<h2 id="外层-update节流与基线维护">外层 Update：节流与基线维护</h2>
+
+<p>外层<code class="language-plaintext highlighter-rouge">Update</code>负责让分类<strong>每秒至多跑一次</strong>(定时器控制)，并维护两条关键基线：</p>
+
+<ul>
+  <li>
+<strong>触发门槛</strong>：<code class="language-plaintext highlighter-rouge">jitter_avg</code> 平均 jitter、<code class="language-plaintext highlighter-rouge">lost_ratio</code> 丢包率、<code class="language-plaintext highlighter-rouge">max_continuous_lost_ratio</code> 连续的最大丢包率，即 <code class="language-plaintext highlighter-rouge">max burst lost ratio</code> 都就绪，<strong>且</strong>距上次分类 <strong>超过 1 秒</strong>。否则只用当前 <code class="language-plaintext highlighter-rouge">smoothed_rtt</code> 维护 <code class="language-plaintext highlighter-rouge">min_smoothed_rtt</code>。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">min_smoothed_rtt</code>：观测到的最小平滑 RTT，作为<strong>传播时延基线</strong>；<code class="language-plaintext highlighter-rouge">rtt_diff = smooth_rtt - min_smoothed_rtt</code> 即排队延迟。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">min_jitter_</code> <strong>/</strong> <code class="language-plaintext highlighter-rouge">jitter_diverge_</code>：最小抖动基线与「当前抖动相对基线的发散量」<code class="language-plaintext highlighter-rouge">jitter_diverge_ = average_jitter - min_jitter_</code>。</li>
+  <li>
+<strong>延迟阶跃时重置基线</strong>：当 <code class="language-plaintext highlighter-rouge">recent_min_rtt &gt; min_smoothed_rtt + 80ms</code> 且 RTT 已稳定 ≥2s，或稳定 &gt;8s 时，判定路径传播时延发生了真实阶跃 → <code class="language-plaintext highlighter-rouge">ResetMinJitter</code> 并把 <code class="language-plaintext highlighter-rouge">min_smoothed_rtt</code> 重置到当前值。避免基线长期停留在旧水平、导致 <code class="language-plaintext highlighter-rouge">rtt_diff</code> / <code class="language-plaintext highlighter-rouge">jitter_diverge</code> 永久偏大而误判。</li>
+  <li>
+<strong>RTT 稳定性跟踪</strong>：<code class="language-plaintext highlighter-rouge">mean_deviation &lt;= max(5ms, smoothed_rtt × 4%)</code> 视为稳定，记录稳定起始时间 <code class="language-plaintext highlighter-rouge">rtt_var_stable_start_time</code>；一旦不稳定即清零。它是上面「延迟阶跃重置」的前置门控。</li>
+</ul>
+
+<hr>
+
+<h2 id="内层-update单轮分类逻辑">内层 Update：单轮分类逻辑</h2>
+
+<p>内层 <code class="language-plaintext highlighter-rouge">Update(NetStats)</code> 是算法核心，围绕几个派生信号做判断：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>信号</th>
+      <th>含义</th>
+      <th>指向</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rtt_diff</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">smooth_rtt - min_smoothed_rtt</code>，排队延迟</td>
+      <td>大 → 拥塞</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jitter_diverge</code></td>
+      <td>抖动相对基线的发散量</td>
+      <td>大 → 拥塞</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">burst_ratio</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">burst_loss_rate / loss_rate</code>，丢包中连续突发丢包率的占比</td>
+      <td>大 → 拥塞（队列溢出成片丢）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">most_often_burst_cnt</code></td>
+      <td>最频繁的连续丢包段长度/次数</td>
+      <td>小且突发集中 → 拥塞；多而分散 → 随机</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">congest_condition</code></td>
+      <td>流量足够大才判：<code class="language-plaintext highlighter-rouge">(≥200kbps 且 ≥30 包)</code> 或 <code class="language-plaintext highlighter-rouge">(≥100kbps 且 ≥60 包)</code>
+</td>
+      <td>样本不足不下拥塞结论</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">loss_boost</code></td>
+      <td>丢包率突增：<code class="language-plaintext highlighter-rouge">&gt; prev + 0.6</code> 且 <code class="language-plaintext highlighter-rouge">&gt; avg + 0.5</code>
+</td>
+      <td>陡增 → 拥塞</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">avg_loss_rate</code></td>
+      <td>非对称 EWMA（涨得快、跌得慢）</td>
+      <td>长期极高 → 判拥塞</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="拥塞判定-is_congest">拥塞判定 <code class="language-plaintext highlighter-rouge">is_congest</code>
+</h3>
+
+<p>先按丢包率分档算 <code class="language-plaintext highlighter-rouge">guest_congest</code>（”看起来像拥塞吗”），核心思路：<strong>拥塞必须同时具备”延迟/抖动升高”与”突发成片丢包”两类特征</strong>，且丢包率越高要求的突发证据越强：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>丢包率区间</th>
+      <th>
+<code class="language-plaintext highlighter-rouge">guest_congest</code> 判据（简化）</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">(0.05, 0.1)</code></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">burst_cnt ≤ 2</code> 且 <code class="language-plaintext highlighter-rouge">burst_ratio &gt; 0.25</code> 且 <code class="language-plaintext highlighter-rouge">jitter_diverge &gt; 20</code> 且 <code class="language-plaintext highlighter-rouge">rtt_diff &gt; 20</code>
+</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[0.1, 0.65)</code></td>
+      <td>延迟抖动升高 且 <code class="language-plaintext highlighter-rouge">burst_cnt ≤ 3</code> 且突发占比达标；或 <code class="language-plaintext highlighter-rouge">burst_ratio &gt; 0.75</code> 且 <code class="language-plaintext highlighter-rouge">loss ≥ 0.2</code>
+</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[0.7, 1]</code></td>
+      <td>延迟抖动升高 且突发占比更高门槛；或 <code class="language-plaintext highlighter-rouge">burst_ratio &gt; 0.8</code> 且 <code class="language-plaintext highlighter-rouge">burst_cnt ≤ 3</code>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>最终：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>is_congest = (guest_congest 且 congest_condition)
+             或 loss_boost
+             或 is_traffic_policing
+             或 avg_loss_rate &gt;= max_random_loss_rate(默认 0.8)
+</code></pre></div></div>
+
+<p>即：<strong>拥塞特征成立且流量足够</strong>，或<strong>丢包陡增</strong>，或<strong>检测到限速</strong>，或<strong>长期平均丢包率高到不可能全是随机</strong>（≥80%，可配置）。</p>
+
+<h3 id="随机判定-is_random">随机判定 <code class="language-plaintext highlighter-rouge">is_random</code>
+</h3>
+
+<p>初始条件很直接：<code class="language-plaintext highlighter-rouge">jitter_diverge ≤ 50</code> 且 <code class="language-plaintext highlighter-rouge">rtt_diff ≤ 50</code> —— <strong>丢包发生时延迟和抖动都没涨</strong>，就像随机误码。此外还有一组基于突发形态的补充规则：<strong>突发段很多（</strong><code class="language-plaintext highlighter-rouge">burst_cnt ≥ 7/10/12</code><strong>）但突发占比低（</strong><code class="language-plaintext highlighter-rouge">burst_ratio</code> <strong>小）且抖动发散受限</strong> → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（<code class="language-plaintext highlighter-rouge">likely_random_loss</code>）做迟滞。</p>
+
+<p>最后一道闸：</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>is_random = is_random 且 (非 is_congest) 且 loss_rate &gt; 0
+</code></pre></div></div>
+
+<p><strong>拥塞优先</strong>：一旦判为拥塞，随机判定立即作废；无丢包则不判随机。</p>
+
+<h3 id="单轮流程图">单轮流程图</h3>
+
+<pre><code class="language-mermaid">flowchart TD
+    A["每轮 NetStats 输入, 每秒至多一次"] --&gt; B["更新 min_rtt, min_jitter, jitter_diverge, rtt_diff"]
+    B --&gt; C["burst_ratio 等于 burst_loss_rate 除以 loss_rate"]
+    C --&gt; D["按 loss_rate 分档计算 guest_congest"]
+    D --&gt; E{"is_congest?&lt;br/&gt;拥塞特征且流量足够 或 loss_boost 或 限速 或 平均丢包超 80%"}
+    E --&gt;|是| F["本轮判为 拥塞丢包"]
+    E --&gt;|否| G{"is_random?&lt;br/&gt;无拥塞特征 且 突发形态像随机 且 loss_rate 大于 0"}
+    G --&gt;|是| H["本轮判为 随机丢包"]
+    G --&gt;|否| I["本轮无明确结论"]
+    F --&gt; J["congest 寄存器 左移并置 bit0"]
+    H --&gt; K["random 寄存器 左移并置 bit0"]
+    I --&gt; L["两寄存器仅左移"]
+</code></pre>
+
+<hr>
+
+<h2 id="投票从-3-轮历史到最终结论">投票：从 3 轮历史到最终结论</h2>
+
+<p>每轮把两个寄存器左移一位、按本轮结果置 <code class="language-plaintext highlighter-rouge">bit0</code>，于是它们始终保存<strong>最近 3 轮</strong>的判决。对外结论对二者做<strong>非对称投票</strong>：</p>
+
+<pre><code class="language-mermaid">flowchart TD
+    subgraph HIST["最近 3 轮判决 bitset 3 位"]
+        CG["likely_congest_loss"]
+        RD["likely_random_loss"]
+    end
+    CG --&gt; CUR{"IsLikelyCongestLoss?&lt;br/&gt;congest bit0 为 1, 或 最近一轮非随机且 congest 计数 大于等于 2"}
+    RD --&gt; CUR
+    CUR --&gt;|是| T1["CurrentLossType 等于 拥塞丢包"]
+    CUR --&gt;|否| CUR2{"IsLikelyRandomLoss?&lt;br/&gt;最近两轮均无拥塞 且 random 计数 大于等于 2"}
+    CUR2 --&gt;|是| T2["CurrentLossType 等于 随机丢包"]
+    CUR2 --&gt;|否| T3["CurrentLossType 等于 未知"]
+</code></pre>
+
+<p>判定函数的<strong>非对称设计</strong>是整套算法的核心：</p>
+
+<ul>
+  <li>
+<strong>拥塞容易确认</strong>：<code class="language-plaintext highlighter-rouge">IsLikelyCongestLoss</code> 只要<strong>最近一轮</strong>判了拥塞（<code class="language-plaintext highlighter-rouge">bit0</code>）即成立，或 3 轮里 ≥2 轮拥塞且最近一轮非随机。因为漏判拥塞的代价（雪崩）远大于误判。</li>
+  <li>
+<strong>随机需要干净证据</strong>：<code class="language-plaintext highlighter-rouge">IsLikelyRandomLoss</code> 要求<strong>最近两轮都没有拥塞</strong>且 3 轮里 ≥2 轮随机。因为误判随机会导致过量发送。</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">LatestLossType</code> 更保守：只有「窗口投票」与「最新一轮」都指向随机（<code class="language-plaintext highlighter-rouge">IsLikelyRandomLoss</code> 且 <code class="language-plaintext highlighter-rouge">IsLatestStatLikelyRandom</code>）才返回随机，否则一律当拥塞 —— 用于对时效更敏感的场景。</li>
+</ul>
+
+<p>一句话概括判决哲学：<strong>拥塞是”安全默认”，好进难出；随机是”高门槛特权”，需持续且干净的证据才认定。</strong></p>
+
+<hr>
+
+<h2 id="关键参数一览">关键参数一览</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>值</th>
+      <th>作用</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>分类节流周期</td>
+      <td><code class="language-plaintext highlighter-rouge">1s</code></td>
+      <td>每秒至多分类一次</td>
+    </tr>
+    <tr>
+      <td>延迟阶跃阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">recent_min_rtt &gt; min_rtt + 80ms</code></td>
+      <td>触发基线重置</td>
+    </tr>
+    <tr>
+      <td>RTT 稳定判据</td>
+      <td><code class="language-plaintext highlighter-rouge">mean_deviation ≤ max(5ms, srtt × 4%)</code></td>
+      <td>基线重置的前置门控</td>
+    </tr>
+    <tr>
+      <td>稳定时长门控</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">≥2s</code>（配阶跃）或 <code class="language-plaintext highlighter-rouge">&gt;8s</code>（单独）</td>
+      <td>触发基线重置</td>
+    </tr>
+    <tr>
+      <td>随机初判阈值</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">jitter_diverge ≤ 50</code> 且 <code class="language-plaintext highlighter-rouge">rtt_diff ≤ 50</code>
+</td>
+      <td>无延迟抖动升高即像随机</td>
+    </tr>
+    <tr>
+      <td>拥塞流量门槛</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">≥200kbps &amp; ≥30 包</code> 或 <code class="language-plaintext highlighter-rouge">≥100kbps &amp; ≥60 包</code>
+</td>
+      <td>样本充分才判拥塞</td>
+    </tr>
+    <tr>
+      <td>丢包陡增</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">&gt; prev + 0.6</code> 且 <code class="language-plaintext highlighter-rouge">&gt; avg + 0.5</code>
+</td>
+      <td>直接判拥塞</td>
+    </tr>
+    <tr>
+      <td>最大随机丢包率</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">0.8</code>（可配 <code class="language-plaintext highlighter-rouge">SetMaxRandomLossRate</code>）</td>
+      <td>平均丢包超此值直接判拥塞</td>
+    </tr>
+    <tr>
+      <td>历史窗口</td>
+      <td>3 轮（<code class="language-plaintext highlighter-rouge">bitset&lt;3&gt;</code>）</td>
+      <td>投票窗口</td>
+    </tr>
+    <tr>
+      <td>avg_loss EWMA</td>
+      <td>涨 <code class="language-plaintext highlighter-rouge">5/8·old+3/8·new</code>，跌 <code class="language-plaintext highlighter-rouge">7/8·old+1/8·new</code>
+</td>
+      <td>对丢包上升更敏感</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2 id="总结">总结</h2>
+
+<p><code class="language-plaintext highlighter-rouge">丢包网络类型算法</code> 是一个典型的<strong>多信号 + 迟滞投票</strong>判别器：</p>
+
+<ul>
+  <li>
+<strong>多信号交叉</strong>：用「排队延迟 <code class="language-plaintext highlighter-rouge">rtt_diff</code> + 抖动发散 <code class="language-plaintext highlighter-rouge">jitter_diverge</code> + 突发占比 <code class="language-plaintext highlighter-rouge">burst_ratio</code> + 突发次数」共同刻画拥塞的”延迟升高且成片丢包”特征，用「延迟抖动不升 + 丢包零散」刻画随机特征；</li>
+  <li>
+<strong>基线自适应</strong>：维护 min RTT / min jitter 基线，并在真实延迟阶跃时重置，避免基线漂移导致长期误判；</li>
+  <li>
+<strong>非对称迟滞投票</strong>：3 轮历史寄存器 + “拥塞好进难出、随机高门槛”的判定，兼顾灵敏与稳健；</li>
+  <li>
+<strong>闭环价值</strong>：结论直接决定 CC 对丢包”退不退避”，使 CC 在无线/弱网下既能抗随机丢包、又不放任真实拥塞的关键判别模块。</li>
+</ul>
+
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 ，区分随机丢包与拥塞丢包 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" class="cplink">https://gbcpp.github.io/protocol/loss-differentiation_algo.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('丢包类型检测算法')">丢包类型检测算法</a><ul><li><a onclick="scrollToAdjust('为什么要区分丢包类型')">为什么要区分丢包类型</a></li><li><a onclick="scrollToAdjust('数据流与消费端')">数据流与消费端</a></li><li><a onclick="scrollToAdjust('整体架构双层-update-+-双历史寄存器-+-投票')">整体架构：双层 Update + 双历史寄存器 + 投票</a></li><li><a onclick="scrollToAdjust('外层-update节流与基线维护')">外层 Update：节流与基线维护</a></li><li><a onclick="scrollToAdjust('内层-update单轮分类逻辑')">内层 Update：单轮分类逻辑</a><ul><li><a onclick="scrollToAdjust('拥塞判定-<code-class="language-plaintext-highlighter-rouge">is_congest</code>')">拥塞判定 <code class="language-plaintext highlighter-rouge">is_congest</code></a></li><li><a onclick="scrollToAdjust('随机判定-<code-class="language-plaintext-highlighter-rouge">is_random</code>')">随机判定 <code class="language-plaintext highlighter-rouge">is_random</code></a></li><li><a onclick="scrollToAdjust('单轮流程图')">单轮流程图</a></li></ul></li><li><a onclick="scrollToAdjust('投票从-3-轮历史到最终结论')">投票：从 3 轮历史到最终结论</a></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+       <script src="https://giscus.app/client.js"
+           data-repo="gbcpp/gbcpp.github.io"
+           data-repo-id="R_kgDOKcVWMw"
+           data-category="Announcements"
+           data-category-id="DIC_kwDOKcVWM84DBXoz"
+           data-mapping="pathname"
+           data-strict="0"
+           data-reactions-enabled="1"
+           data-emit-metadata="0"
+           data-input-position="bottom"
+           data-theme="light"
+           data-lang="zh-CN"
+           crossorigin="anonymous"
+           async>
+       </script>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>技术工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+
+        
+        <div class="read-next-item">
+          <a href="/protocol/bandwidth-limited-detect-algo.html" class="read-next-link" aria-label="自定义网络协议如何检测网络受限状态，控制发送速率"></a>
+            <section>
+              <span>自定义网络协议如何检测网络受限状态，控制发送速率</span>
+              <p>带宽受限检测算法</p>
+            </section>
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2026
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(time_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2026-05-05-loss-differentiation_algo.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+            $('.post time span.update-at').html(local_update_at["date"]);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - https://docs.mathjax.org/en/latest/options/index.html
+-->
+
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
