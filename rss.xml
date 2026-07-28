@@ -5,12 +5,12 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 28 Jul 2026 06:13:41 +0000</pubDate>
-    <lastBuildDate>Tue, 28 Jul 2026 06:13:41 +0000</lastBuildDate>
+    <pubDate>Tue, 28 Jul 2026 06:20:07 +0000</pubDate>
+    <lastBuildDate>Tue, 28 Jul 2026 06:20:07 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
-        <title>，区分随机丢包与拥塞丢包</title>
+        <title>如何区分随机丢包与拥塞丢包</title>
         <description>&lt;h1 id=&quot;丢包类型检测算法&quot;&gt;丢包类型检测算法&lt;/h1&gt;
 
 &lt;blockquote&gt;
@@ -181,7 +181,7 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h3 id=&quot;拥塞判定-is_congest&quot;&gt;拥塞判定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_congest&lt;/code&gt;&lt;/h3&gt;
+&lt;h3 id=&quot;拥塞判定&quot;&gt;拥塞判定&lt;/h3&gt;
 
 &lt;p&gt;先按丢包率分档算 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;guest_congest&lt;/code&gt;（”看起来像拥塞吗”），核心思路：&lt;strong&gt;拥塞必须同时具备”延迟/抖动升高”与”突发成片丢包”两类特征&lt;/strong&gt;，且丢包率越高要求的突发证据越强：&lt;/p&gt;
 
@@ -218,7 +218,7 @@
 
 &lt;p&gt;即：&lt;strong&gt;拥塞特征成立且流量足够&lt;/strong&gt;，或&lt;strong&gt;丢包陡增&lt;/strong&gt;，或&lt;strong&gt;检测到限速&lt;/strong&gt;，或&lt;strong&gt;长期平均丢包率高到不可能全是随机&lt;/strong&gt;（≥80%，可配置）。&lt;/p&gt;
 
-&lt;h3 id=&quot;随机判定-is_random&quot;&gt;随机判定 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_random&lt;/code&gt;&lt;/h3&gt;
+&lt;h3 id=&quot;随机判定&quot;&gt;随机判定&lt;/h3&gt;
 
 &lt;p&gt;初始条件很直接：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge ≤ 50&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_diff ≤ 50&lt;/code&gt; —— &lt;strong&gt;丢包发生时延迟和抖动都没涨&lt;/strong&gt;，就像随机误码。此外还有一组基于突发形态的补充规则：&lt;strong&gt;突发段很多（&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_cnt ≥ 7/10/12&lt;/code&gt;&lt;strong&gt;）但突发占比低（&lt;/strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;burst_ratio&lt;/code&gt; &lt;strong&gt;小）且抖动发散受限&lt;/strong&gt; → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_random_loss&lt;/code&gt;）做迟滞。&lt;/p&gt;
 

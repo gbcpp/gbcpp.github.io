@@ -1,6 +1,6 @@
 [
   {
-    "title"    : "，区分随机丢包与拥塞丢包",
+    "title"    : "如何区分随机丢包与拥塞丢包",
     "tags"     : "Protocol",
     "url"      : "/protocol/loss-differentiation_algo.html"
   } ,

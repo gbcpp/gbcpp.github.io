@@ -8,12 +8,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>，区分随机丢包与拥塞丢包 - Mr Chen</title>
+    <title>如何区分随机丢包与拥塞丢包 - Mr Chen</title>
     <meta name="author"  content="Mr Chen">
-    <meta name="description" content="，区分随机丢包与拥塞丢包">
+    <meta name="description" content="如何区分随机丢包与拥塞丢包">
     <meta name="keywords"  content="Protocol">
     <!-- Open Graph -->
-    <meta property="og:title" content="，区分随机丢包与拥塞丢包 - Mr Chen">
+    <meta property="og:title" content="如何区分随机丢包与拥塞丢包 - Mr Chen">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gbcpp.github.io/protocol/loss-differentiation_algo.html">
     <meta property="og:baseurl" content="">
@@ -164,7 +164,7 @@
             
           
         </div>
-        <h1>，区分随机丢包与拥塞丢包</h1>
+        <h1>如何区分随机丢包与拥塞丢包</h1>
         <div class="post-meta">
           <span class="post-meta-item">
             <svg class="icon" aria-hidden="true">
@@ -212,7 +212,7 @@
     </header>
     <div class="post-content visible">
       
-      <h2 class="post-subtitle">如何区分 RandomLoss 和 CongestionLoss</h2>
+      <h2 class="post-subtitle">RandomLoss Or CongestionLoss</h2>
       
 
       
@@ -405,8 +405,7 @@
   </tbody>
 </table>
 
-<h3 id="拥塞判定-is_congest">拥塞判定 <code class="language-plaintext highlighter-rouge">is_congest</code>
-</h3>
+<h3 id="拥塞判定">拥塞判定</h3>
 
 <p>先按丢包率分档算 <code class="language-plaintext highlighter-rouge">guest_congest</code>（”看起来像拥塞吗”），核心思路：<strong>拥塞必须同时具备”延迟/抖动升高”与”突发成片丢包”两类特征</strong>，且丢包率越高要求的突发证据越强：</p>
 
@@ -448,8 +447,7 @@
 
 <p>即：<strong>拥塞特征成立且流量足够</strong>，或<strong>丢包陡增</strong>，或<strong>检测到限速</strong>，或<strong>长期平均丢包率高到不可能全是随机</strong>（≥80%，可配置）。</p>
 
-<h3 id="随机判定-is_random">随机判定 <code class="language-plaintext highlighter-rouge">is_random</code>
-</h3>
+<h3 id="随机判定">随机判定</h3>
 
 <p>初始条件很直接：<code class="language-plaintext highlighter-rouge">jitter_diverge ≤ 50</code> 且 <code class="language-plaintext highlighter-rouge">rtt_diff ≤ 50</code> —— <strong>丢包发生时延迟和抖动都没涨</strong>，就像随机误码。此外还有一组基于突发形态的补充规则：<strong>突发段很多（</strong><code class="language-plaintext highlighter-rouge">burst_cnt ≥ 7/10/12</code><strong>）但突发占比低（</strong><code class="language-plaintext highlighter-rouge">burst_ratio</code> <strong>小）且抖动发散受限</strong> → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（<code class="language-plaintext highlighter-rouge">likely_random_loss</code>）做迟滞。</p>
 
@@ -615,7 +613,7 @@
                   许可协议进行授权）
                 </p>
               
-              <p><span>本文标题：</span>《 ，区分随机丢包与拥塞丢包 》</p>
+              <p><span>本文标题：</span>《 如何区分随机丢包与拥塞丢包 》</p>
               <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" class="cplink">https://gbcpp.github.io/protocol/loss-differentiation_algo.html</a></p>
               <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
             </div>
@@ -623,7 +621,7 @@
         </div>   
         <div class="table-of-contents">
           <h2>目录</h2>
-          <ul><li><a onclick="scrollToAdjust('丢包类型检测算法')">丢包类型检测算法</a><ul><li><a onclick="scrollToAdjust('为什么要区分丢包类型')">为什么要区分丢包类型</a></li><li><a onclick="scrollToAdjust('数据流与消费端')">数据流与消费端</a></li><li><a onclick="scrollToAdjust('整体架构双层-update-+-双历史寄存器-+-投票')">整体架构：双层 Update + 双历史寄存器 + 投票</a></li><li><a onclick="scrollToAdjust('外层-update节流与基线维护')">外层 Update：节流与基线维护</a></li><li><a onclick="scrollToAdjust('内层-update单轮分类逻辑')">内层 Update：单轮分类逻辑</a><ul><li><a onclick="scrollToAdjust('拥塞判定-<code-class="language-plaintext-highlighter-rouge">is_congest</code>')">拥塞判定 <code class="language-plaintext highlighter-rouge">is_congest</code></a></li><li><a onclick="scrollToAdjust('随机判定-<code-class="language-plaintext-highlighter-rouge">is_random</code>')">随机判定 <code class="language-plaintext highlighter-rouge">is_random</code></a></li><li><a onclick="scrollToAdjust('单轮流程图')">单轮流程图</a></li></ul></li><li><a onclick="scrollToAdjust('投票从-3-轮历史到最终结论')">投票：从 3 轮历史到最终结论</a></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul></li></ul>
+          <ul><li><a onclick="scrollToAdjust('丢包类型检测算法')">丢包类型检测算法</a><ul><li><a onclick="scrollToAdjust('为什么要区分丢包类型')">为什么要区分丢包类型</a></li><li><a onclick="scrollToAdjust('数据流与消费端')">数据流与消费端</a></li><li><a onclick="scrollToAdjust('整体架构双层-update-+-双历史寄存器-+-投票')">整体架构：双层 Update + 双历史寄存器 + 投票</a></li><li><a onclick="scrollToAdjust('外层-update节流与基线维护')">外层 Update：节流与基线维护</a></li><li><a onclick="scrollToAdjust('内层-update单轮分类逻辑')">内层 Update：单轮分类逻辑</a><ul><li><a onclick="scrollToAdjust('拥塞判定')">拥塞判定</a></li><li><a onclick="scrollToAdjust('随机判定')">随机判定</a></li><li><a onclick="scrollToAdjust('单轮流程图')">单轮流程图</a></li></ul></li><li><a onclick="scrollToAdjust('投票从-3-轮历史到最终结论')">投票：从 3 轮历史到最终结论</a></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('总结')">总结</a></li></ul></li></ul>
         </div>
       </div>
       

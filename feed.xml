@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-28T06:13:41+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">，区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="，区分随机丢包与拥塞丢包" /><published>2026-05-05T00:00:00+00:00</published><updated>2026-05-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-28T06:20:07+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="如何区分随机丢包与拥塞丢包" /><published>2026-05-05T00:00:00+00:00</published><updated>2026-05-05T00:00:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
 
 <blockquote>
   <p>本文介绍丢包类型检测算法模块的功能与算法逻辑：如何用「Jitter + 排队延迟 + 突发形态 + 丢包率」多路信号，把丢包区分为<strong>拥塞丢包（congestion loss）与随机丢包（random loss）</strong>，并把结论反馈给拥塞控制算法，以保住决策是否需要降速。</p>
@@ -168,7 +168,7 @@
   </tbody>
 </table>
 
-<h3 id="拥塞判定-is_congest">拥塞判定 <code class="language-plaintext highlighter-rouge">is_congest</code></h3>
+<h3 id="拥塞判定">拥塞判定</h3>
 
 <p>先按丢包率分档算 <code class="language-plaintext highlighter-rouge">guest_congest</code>（”看起来像拥塞吗”），核心思路：<strong>拥塞必须同时具备”延迟/抖动升高”与”突发成片丢包”两类特征</strong>，且丢包率越高要求的突发证据越强：</p>
 
@@ -205,7 +205,7 @@
 
 <p>即：<strong>拥塞特征成立且流量足够</strong>，或<strong>丢包陡增</strong>，或<strong>检测到限速</strong>，或<strong>长期平均丢包率高到不可能全是随机</strong>（≥80%，可配置）。</p>
 
-<h3 id="随机判定-is_random">随机判定 <code class="language-plaintext highlighter-rouge">is_random</code></h3>
+<h3 id="随机判定">随机判定</h3>
 
 <p>初始条件很直接：<code class="language-plaintext highlighter-rouge">jitter_diverge ≤ 50</code> 且 <code class="language-plaintext highlighter-rouge">rtt_diff ≤ 50</code> —— <strong>丢包发生时延迟和抖动都没涨</strong>，就像随机误码。此外还有一组基于突发形态的补充规则：<strong>突发段很多（</strong><code class="language-plaintext highlighter-rouge">burst_cnt ≥ 7/10/12</code><strong>）但突发占比低（</strong><code class="language-plaintext highlighter-rouge">burst_ratio</code> <strong>小）且抖动发散受限</strong> → 说明丢包零散、互相独立，是随机特征；其中数条还叠加了历史随机判决（<code class="language-plaintext highlighter-rouge">likely_random_loss</code>）做迟滞。</p>
 
