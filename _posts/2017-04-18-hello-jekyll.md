@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Hello Jekyll'
-date: 2017-04-18
+date: 2017-04-18 22:15:05 +0800
 author: Jekyll
 cover: '/assets/img/hu.png'
 categories: Notes

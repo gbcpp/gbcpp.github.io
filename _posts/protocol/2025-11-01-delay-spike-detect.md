@@ -2,7 +2,7 @@
 layout: post
 title: '如何识别网络延迟突变是稳定性阶跃还是瞬时抖动，优化 BWE 稳定性'
 subtitle: '优化路由切换，或基站切换带来的 RTT 长时间增大引起的 BWE 波动'
-date: 2025-11-01
+date: 2025-11-01 15:17:34 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

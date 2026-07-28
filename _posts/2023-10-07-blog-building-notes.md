@@ -2,7 +2,7 @@
 layout: post
 title: 'GitHub Pages 博客搭建记录'
 subtitle: 重启 GitHub Pages 博客建设
-date: 2023-10-07
+date: 2023-10-07 16:26:56 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 #cover: 'https://images.unsplash.com/photo-1653629154302-8687b83825e2'

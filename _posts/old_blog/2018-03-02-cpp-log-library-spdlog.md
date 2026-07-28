@@ -2,7 +2,7 @@
 layout: post
 title: 'c++ 开源日志库 spdlog'
 subtitle: 
-date: 2018-01-01
+date: 2018-01-01 16:26:56 +0800
 author: Mr Chen
 #cover: '/assets/img/shan.jpg'
 categories: notes

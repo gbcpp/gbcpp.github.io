@@ -2,7 +2,7 @@
 layout: post
 title: 'golang 问题记录'
 subtitle: go 常见问题记事本
-date: 2025-01-21
+date: 2025-01-21 23:17:48 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes

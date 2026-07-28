@@ -2,7 +2,7 @@
 layout: post
 title: 'RUT protocol design'
 subtitle: 'RUT 协议设计'
-date: 2025-09-21
+date: 2025-09-21 20:26:17 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: PlantUML-Language Pdf
-date: 2023-10-07
+date: 2023-10-07 16:26:56 +0800
 author: Mr Chen
 #cover: 'https://images.unsplash.com/photo-1653629154302-8687b83825e2'
 #cover_author: 'rogov'

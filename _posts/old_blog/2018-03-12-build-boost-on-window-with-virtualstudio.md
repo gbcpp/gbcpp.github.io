@@ -1,7 +1,7 @@
 ---
 layout: post
 title: BOOST 在 Windows 下通过 VS 进行编译
-date: 2018-03-12
+date: 2018-03-12 16:26:56 +0800
 author: Mr Chen
 cover: '/assets/img/boost_logo.webp'
 #cover_author: 'rogov'

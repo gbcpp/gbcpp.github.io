@@ -2,7 +2,7 @@
 layout: post
 title: '如何区分随机丢包与拥塞丢包'
 subtitle: 'RandomLoss Or CongestionLoss'
-date: 2026-05-05
+date: 2026-05-05 14:13:00 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

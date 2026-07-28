@@ -2,7 +2,7 @@
 layout: post
 title: 'Install bcc and use memleak on Ubuntu22.04'
 subtitle: 
-date: 2025-05-21
+date: 2025-05-21 22:02:52 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes

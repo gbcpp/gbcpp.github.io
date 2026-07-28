@@ -2,7 +2,7 @@
 layout: post
 title: '自定义网络协议如何检测网络受限状态，控制发送速率'
 subtitle: '如何让 CC 知道什么时候该收着点'
-date: 2026-04-25
+date: 2026-04-25 09:52:35 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

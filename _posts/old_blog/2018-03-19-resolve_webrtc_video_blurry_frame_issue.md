@@ -2,7 +2,7 @@
 layout: post
 title: 解决 WebRTC 花屏问题记录
 subtitle: '实现 RTCDataChannel 类似于裸 UDP 的传输效率'
-date: 2018-03-19
+date: 2018-03-19 16:26:56 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

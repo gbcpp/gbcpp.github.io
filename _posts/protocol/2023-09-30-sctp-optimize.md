@@ -2,7 +2,7 @@
 layout: post
 title: 'RtcDataChannel(sctp) protocol optimize'
 subtitle: '实现 RTCDataChannel 类似于裸 UDP 的传输效率'
-date: 2023-09-30
+date: 2023-09-30 16:26:56 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

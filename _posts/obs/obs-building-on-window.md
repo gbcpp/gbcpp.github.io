@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'OBS building on windows'
-date: 2024-09-16
+date: 2024-09-16 12:10:59 +0800
 author: Mr.Chen
 cover: '/assets/img/hu.png'
 tags: OBS

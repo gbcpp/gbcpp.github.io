@@ -2,7 +2,7 @@
 layout: post
 title: 'Blog title'
 subtitle: 
-date: 2024-01-01
+date: 2024-01-01 12:15:06 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes

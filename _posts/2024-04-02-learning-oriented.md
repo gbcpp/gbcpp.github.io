@@ -2,7 +2,7 @@
 layout: post
 title: '面向学习的三种人'
 subtitle: 
-date: 2024-04-02
+date: 2024-04-02 12:15:06 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes

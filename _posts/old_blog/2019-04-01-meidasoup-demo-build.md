@@ -2,7 +2,7 @@
 layout: post
 title: mediasoup 公网环境部署
 subtitle: 源码编译部署 mediasoup，快速搭建实时音视频通话
-date: 2019-04-01
+date: 2019-04-01 16:26:56 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'

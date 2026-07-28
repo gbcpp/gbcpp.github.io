@@ -2,7 +2,7 @@
 layout: post
 title: '温故而知新之-C++'
 subtitle: C++ 查漏补缺
-date: 2024-04-12
+date: 2024-04-12 19:31:15 +0800
 author: Mr Chen
 cover: '/assets/img/beijing.jpeg'
 #cover: 'https://images.unsplash.com/photo-1653629154302-8687b83825e2'

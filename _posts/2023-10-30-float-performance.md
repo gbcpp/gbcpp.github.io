@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'float 和 int 在 Linux 下的计算性能对比'
-date: 2023-10-30
+date: 2023-10-30 01:03:46 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes

@@ -2,7 +2,7 @@
 layout: post
 title: 'Mac 系统环境配置异常记录'
 subtitle: 
-date: 2025-04-02
+date: 2025-04-02 15:53:48 +0800
 author: Mr Chen
 cover: '/assets/img/shan.jpg'
 categories: Notes
