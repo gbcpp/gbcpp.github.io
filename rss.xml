@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 28 Jul 2026 12:35:15 +0000</pubDate>
-    <lastBuildDate>Tue, 28 Jul 2026 12:35:15 +0000</lastBuildDate>
+    <pubDate>Thu, 30 Jul 2026 03:47:51 +0000</pubDate>
+    <lastBuildDate>Thu, 30 Jul 2026 03:47:51 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -1806,6 +1806,264 @@ payload: 表示此控制帧的载荷，长度包含在frame_length中。
       </item>
     
       <item>
+        <title>预拥塞检测算法的检测原理</title>
+        <description>&lt;h1 id=&quot;预拥塞检测算法&quot;&gt;预拥塞检测算法&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;预拥塞检测算法的实现原理：实现如何在 BBR 稳定发送阶段，用「管道打满 + 带宽骤降 + 排队延迟升高 + 抖动升高」的组合信号快速识别早期拥塞，并跳过 BBR 缓慢的带宽滤波器，把带宽估计一步压到近期真实水平，从源头遏制排队延迟膨胀，降低网络拥塞的影响时长。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;为什么需要预拥塞检测&quot;&gt;为什么需要&lt;strong&gt;预拥塞检测&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;BBR 用一个 &lt;strong&gt;windowed-max 滤波器&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_bandwidth&lt;/code&gt; 记录最近若干轮的最大带宽样本作为带宽估计。这个设计对带宽&lt;strong&gt;上升&lt;/strong&gt;很灵敏，但对带宽&lt;strong&gt;下降&lt;/strong&gt;却很迟钝：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;一旦链路可用带宽突然下降（竞争流涌入、无线链路恶化、路由切换到窄链路），BBR 仍会沿用滤波窗口里那个&lt;strong&gt;过时的高带宽估计&lt;/strong&gt;继续发送；&lt;/li&gt;
+  &lt;li&gt;结果是发送速率持续高于链路容量 → 数据堆进瓶颈缓冲区 → 排队延迟飙升（bufferbloat）；&lt;/li&gt;
+  &lt;li&gt;要等旧的高带宽样本&lt;strong&gt;滑出滤波窗口&lt;/strong&gt;，估计才会自然降下来，这个过程可能长达数个 RTT；而 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_RTT&lt;/code&gt; 又要 10 秒才来一次，太慢。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;预拥塞检测算法 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EarlyCongestionDetectAlgo&lt;/code&gt; 就是为这个短板设计的&lt;strong&gt;急刹车&lt;/strong&gt;：在带宽本应稳定的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_BW&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRAIN&lt;/code&gt; 阶段，实时监控 &lt;strong&gt;链路管道已满却发不快、延迟和抖动却在涨&lt;/strong&gt; 这组矛盾信号，一旦持续成立，就判定&lt;strong&gt;早期拥塞已经发生&lt;/strong&gt;，把 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_bandwidth&lt;/code&gt; 直接 Reset 到&lt;strong&gt;近期真实观测到的短期最大带宽&lt;/strong&gt;，让 pacing 与 cwnd 快速收敛。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;它和 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;检测延迟突变算法&lt;/code&gt; 是一对互补的”补丁”：后者修的是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt;（链路延迟突变），前者修的是 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_bandwidth&lt;/code&gt;（带宽骤降）—— 都是在补 BBR&lt;strong&gt;对下降反应慢&lt;/strong&gt;的天然缺陷。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;数据流与消费端&quot;&gt;数据流与消费端&lt;/h2&gt;
+
+&lt;p&gt;检测器在 BBR 每个 ACK 事件中被调用，且&lt;strong&gt;仅在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mode_ == PROBE_BW 或 DRAIN&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_at_full_bandwidth&lt;/code&gt; 时&lt;/strong&gt;才触发：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart LR
+    subgraph IN[&quot;每个 ACK 事件输入&quot;]
+        MB[&quot;max_bandwidth 当前带宽估计&quot;]
+        SB[&quot;sample_bandwidth 本次样本带宽&quot;]
+        CW[&quot;cwnd 与 bytes_in_flight&quot;]
+        RT[&quot;smoothed_rtt 减 min_rtt 排队延迟&quot;]
+        JT[&quot;uplink_jitter95 与 jitter_diverge&quot;]
+        TR[&quot;trendline 带宽使用状态&quot;]
+    end
+    IN --&amp;gt; D[&quot;EarlyCongestionDetectAlgo.MaybeEarlyCongestionHappened&quot;]
+    D --&amp;gt;|&quot;返回 0&quot;| N[&quot;无动作&quot;]
+    D --&amp;gt;|&quot;返回 短期最大带宽 bw&quot;| A[&quot;BBR 执行 max_bandwidth_.Reset(bw)&quot;]
+    A --&amp;gt; A2[&quot;reviser.OnEarlyCongestionDetected(bw) 同步压低 shadow/base/longterm 滤波器&quot;]
+    A --&amp;gt; A3[&quot;pacing 与 cwnd 随估计快速收敛, 缓解队列堆积&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;消费逻辑：返回非零 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bw&lt;/code&gt; 时，BBR 把 windowed-max 滤波器&lt;strong&gt;直接 Reset 到该值&lt;/strong&gt;（绕过慢速滑出），并把带宽修正器内部的三个影子滤波器一并压下去，避免它们把估计又顶回高位。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;为什么只在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_BW&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRAIN&lt;/code&gt; 且满带宽阶段生效？因为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STARTUP&lt;/code&gt; 阶段带宽本就在探测爬升、管道打满和延迟上升都是正常现象；只有在带宽理应稳定的阶段，”管道满 + 带宽降 + 延迟涨”同时出现才真正指向拥塞。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;判定逻辑两层门槛--时间持续&quot;&gt;判定逻辑：两层门槛 + 时间持续&lt;/h2&gt;
+
+&lt;p&gt;算法分两层：先判断&lt;strong&gt;本轮是否疑似拥塞&lt;/strong&gt;（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest&lt;/code&gt;），再对疑似状态做&lt;strong&gt;状态累积确认&lt;/strong&gt;（持续 800ms + 二次论证）。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;flowchart TD
+    S[&quot;仅在 PROBE_BW 或 DRAIN 且 已达满带宽 时调用&quot;] --&amp;gt; A{&quot;likely_congest 本轮疑似拥塞?&amp;lt;br/&amp;gt;管道打满 且 样本带宽 小于 0.4 倍估计 且 排队延迟 超 120ms 且 jitter95 超 20ms&quot;}
+    A --&amp;gt;|否| R[&quot;重置累积状态, 返回 0&quot;]
+    A --&amp;gt;|是| B[&quot;累积: 样本计数加一, 记录首次触发时间, 更新短期最大带宽&quot;]
+    B --&amp;gt; C{&quot;持续 超过 800ms 且 满足 抖动路径 或 带宽路径?&quot;}
+    C --&amp;gt;|否| Z[&quot;返回 0, 继续累积&quot;]
+    C --&amp;gt;|是| E[&quot;判定早期拥塞: 返回短期最大带宽, 重置状态&quot;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;第一层likely_congest本轮疑似拥塞&quot;&gt;第一层：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest&lt;/code&gt;（本轮疑似拥塞）&lt;/h3&gt;
+
+&lt;p&gt;需&lt;strong&gt;同时&lt;/strong&gt;满足如下四个条件，记 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remain = cwnd - bytes_in_flight&lt;/code&gt;（剩余可发空间）：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;条件&lt;/th&gt;
+      &lt;th&gt;判据&lt;/th&gt;
+      &lt;th&gt;直觉含义&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;管道打满&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remain ≤ 2×MSS 且 remain &amp;lt; cwnd×0.2&lt;/code&gt;，或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remain &amp;lt; bytes_acked 且 remain &amp;lt; cwnd×0.25&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;inflight 几乎占满 cwnd，发送受 &lt;strong&gt;cwnd 限制&lt;/strong&gt;而非应用限制 —— 想发但发不出去&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;带宽骤降&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_bandwidth &amp;lt; max_bandwidth × 0.4&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;实测样本带宽跌到估计值的 40% 以下&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;排队延迟升高&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt - min_rtt &amp;gt; 120ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;明显 bufferbloat&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;抖动佐证&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter95 &amp;gt; 20ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;链路争用/受限的抖动特征&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;这四条构成一个&lt;strong&gt;逻辑闭环&lt;/strong&gt;：管道明明打满了（说明有足够数据要发），实测带宽却只有估计的四成，同时延迟和抖动都在涨 —— 这只能解释为”链路容量已经下降、估计值虚高、数据在排队”。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;任一条件不满足&lt;/strong&gt; → 立即重置累积状态（首触发时间、样本计数、短期最大带宽全部清零），返回 0。这保证只有&lt;strong&gt;持续&lt;/strong&gt;的疑似拥塞才会被累积。&lt;/p&gt;
+
+&lt;h3 id=&quot;第二层累积确认&quot;&gt;第二层：累积确认&lt;/h3&gt;
+
+&lt;p&gt;每轮 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest&lt;/code&gt; 成立时：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest_sample_count++&lt;/code&gt;（样本计数）；&lt;/li&gt;
+  &lt;li&gt;首次成立时记录 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;likely_congest_happened_time&lt;/code&gt;；&lt;/li&gt;
+  &lt;li&gt;用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_bandwidth_short_term&lt;/code&gt; 跟踪疑似窗口内观测到的&lt;strong&gt;最大样本带宽&lt;/strong&gt; —— 这就是将来要 Reset 到的目标值。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;确认需&lt;strong&gt;持续超过 800ms&lt;/strong&gt;，且满足以下&lt;strong&gt;任一&lt;/strong&gt;二次证据路径：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;确认路径&lt;/th&gt;
+      &lt;th&gt;判据&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;抖动路径&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_cnt &amp;gt; 20&lt;/code&gt; 且（无 stats 或 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter_diverge &amp;gt; 100&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;抖动相对基线发散严重（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge&lt;/code&gt; 来自丢包类型判别模块）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;带宽路径&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_cnt &amp;gt; 10&lt;/code&gt; 且（无 stats 或 trendline 估计 == &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kBwCongestion&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;Trendline 延迟梯度估计器独立判定为拥塞&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;确认后返回 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;max_bandwidth_short_term&lt;/code&gt; 并重置全部状态。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;累积状态机&quot;&gt;累积状态机&lt;/h2&gt;
+
+&lt;p&gt;用「首触发时间戳 + 样本计数」把瞬时信号沉淀为持续判定：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;stateDiagram-v2
+    [*] --&amp;gt; Idle
+    state &quot;Idle 未触发&quot; as Idle
+    state &quot;Accumulating 累积观察中&quot; as Acc
+    state &quot;Confirmed 早期拥塞确认&quot; as Conf
+    Idle --&amp;gt; Acc : &quot;本轮 likely_congest 成立并记录首触发时间&quot;
+    Acc --&amp;gt; Acc : &quot;持续 likely_congest 计数加一并更新短期最大带宽&quot;
+    Acc --&amp;gt; Idle : &quot;某轮 likely_congest 不成立即全部重置&quot;
+    Acc --&amp;gt; Conf : &quot;持续超 800ms 且 抖动或带宽确认路径达标&quot;
+    Conf --&amp;gt; Idle : &quot;返回短期最大带宽给 BBR 并重置&quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;设计算法：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;单帧不算数&lt;/strong&gt;：任何一层不满足都会清零，杜绝瞬时毛刺误触发；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;时间 + 计数双重持续性&lt;/strong&gt;：既要 800ms 时长，又要足够样本数（抖动路径 &amp;gt;20、带宽路径 &amp;gt;10），避免低采样率下误判；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;两条独立确认路径&lt;/strong&gt;：抖动发散与 Trendline 拥塞判定互为补充，任一成立即可，提升召回；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Reset 到”短期最大”而非”瞬时最低”&lt;/strong&gt;：不把估计砸到疑似窗口内的最低样本（过度反应会导致带宽利用率骤降），而是取该窗口内的&lt;strong&gt;最大样本&lt;/strong&gt;，做到”快速但不过激”地收敛。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;关键参数一览&quot;&gt;关键参数一览&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;参数&lt;/th&gt;
+      &lt;th&gt;值&lt;/th&gt;
+      &lt;th&gt;作用&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;生效阶段&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROBE_BW&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRAIN&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;is_at_full_bandwidth_&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;只在带宽应稳定时检测&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;管道打满阈值 1&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remain ≤ 2×MSS&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt; 0.2×cwnd&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;剩余空间极小&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;管道打满阈值 2&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remain &amp;lt; bytes_acked&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt; 0.25×cwnd&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;剩余不足一次 ACK&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;带宽骤降阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_bandwidth &amp;lt; 0.4 × max_bandwidth&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;实测带宽腰斩到四成以下&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;排队延迟阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt - min_rtt &amp;gt; 120ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;bufferbloat 门槛&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;抖动初判阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uplink_jitter95 &amp;gt; 20ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;第一层抖动佐证&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;持续时长阈值&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;800ms&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;确认所需最短持续&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;抖动路径&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_cnt &amp;gt; 20&lt;/code&gt; 且 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jitter_diverge &amp;gt; 100&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;二次确认路径之一&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;带宽路径&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sample_cnt &amp;gt; 10&lt;/code&gt; 且 trendline == &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kBwCongestion&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;二次确认路径之一&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;小结&quot;&gt;小结&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EarlyCongestionDetectAlgo&lt;/code&gt; 是一个精巧的&lt;strong&gt;带宽估计旁路急刹车&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;补 BBR 短板&lt;/strong&gt;：针对 windowed-max 带宽滤波器”对下降反应慢”的天然缺陷，提供一条快速下修通道，避免链路降容后长时间过量发送、堆积队列；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;组合信号闭环&lt;/strong&gt;：以”管道满却发不快 + 带宽骤降 + 延迟升高 + 抖动升高”的矛盾组合精准刻画早期拥塞，逻辑自洽、误报率低；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;两层门槛 + 双确认路径&lt;/strong&gt;：单帧判疑似、800ms 累积确认、抖动/Trendline 双路二次证据，兼顾灵敏与稳健；&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;温和收敛&lt;/strong&gt;：Reset 到短期最大带宽而非瞬时最低，快速缓解队列的同时避免带宽利用率过度塌陷。&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Fri, 30 May 2025 03:45:41 +0000</pubDate>
+        <link>https://gbcpp.github.io/protocol/early-congest-detector.html</link>
+        <guid isPermaLink="true">https://gbcpp.github.io/protocol/early-congest-detector.html</guid>
+        
+        <category>Protocol</category>
+        
+        
+        <category>Protocol</category>
+        
+      </item>
+    
+      <item>
         <title>Install bcc and use memleak on Ubuntu22.04</title>
         <description>&lt;blockquote&gt;
   &lt;p&gt;BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。&lt;/p&gt;
@@ -2223,106 +2481,6 @@ defaults delete &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; ApplePressAndHo
         <guid isPermaLink="true">https://gbcpp.github.io/notes/mac-env-fix.html</guid>
         
         <category>Life</category>
-        
-        
-        <category>Notes</category>
-        
-      </item>
-    
-      <item>
-        <title>HTTP3/QUIC 在部分iPhone设备下卡顿问题排查</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;  直播的边缘服务器开启 HTTP3 以后，出现 iPhone 的部分机型明显卡顿的问题，而 HTTP2 确不会，明显不符合预期。正常应该是使用了 QUIC 的 HTTP3 的传输效果优于 TCP 才对，这才是大部分机型的表现。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;排查过程&quot;&gt;排查过程&lt;/h2&gt;
-
-&lt;h3 id=&quot;协议对比&quot;&gt;协议对比&lt;/h3&gt;
-
-&lt;p&gt;在指定的 iPhone 设备上通过后台控制、确认播放端使用的 HTTP 版本，明确在正常的网络环境下使用 TCP 的播放效果要明显优于基于 UDP 的 HTTP3，明显问题现象。&lt;/p&gt;
-
-&lt;h3 id=&quot;mtu-问题&quot;&gt;MTU 问题&lt;/h3&gt;
-
-&lt;p&gt;通过打开 quic-go 中的 debug log，看到播放端在出现卡顿时，出现大概率的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lost packet&lt;/code&gt;，怀疑是 quic-go 的 MTU 探测问题，探测到错误的 max packet size 导致发送了过大的数据包触发的 IP 分片导致的丢失。&lt;/p&gt;
-
-&lt;p&gt;  。。。。。。   此处省略一万字，debug 排查 guic-go 中的 MTU 探测模块代码逻辑简单、清晰，没有代码问题。&lt;/p&gt;
-
-&lt;p&gt;那么如果将 quic-go 中的 MTU 探测关闭，让其一直固定使用 initial 的 max packet size：1252，会有问题吗？&lt;/p&gt;
-
-&lt;p&gt;通过 quic-go 的配置 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;true&lt;/code&gt;, 其默认为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;，进行测试验证后，发现卡顿现象消失了，可以明确问题就是 MTU 的问题了，链路上发送了超过实际 MTU 大小的数据，触发的 IP 分片导致大量的丢包，从而出现的卡顿。&lt;/p&gt;
-
-&lt;h3 id=&quot;抓包验证&quot;&gt;抓包验证&lt;/h3&gt;
-
-&lt;p&gt;依然开启 quic-go 的 MTU-Discorver 功能: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DisablePathMTUDiscovery&lt;/code&gt; 将其置为 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;false&lt;/code&gt;。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Server 测抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Server 测通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump&lt;/code&gt; 抓包即可，命令： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tcpdump -i any -s 1500 udp src port 4443 -v&lt;/code&gt; 抓取自己从 HTTP3 端口 4443 发送方向的数据包，重点是查看数据包的大小是否有在本地发送时出现切包的情况。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;iPhone 设备测抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;通过 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 工具集中的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl&lt;/code&gt; 结合 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wireshark&lt;/code&gt; 进行抓包。&lt;/p&gt;
-
-&lt;p&gt;首先 Mac 上需要安装 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 开发工具，将 iPhone 连接 Mac 后，通过 xcode 查看该 iPhone 设备的 Identifier ID，在 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xcode&lt;/code&gt; 的 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;window&lt;/code&gt; 菜单 ==&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;》Device&lt;/code&gt; 选项 进行查看：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/xcode-identifier.png&quot; alt=&quot;获取 iPhone ID&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;启动虚拟网卡：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;Terminal 中命令启动：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rvictl -s 00008130-00012C163EC2001C &lt;/code&gt;，如果失败，会有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; 的输出提示。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;启动 WireShark：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;需要 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;root &lt;/code&gt;权限，从 Terminal 中进行启动： &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo wireshark&lt;/code&gt;，选择网卡 &lt;strong&gt;rvi&lt;/strong&gt; 网卡进行抓取，可以添加过滤条件，如：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;udp.port == 4443&lt;/code&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;复现抓包&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;手机测通过 HTTP3 拉流复现后，分别查看 Server 和 iPhone 测的抓包结果进行分析：&lt;/p&gt;
-
-&lt;p&gt;下图可以看到server 在发送 1400+ 的数据包的时候，是未分片且带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，&lt;strong&gt;server 发送的所有数据包均是如此&lt;/strong&gt;：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/server-quic-capture0.png&quot; alt=&quot;Server 抓包截图（未切片）&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;iPhone 测抓包可以看到首先收到的 1400+ 的 数据包是带有 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; flag 的，同时也没有进行切片，如下图：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture.png&quot; alt=&quot;iPhone 抓包1（首先无分片）&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;但是在后面很快就出现了 IP 分片，且去除了 DF flag 的数据包，iPhone 测只能接收到一半的数据包：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/client-quic-capture2.png&quot; alt=&quot;iPhone 抓包2（被分片）&quot; /&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;注意：该问题在仅在我司的 Wifi 网络环境下存在，4G/5G 网络条件下不存在。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;结论&quot;&gt;结论&lt;/h2&gt;
-
-&lt;p&gt;   通过上述抓包可以看到是因为链路中某个路由设备对 MTU 大于 1400 的数据包进行了强行切片，分成了 2 片进行发送，这里存在两个问题：&lt;/p&gt;
-
-&lt;p&gt;1、该路由设备放行了前面一小部分大于 1400 的数据包，接收端接收并 Ack 给了发送端，导致发送端的 Mtu 探测模块爬升到了更高的值，但是后面该路由设备又对 1400+ 的数据包改变了策略，不允许通过，而 quic-go 中的 mtu 探测模块又没有向下探测 mtu 的能力，导致业务遇到该场景必死无疑。&lt;/p&gt;
-
-&lt;p&gt;2、发送端发送的数据包已经明确设置了 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DF&lt;/code&gt; 即 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Don&apos;t fragment&lt;/code&gt; 的 flag，路由设备在收到超过自己 MTU 设备时应该直接丢掉，而非先进行放行，然后强行忽略 DF flag 进行切片转发，让接收端产生误判。&lt;/p&gt;
-
-&lt;p&gt;   对比抓取其它使用 HTTP3/QUIC 协议的 APP 数据包，比如油管的短视频和直播，可以看到其并未向上探测 MTU，使用的是固定的 1250 这样的一个 MTU 大小。&lt;/p&gt;
-
-&lt;p&gt;   使用 1300 以内的 MTU 大小是网络兼容性最好选择，但是会牺牲一定的服务器网络数据包处理的性能，像 Google 这样的 APP 亦是如此。如果需要追求极致性能，还有一个解决方案，那就是为 MTU 探测模块增加向下探测的能力，比如这种场景，已经探测到了 1400 的大小，但是后续路由器开启切片导致大量的丢包，协议内部开始向下探测 MTU 大小，或者重新从 1000/1200 开始探测即可。&lt;/p&gt;
-
-&lt;h2 id=&quot;后续&quot;&gt;后续&lt;/h2&gt;
-
-&lt;p&gt;   无&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 24 Feb 2025 02:44:38 +0000</pubDate>
-        <link>https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</link>
-        <guid isPermaLink="true">https://gbcpp.github.io/notes/quic-stuck-on-iphone.html</guid>
-        
-        <category>Protocol</category>
         
         
         <category>Notes</category>

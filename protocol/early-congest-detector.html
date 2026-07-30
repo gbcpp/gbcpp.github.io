@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+
+
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预拥塞检测算法的检测原理 - Mr Chen</title>
+    <meta name="author"  content="Mr Chen">
+    <meta name="description" content="预拥塞检测算法的检测原理">
+    <meta name="keywords"  content="Protocol">
+    <!-- Open Graph -->
+    <meta property="og:title" content="预拥塞检测算法的检测原理 - Mr Chen">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gbcpp.github.io/protocol/early-congest-detector.html">
+    <meta property="og:baseurl" content="">
+    <meta property="og:description" content="个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。">
+    <meta property="og:site_name" content="Mr Chen">
+    <meta property="og:gray" content="false">
+    
+    <meta property="og:previous_url" content="/protocol/rut-protocol-design.html">
+    
+    
+    <meta property="og:next_url" content="/notes/install-bcc.html">
+    
+    <meta property="post-date-format" content="0">
+    
+    <meta property="post-date" content="2025-05-30 03:45:41 +0000" />
+    
+    
+    
+    <meta name="theme-color" content="#81BBFF" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/touch/apple-touch-icon.png"/>
+    <link rel="Shortcut Icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.1.0/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-one-light.min.css" />
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.28.0/plugins/line-numbers/prism-line-numbers.min.css">
+    
+    <link rel="stylesheet" href="/assets/css/app.min.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@waline/client/dist/waline.css" />
+    <script src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+</head>
+
+
+
+<body class="line-numbers" ontouchstart="">
+
+
+
+
+  <!--[if lt IE 10]>
+  <div class="alert-danger" role="alert">你的浏览器实在太太太旧了，放学别走，升级完浏览器再说！<a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div>
+  <![endif]-->
+  
+  <div id="all" class="post" data-theme="default">
+  
+    <div class="alert-tip" id="no-previous">
+      已经是最新一篇文章了！
+    </div>
+    <div class="alert-tip" id="no-next">
+      已经是最后一篇文章了！
+    </div>
+    <input id="nm-switch" type="hidden" value="false"> <header class="g-header" data-theme="default">
+    <div class="g-logo">
+      <a href="/" aria-label="logo"></a>
+    </div>
+    <!-- <i id="menu-toggle" class="iconfont icon-menu"></i> -->
+    <div id="mode-toggle">
+        <svg class="icon icon-day" aria-hidden="true">
+            <use xlink:href="#icon-day"></use>
+        </svg>
+        <svg class="icon icon-night" aria-hidden="true">
+            <use xlink:href="#icon-night"></use>
+        </svg>
+    </div>
+    <svg id="menu-toggle" class="icon-menu" aria-hidden="true">
+        <use xlink:href="#icon-menu"></use>
+    </svg>
+    <nav class="g-nav">
+        <ul>
+            
+                
+                <li>
+                    <a href="/" aria-label="home">
+                        home
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/blog/index.html" aria-label="blog">
+                        blog
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/archives.html" aria-label="archives">
+                        archives
+                    </a>
+                </li>
+                
+            
+                
+                <li>
+                    <a href="/tags.html" aria-label="tags">
+                        tags
+                    </a>
+                </li>
+                
+            
+                
+                <li class="dropdown">
+                    <a class="dropdown-toggle"> about </a>
+                    <ul class="dropdown-menu">
+                    
+                        <li>
+                            <a href="/feed.xml" aria-label="RSS">
+                                RSS
+                            </a>
+                        </li>
+                    
+                    </ul> 
+                </li>
+                
+            
+            <li class="mode">
+                <svg class="icon day" aria-hidden="true">
+                    <use xlink:href="#icon-day"></use>
+                </svg>
+                <svg class="icon night" aria-hidden="true">
+                    <use xlink:href="#icon-night"></use>
+                </svg>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+
+    <header
+      class="g-banner post-header post-pattern-circuitBoard bgcolor-default post-no-cover"
+      data-theme="default"
+    >
+      <div class="post-wrapper">
+        <div class="post-tags">
+          
+            
+              <a href="/tags.html#Protocol" class="post-tag">Protocol</a>
+            
+          
+        </div>
+        <h1>预拥塞检测算法的检测原理</h1>
+        <div class="post-meta">
+          <span class="post-meta-item">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-user"></use>
+            </svg>
+            Mr Chen
+          </span>
+          <time class="post-meta-item" datetime="25-05-30">
+            <svg class="icon" aria-hidden="true">
+              <use xlink:href="#icon-calendar"></use>
+            </svg>
+            <span class="create-at"></span>
+          </time>
+            <span class="post-meta-item">
+              <svg class="icon words" aria-hidden="true">
+                <use xlink:href="#icon-words"></use>
+              </svg>
+              
+              本文总共  3.9k  字
+            </span>
+            <span class="post-meta-item">
+              <svg class="icon time" aria-hidden="true">
+                <use xlink:href="#icon-time"></use>
+              </svg>
+              阅读全文大约需要 12 分钟
+            </span>
+            
+              <span class="post-meta-item">
+                <svg class="icon pv" aria-hidden="true">
+                  <use xlink:href="#icon-pv"></use>
+                </svg>
+                本文总阅读量 <span id="busuanzi_value_page_pv"></span> 次
+              </span>
+            
+            
+        </div>
+      </div>
+      
+    </header>
+    <div class="post-content visible">
+      
+      <h2 class="post-subtitle">检测真实拥塞发生前的信号，给 CC 及时刹车限速</h2>
+      
+
+      
+      
+      <div class="container">  
+        <div class="contents">
+          <article class="markdown-body post">
+              
+            <h1 id="预拥塞检测算法">预拥塞检测算法</h1>
+
+<blockquote>
+  <p>预拥塞检测算法的实现原理：实现如何在 BBR 稳定发送阶段，用「管道打满 + 带宽骤降 + 排队延迟升高 + 抖动升高」的组合信号快速识别早期拥塞，并跳过 BBR 缓慢的带宽滤波器，把带宽估计一步压到近期真实水平，从源头遏制排队延迟膨胀，降低网络拥塞的影响时长。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="为什么需要预拥塞检测">为什么需要<strong>预拥塞检测</strong>
+</h2>
+
+<p>BBR 用一个 <strong>windowed-max 滤波器</strong> <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 记录最近若干轮的最大带宽样本作为带宽估计。这个设计对带宽<strong>上升</strong>很灵敏，但对带宽<strong>下降</strong>却很迟钝：</p>
+
+<ul>
+  <li>一旦链路可用带宽突然下降（竞争流涌入、无线链路恶化、路由切换到窄链路），BBR 仍会沿用滤波窗口里那个<strong>过时的高带宽估计</strong>继续发送；</li>
+  <li>结果是发送速率持续高于链路容量 → 数据堆进瓶颈缓冲区 → 排队延迟飙升（bufferbloat）；</li>
+  <li>要等旧的高带宽样本<strong>滑出滤波窗口</strong>，估计才会自然降下来，这个过程可能长达数个 RTT；而 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 又要 10 秒才来一次，太慢。</li>
+</ul>
+
+<p>预拥塞检测算法 <code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 就是为这个短板设计的<strong>急刹车</strong>：在带宽本应稳定的 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 阶段，实时监控 <strong>链路管道已满却发不快、延迟和抖动却在涨</strong> 这组矛盾信号，一旦持续成立，就判定<strong>早期拥塞已经发生</strong>，把 <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 直接 Reset 到<strong>近期真实观测到的短期最大带宽</strong>，让 pacing 与 cwnd 快速收敛。</p>
+
+<blockquote>
+  <p>它和 <code class="language-plaintext highlighter-rouge">检测延迟突变算法</code> 是一对互补的”补丁”：后者修的是 <code class="language-plaintext highlighter-rouge">min_rtt</code>（链路延迟突变），前者修的是 <code class="language-plaintext highlighter-rouge">max_bandwidth</code>（带宽骤降）—— 都是在补 BBR<strong>对下降反应慢</strong>的天然缺陷。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="数据流与消费端">数据流与消费端</h2>
+
+<p>检测器在 BBR 每个 ACK 事件中被调用，且<strong>仅在 <code class="language-plaintext highlighter-rouge">mode_ == PROBE_BW 或 DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth</code> 时</strong>才触发：</p>
+
+<pre><code class="language-mermaid">flowchart LR
+    subgraph IN["每个 ACK 事件输入"]
+        MB["max_bandwidth 当前带宽估计"]
+        SB["sample_bandwidth 本次样本带宽"]
+        CW["cwnd 与 bytes_in_flight"]
+        RT["smoothed_rtt 减 min_rtt 排队延迟"]
+        JT["uplink_jitter95 与 jitter_diverge"]
+        TR["trendline 带宽使用状态"]
+    end
+    IN --&gt; D["EarlyCongestionDetectAlgo.MaybeEarlyCongestionHappened"]
+    D --&gt;|"返回 0"| N["无动作"]
+    D --&gt;|"返回 短期最大带宽 bw"| A["BBR 执行 max_bandwidth_.Reset(bw)"]
+    A --&gt; A2["reviser.OnEarlyCongestionDetected(bw) 同步压低 shadow/base/longterm 滤波器"]
+    A --&gt; A3["pacing 与 cwnd 随估计快速收敛, 缓解队列堆积"]
+</code></pre>
+
+<p>消费逻辑：返回非零 <code class="language-plaintext highlighter-rouge">bw</code> 时，BBR 把 windowed-max 滤波器<strong>直接 Reset 到该值</strong>（绕过慢速滑出），并把带宽修正器内部的三个影子滤波器一并压下去，避免它们把估计又顶回高位。</p>
+
+<blockquote>
+  <p>为什么只在 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且满带宽阶段生效？因为 <code class="language-plaintext highlighter-rouge">STARTUP</code> 阶段带宽本就在探测爬升、管道打满和延迟上升都是正常现象；只有在带宽理应稳定的阶段，”管道满 + 带宽降 + 延迟涨”同时出现才真正指向拥塞。</p>
+</blockquote>
+
+<hr>
+
+<h2 id="判定逻辑两层门槛--时间持续">判定逻辑：两层门槛 + 时间持续</h2>
+
+<p>算法分两层：先判断<strong>本轮是否疑似拥塞</strong>（<code class="language-plaintext highlighter-rouge">likely_congest</code>），再对疑似状态做<strong>状态累积确认</strong>（持续 800ms + 二次论证）。</p>
+
+<pre><code class="language-mermaid">flowchart TD
+    S["仅在 PROBE_BW 或 DRAIN 且 已达满带宽 时调用"] --&gt; A{"likely_congest 本轮疑似拥塞?&lt;br/&gt;管道打满 且 样本带宽 小于 0.4 倍估计 且 排队延迟 超 120ms 且 jitter95 超 20ms"}
+    A --&gt;|否| R["重置累积状态, 返回 0"]
+    A --&gt;|是| B["累积: 样本计数加一, 记录首次触发时间, 更新短期最大带宽"]
+    B --&gt; C{"持续 超过 800ms 且 满足 抖动路径 或 带宽路径?"}
+    C --&gt;|否| Z["返回 0, 继续累积"]
+    C --&gt;|是| E["判定早期拥塞: 返回短期最大带宽, 重置状态"]
+</code></pre>
+
+<h3 id="第一层likely_congest本轮疑似拥塞">第一层：<code class="language-plaintext highlighter-rouge">likely_congest</code>（本轮疑似拥塞）</h3>
+
+<p>需<strong>同时</strong>满足如下四个条件，记 <code class="language-plaintext highlighter-rouge">remain = cwnd - bytes_in_flight</code>（剩余可发空间）：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>条件</th>
+      <th>判据</th>
+      <th>直觉含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>管道打满</strong></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS 且 remain &lt; cwnd×0.2</code>，或 <code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked 且 remain &lt; cwnd×0.25</code>
+</td>
+      <td>inflight 几乎占满 cwnd，发送受 <strong>cwnd 限制</strong>而非应用限制 —— 想发但发不出去</td>
+    </tr>
+    <tr>
+      <td><strong>带宽骤降</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; max_bandwidth × 0.4</code></td>
+      <td>实测样本带宽跌到估计值的 40% 以下</td>
+    </tr>
+    <tr>
+      <td><strong>排队延迟升高</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
+      <td>明显 bufferbloat</td>
+    </tr>
+    <tr>
+      <td><strong>抖动佐证</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
+      <td>链路争用/受限的抖动特征</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>这四条构成一个<strong>逻辑闭环</strong>：管道明明打满了（说明有足够数据要发），实测带宽却只有估计的四成，同时延迟和抖动都在涨 —— 这只能解释为”链路容量已经下降、估计值虚高、数据在排队”。</p>
+
+<p><strong>任一条件不满足</strong> → 立即重置累积状态（首触发时间、样本计数、短期最大带宽全部清零），返回 0。这保证只有<strong>持续</strong>的疑似拥塞才会被累积。</p>
+
+<h3 id="第二层累积确认">第二层：累积确认</h3>
+
+<p>每轮 <code class="language-plaintext highlighter-rouge">likely_congest</code> 成立时：</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">likely_congest_sample_count++</code>（样本计数）；</li>
+  <li>首次成立时记录 <code class="language-plaintext highlighter-rouge">likely_congest_happened_time</code>；</li>
+  <li>用 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 跟踪疑似窗口内观测到的<strong>最大样本带宽</strong> —— 这就是将来要 Reset 到的目标值。</li>
+</ul>
+
+<p>确认需<strong>持续超过 800ms</strong>，且满足以下<strong>任一</strong>二次证据路径：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>确认路径</th>
+      <th>判据</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>抖动路径</strong></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且（无 stats 或 <code class="language-plaintext highlighter-rouge">uplink_jitter_diverge &gt; 100</code>）</td>
+      <td>抖动相对基线发散严重（<code class="language-plaintext highlighter-rouge">jitter_diverge</code> 来自丢包类型判别模块）</td>
+    </tr>
+    <tr>
+      <td><strong>带宽路径</strong></td>
+      <td>
+<code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且（无 stats 或 trendline 估计 == <code class="language-plaintext highlighter-rouge">kBwCongestion</code>）</td>
+      <td>Trendline 延迟梯度估计器独立判定为拥塞</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>确认后返回 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 并重置全部状态。</p>
+
+<hr>
+
+<h2 id="累积状态机">累积状态机</h2>
+
+<p>用「首触发时间戳 + 样本计数」把瞬时信号沉淀为持续判定：</p>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; Idle
+    state "Idle 未触发" as Idle
+    state "Accumulating 累积观察中" as Acc
+    state "Confirmed 早期拥塞确认" as Conf
+    Idle --&gt; Acc : "本轮 likely_congest 成立并记录首触发时间"
+    Acc --&gt; Acc : "持续 likely_congest 计数加一并更新短期最大带宽"
+    Acc --&gt; Idle : "某轮 likely_congest 不成立即全部重置"
+    Acc --&gt; Conf : "持续超 800ms 且 抖动或带宽确认路径达标"
+    Conf --&gt; Idle : "返回短期最大带宽给 BBR 并重置"
+</code></pre>
+
+<p>设计算法：</p>
+
+<ul>
+  <li>
+<strong>单帧不算数</strong>：任何一层不满足都会清零，杜绝瞬时毛刺误触发；</li>
+  <li>
+<strong>时间 + 计数双重持续性</strong>：既要 800ms 时长，又要足够样本数（抖动路径 &gt;20、带宽路径 &gt;10），避免低采样率下误判；</li>
+  <li>
+<strong>两条独立确认路径</strong>：抖动发散与 Trendline 拥塞判定互为补充，任一成立即可，提升召回；</li>
+  <li>
+<strong>Reset 到”短期最大”而非”瞬时最低”</strong>：不把估计砸到疑似窗口内的最低样本（过度反应会导致带宽利用率骤降），而是取该窗口内的<strong>最大样本</strong>，做到”快速但不过激”地收敛。</li>
+</ul>
+
+<hr>
+
+<h2 id="关键参数一览">关键参数一览</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>值</th>
+      <th>作用</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>生效阶段</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth_</code>
+</td>
+      <td>只在带宽应稳定时检测</td>
+    </tr>
+    <tr>
+      <td>管道打满阈值 1</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.2×cwnd</code>
+</td>
+      <td>剩余空间极小</td>
+    </tr>
+    <tr>
+      <td>管道打满阈值 2</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.25×cwnd</code>
+</td>
+      <td>剩余不足一次 ACK</td>
+    </tr>
+    <tr>
+      <td>带宽骤降阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; 0.4 × max_bandwidth</code></td>
+      <td>实测带宽腰斩到四成以下</td>
+    </tr>
+    <tr>
+      <td>排队延迟阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
+      <td>bufferbloat 门槛</td>
+    </tr>
+    <tr>
+      <td>抖动初判阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
+      <td>第一层抖动佐证</td>
+    </tr>
+    <tr>
+      <td>持续时长阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">800ms</code></td>
+      <td>确认所需最短持续</td>
+    </tr>
+    <tr>
+      <td>抖动路径</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且 <code class="language-plaintext highlighter-rouge">jitter_diverge &gt; 100</code>
+</td>
+      <td>二次确认路径之一</td>
+    </tr>
+    <tr>
+      <td>带宽路径</td>
+      <td>
+<code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且 trendline == <code class="language-plaintext highlighter-rouge">kBwCongestion</code>
+</td>
+      <td>二次确认路径之一</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2 id="小结">小结</h2>
+
+<p><code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 是一个精巧的<strong>带宽估计旁路急刹车</strong>：</p>
+
+<ul>
+  <li>
+<strong>补 BBR 短板</strong>：针对 windowed-max 带宽滤波器”对下降反应慢”的天然缺陷，提供一条快速下修通道，避免链路降容后长时间过量发送、堆积队列；</li>
+  <li>
+<strong>组合信号闭环</strong>：以”管道满却发不快 + 带宽骤降 + 延迟升高 + 抖动升高”的矛盾组合精准刻画早期拥塞，逻辑自洽、误报率低；</li>
+  <li>
+<strong>两层门槛 + 双确认路径</strong>：单帧判疑似、800ms 累积确认、抖动/Trendline 双路二次证据，兼顾灵敏与稳健；</li>
+  <li>
+<strong>温和收敛</strong>：Reset 到短期最大带宽而非瞬时最低，快速缓解队列的同时避免带宽利用率过度塌陷。</li>
+</ul>
+
+
+            <div class="post-copyright">
+              <p>
+                <span>版权声明：</span>
+                如无特别声明，本文版权归
+                <a href="https://gbcpp.github.io" class="cplink">Mr Chen</a>
+                所有，转载请注明本文链接。 
+              </p>
+              
+                <p> 
+                  （采用 
+                  <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="extlinks">CC BY-NC-SA 4.0</a> 
+                  许可协议进行授权）
+                </p>
+              
+              <p><span>本文标题：</span>《 预拥塞检测算法的检测原理 》</p>
+              <p><span>本文链接：</span><a href="https://gbcpp.github.io/protocol/early-congest-detector.html" class="cplink">https://gbcpp.github.io/protocol/early-congest-detector.html</a></p>
+              <p class="tips">本文最后一次更新为 <span></span> 天前，文章中的某些内容可能已过时！</p>
+            </div>
+          </article>
+        </div>   
+        <div class="table-of-contents">
+          <h2>目录</h2>
+          <ul><li><a onclick="scrollToAdjust('预拥塞检测算法')">预拥塞检测算法</a><ul><li><a onclick="scrollToAdjust('为什么需要<strong>预拥塞检测</strong>')">为什么需要<strong>预拥塞检测</strong></a></li><li><a onclick="scrollToAdjust('数据流与消费端')">数据流与消费端</a></li><li><a onclick="scrollToAdjust('判定逻辑两层门槛-+-时间持续')">判定逻辑：两层门槛 + 时间持续</a><ul><li><a onclick="scrollToAdjust('第一层<code-class="language-plaintext-highlighter-rouge">likely_congest</code>（本轮疑似拥塞）')">第一层：<code class="language-plaintext highlighter-rouge">likely_congest</code>（本轮疑似拥塞）</a></li><li><a onclick="scrollToAdjust('第二层累积确认')">第二层：累积确认</a></li></ul></li><li><a onclick="scrollToAdjust('累积状态机')">累积状态机</a></li><li><a onclick="scrollToAdjust('关键参数一览')">关键参数一览</a></li><li><a onclick="scrollToAdjust('小结')">小结</a></li></ul></li></ul>
+        </div>
+      </div>
+      
+
+      
+      <div class="social-share-wrapper">
+        <div class="social-share"></div>
+      </div>
+      
+    </div>
+
+    <div>
+     
+     
+     <section class="post-footer-item comment" style="padding-bottom: 4em">
+       <script src="https://giscus.app/client.js"
+           data-repo="gbcpp/gbcpp.github.io"
+           data-repo-id="R_kgDOKcVWMw"
+           data-category="Announcements"
+           data-category-id="DIC_kwDOKcVWM84DBXoz"
+           data-mapping="pathname"
+           data-strict="0"
+           data-reactions-enabled="1"
+           data-emit-metadata="0"
+           data-input-position="bottom"
+           data-theme="light"
+           data-lang="zh-CN"
+           crossorigin="anonymous"
+           async>
+       </script>
+     </section>
+     
+    </div>
+
+    <section class="author-detail">
+      <section class="post-footer-item author-card">
+        <div class="avatar">
+          <img src="/assets/img/wx_avatar.jpg" alt="">
+        </div>
+        <div class="author-name" rel="author">Mr Chen</div>
+        <div class="bio">
+          <p>技术工作者</p>
+        </div>
+        
+        <ul class="sns-links">
+          
+          <li>
+            <a href="https://github.com/gbcpp" target="_blank" aria-label="github">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-github"></use>
+              </svg>
+            </a>
+          </li>
+          
+          <li>
+            <a href="https://blog.csdn.net/m0_59561186?spm=1010.2135.3001.5343)" target="_blank" aria-label="csdn">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-csdn"></use>
+              </svg>
+            </a>
+          </li>
+          
+        </ul>
+        
+      </section>
+      <section class="post-footer-item read-next">
+        
+        <div class="read-next-item">
+          <a href="/protocol/rut-protocol-design.html" class="read-next-link" aria-label="RUT protocol design"></a>
+          <section>
+            <span>RUT protocol design</span>
+            <p>设计思想</p>
+          </section>
+          
+      </div>
+        
+
+        
+        <div class="read-next-item">
+          <a href="/notes/install-bcc.html" class="read-next-link" aria-label="Install bcc and use memleak on Ubuntu22.04"></a>
+            <section>
+              <span>Install bcc and use memleak on Ubuntu22.04</span>
+              <p>  BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF ...</p>
+            </section>
+            
+            <div class="filter"></div>
+            <img src="/assets/img/shan.jpg" alt="">
+            
+        </div>
+        
+      </section>
+      
+   
+      
+
+      
+    </section>
+
+  
+
+    
+
+
+<footer class="g-footer">
+  <div class="g-container">
+    <div class="g-left">
+      <section class="links">
+        本站由 <a href="//jekyllrb.com" target="_blank" class="extlinks">Jekyll</a> 和 (基于 <a href="https://github.com/kaeyleo/jekyll-theme-H2O" target="_blank" class="extlinks">H2O</a> 的) <a href="https://github.com/zhonger/jekyll-theme-H2O-ac" target="_blank" class="extlinks">H2O-ac</a> 强力驱动
+         (<a href="https://github.com/zhonger/jekyll-theme-H2O-ac/releases/tag/v.1.2.1" target="_blank" class="extlinks">v1.2.1</a>)  
+        
+      </section>
+      <section class="links">Mr Chen ©
+        
+        
+          2023
+          -
+        
+        2026
+        
+          <a href="https://beian.miit.gov.cn/" target="_blank" class="extlinks">沪ICP备xxxxxxxx号</a>
+        
+      </section>
+      
+      <section>
+        <span id="busuanzi_container_site_pv">
+          👁️ 总浏览量 <span id="busuanzi_value_site_pv"></span> <b>·</b>
+        </span>
+        <span id="busuanzi_container_site_uv">
+          👤 总访问量 <span id="busuanzi_value_site_uv"></span>
+        </span>
+      </section>
+      
+      <section>
+        
+      </section>
+    </div>
+    <div class="g-right">
+      
+      
+    </div>
+    
+  </div>
+</footer>
+<div class="cookie-tip">
+   为了提升本站的使用体验和必要功能的正常使用，本站会使用本地 Cookie。详细请查看「 <a href="/tos.html">本站使用条款</a> 」了解更多。
+
+  <button id="accept-tos">同意</button>
+</div>
+<button id="list" aria-label="Scroll back to top" class="mobile-list" type="button">
+  <svg class="icon list day" aria-hidden="true">
+    <use xlink:href="#icon-list-day"></use>
+  </svg>
+  <svg class="icon list night" aria-hidden="true">
+    <use xlink:href="#icon-list-night"></use>
+  </svg>
+  <svg class="icon exit day" aria-hidden="true">
+    <use xlink:href="#icon-exit-day"></use>
+  </svg>
+  <svg class="icon exit night" aria-hidden="true">
+    <use xlink:href="#icon-exit-night"></use>
+  </svg>
+</button>
+<button id="bttb" aria-label="Scroll back to top" class="bttb" type="button">
+  <svg class="icon up day" aria-hidden="true">
+    <use xlink:href="#icon-up-day"></use>
+  </svg>
+  <svg class="icon up night" aria-hidden="true">
+    <use xlink:href="#icon-up-night"></use>
+  </svg>
+</button>
+
+
+    
+    <div class="modal">
+        <div class="modal-content">
+          <header>
+            <span class="close">&times;</span>
+          </header>
+          <div class="container"></div>
+        </div>
+    </div>
+    
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+  <script>
+    socialShare('.social-share', {
+      sites: [
+        
+          'wechat'
+          ,
+          
+        
+          'weibo'
+          ,
+          
+        
+          'douban'
+          ,
+          
+        
+          'twitter'
+          
+        
+      ],
+      wechatQrcodeTitle: "分享到微信朋友圈",
+      wechatQrcodeHelper: '<p>扫码后点击右上角</p><p>将本文分享至朋友圈</p>'
+    });
+    $("a.social-share-icon").each(function() {
+      $(this).attr("aria-label", $(this).attr("class").split(' ')[1])
+    });
+  </script>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="/assets/js/app.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazysizes.min.js" async></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/customParseFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.2/plugin/relativeTime.js"></script>
+  <script>
+    /**
+    * Better Scroll Experience
+    */
+    function scrollToAdjust(id){
+      var element = document.getElementById(id);
+      var headerOffset = 90;
+      var elementPosition = element.getBoundingClientRect().top;
+      var offsetPosition = elementPosition + window.scrollY - headerOffset;
+      window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+      });
+    }
+      // 给图片添加链接
+      $(document).ready(function() {
+          var baseurl = $("meta[property='og:baseurl']").attr('content');
+          $("p img").each(function() {
+              $(this).attr('data-src', $(this).attr('src')).removeAttr('src').addClass("lazyload").attr('src', baseurl + '/assets/img/loading.gif');
+              var strA = "<a data-fancybox='gallery' ref='gallery' href='" + $(this).attr('data-src') + "' data-caption='" + $(this).attr('alt') + "'></a>";
+              $(this).wrapAll(strA);
+              var caption = $(this)[0].alt;
+              $(this).parent().after('<span class="caption">' + caption + '</span>');
+          });
+
+          Fancybox.bind('[data-fancybox]', {
+            on: {
+              load: (fancybox, slide) => {
+                var gray = $("meta[property='og:gray']").attr('content');
+                if(gray == "true"){
+                    $(".fancybox__content img").addClass("gray");
+                    $(".carousel__track .fancybox__thumb").addClass("gray");
+                }
+              }
+            }
+          });   
+          
+          
+
+          if($("#comments-switch").length > 0){
+            var comment_status = $("#cmn-toggle-4")[0].checked;
+            if(comment_status){
+              $("#waline").addClass("active");
+            }else {
+              $("#disqus_thread").addClass("active");
+            }
+            $("#cmn-toggle-4").click(function(){
+              $("#disqus_thread").toggleClass("active");
+              $("#waline").toggleClass("active");
+            })
+          }else {
+            if($("#disqus_thread").length > 0) {
+              $("#disqus_thread").addClass("active");
+            }else if($("#waline").length > 0) {
+              $("#waline").addClass("active");
+            }
+          }
+
+          var time_formats = ['YYYY-MM-DD HH:mm:ss ZZ', 'YYYY DD MMM HH:mm:ss ZZ', 'YYYY年MM月DD日 HH:mm:ss ZZ'];
+          var display_formats = ['YYYY-MM-DD HH:mm:ss', 'YYYY DD MMM HH:mm:ss', 'YYYY年MM月DD日 HH:mm:ss'];
+          function dateFormat(date, format){
+            var date_org = dayjs(date, time_formats[format]);
+            var date     = date_org.format(display_formats[format]);
+            return {"date_org": date_org, "date": date}
+          }
+
+          dayjs.extend(window.dayjs_plugin_customParseFormat);
+          dayjs.extend(window.dayjs_plugin_relativeTime);
+          var post_date = $("meta[property='post-date']").attr('content');
+          var post_date_format = $("meta[property='post-date-format']").attr('content');
+          var local_post_date = dateFormat(post_date, post_date_format);
+
+          $(".post time span.create-at").html(local_post_date["date"]);
+
+          fetch("https://api.github.com/repos/gbcpp/gbcpp.github.io/commits?path=_posts/protocol/2026-05-30-early-congest-detector.md")
+          .then((response) => {
+            return response.json();
+          })
+          .then((commits) => {
+            if(commits.length != 0){
+              var update_at = dayjs(commits[0]['commit']['committer']['date']);
+            }else {
+              var update_at = post_date
+            }
+
+            var local_update_at = dateFormat(update_at, post_date_format);
+
+            var relative_time = dayjs().diff(local_update_at["date_org"], 'day');
+            $(".post-copyright .tips span").append(relative_time);
+            if(relative_time > 365){
+              $(".post-copyright .tips").addClass("active");
+            }
+          });   
+          
+          /*
+          * Keyboard shortcut bind: left and right
+          */
+
+          var previous_url = $("meta[property='og:previous_url']").attr('content');
+          var next_url = $("meta[property='og:next_url']").attr('content');
+
+          hotkeys('left', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(previous_url){
+                  console.log('you pressed left!');
+                  window.location.href = previous_url;
+              }else {
+                  $("#no-previous").addClass("active");
+                  setTimeout(function(){$("#no-previous").removeClass("active");}, 1500);
+              }
+          });
+
+          hotkeys('right', function(event, handler){
+              // Prevent the default refresh event under WINDOWS system
+              event.preventDefault();
+              if(next_url){
+                  console.log('you pressed right!');
+                  window.location.href = next_url;
+              }else {
+                  $("#no-next").addClass("active");
+                  setTimeout(function(){$("#no-next").removeClass("active");}, 1500);
+              }
+          });
+      });
+  </script>
+  <script src="https://at.alicdn.com/t/font_3046306_skfh9jzzbbf.js"></script>
+
+  
+  
+  
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+        if (navigator.serviceWorker.controller) {
+            console.log("An active service worker found, no need to register");
+        } else {
+            // Register the service worker
+            navigator.serviceWorker
+            .register("/sw.js", {
+                scope: "/"
+            })
+            .then(function (reg) {
+                console.log("Service worker has been registered for scope: " + reg.scope);
+            });
+        }
+    }
+
+// 检测浏览器是否支持SW
+// if(navigator.serviceWorker != null){
+//     navigator.serviceWorker.register("/sw.js")
+//         .then(function(registartion){
+//             console.log('支持sw:',registartion.scope)
+//         })
+// } else {
+//     console.log('不支持sw')
+// }
+</script>
+	<!--
+Author: Ray-Eldath
+refer to:
+ - https://docs.mathjax.org/en/latest/options/index.html
+-->
+
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$', '$$']]
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.6/dist/mermaid.min.js"></script>
+    <script>
+        $(document).ready(function (){
+            mermaid.initialize({
+                startOnLoad:true,
+                theme: "default",
+            });
+            mermaid.init(undefined, $('.mermaid2'));
+        });
+    </script>
+ 
+   
+</body>
+
+</html>
