@@ -2,7 +2,7 @@
 layout: post
 title: '预拥塞检测算法的检测原理'
 subtitle: '检测真实拥塞发生前的信号，给 CC 及时刹车限速'
-date: 2025-05-30 11:45:41 +0800
+date: 2026-05-30 11:45:41 +0800
 author: Mr Chen
 # cover: '/assets/img/shan.jpg'
 #cover_author: 'rogov'
