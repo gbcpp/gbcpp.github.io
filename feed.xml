@@ -1,4 +1,246 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-30T03:47:51+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">如何区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="如何区分随机丢包与拥塞丢包" /><published>2026-05-05T06:13:00+00:00</published><updated>2026-05-05T06:13:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-30T04:03:10+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">预拥塞检测算法的检测原理</title><link href="https://gbcpp.github.io/protocol/early-congest-detector.html" rel="alternate" type="text/html" title="预拥塞检测算法的检测原理" /><published>2026-05-30T03:45:41+00:00</published><updated>2026-05-30T03:45:41+00:00</updated><id>https://gbcpp.github.io/protocol/early-congest-detector</id><content type="html" xml:base="https://gbcpp.github.io/protocol/early-congest-detector.html"><![CDATA[<h1 id="预拥塞检测算法">预拥塞检测算法</h1>
+
+<blockquote>
+  <p>预拥塞检测算法的实现原理：实现如何在 BBR 稳定发送阶段，用「管道打满 + 带宽骤降 + 排队延迟升高 + 抖动升高」的组合信号快速识别早期拥塞，并跳过 BBR 缓慢的带宽滤波器，把带宽估计一步压到近期真实水平，从源头遏制排队延迟膨胀，降低网络拥塞的影响时长。</p>
+</blockquote>
+
+<hr />
+
+<h2 id="为什么需要预拥塞检测">为什么需要<strong>预拥塞检测</strong></h2>
+
+<p>BBR 用一个 <strong>windowed-max 滤波器</strong> <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 记录最近若干轮的最大带宽样本作为带宽估计。这个设计对带宽<strong>上升</strong>很灵敏，但对带宽<strong>下降</strong>却很迟钝：</p>
+
+<ul>
+  <li>一旦链路可用带宽突然下降（竞争流涌入、无线链路恶化、路由切换到窄链路），BBR 仍会沿用滤波窗口里那个<strong>过时的高带宽估计</strong>继续发送；</li>
+  <li>结果是发送速率持续高于链路容量 → 数据堆进瓶颈缓冲区 → 排队延迟飙升（bufferbloat）；</li>
+  <li>要等旧的高带宽样本<strong>滑出滤波窗口</strong>，估计才会自然降下来，这个过程可能长达数个 RTT；而 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 又要 10 秒才来一次，太慢。</li>
+</ul>
+
+<p>预拥塞检测算法 <code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 就是为这个短板设计的<strong>急刹车</strong>：在带宽本应稳定的 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 阶段，实时监控 <strong>链路管道已满却发不快、延迟和抖动却在涨</strong> 这组矛盾信号，一旦持续成立，就判定<strong>早期拥塞已经发生</strong>，把 <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 直接 Reset 到<strong>近期真实观测到的短期最大带宽</strong>，让 pacing 与 cwnd 快速收敛。</p>
+
+<blockquote>
+  <p>它和 <code class="language-plaintext highlighter-rouge">检测延迟突变算法</code> 是一对互补的”补丁”：后者修的是 <code class="language-plaintext highlighter-rouge">min_rtt</code>（链路延迟突变），前者修的是 <code class="language-plaintext highlighter-rouge">max_bandwidth</code>（带宽骤降）—— 都是在补 BBR<strong>对下降反应慢</strong>的天然缺陷。</p>
+</blockquote>
+
+<hr />
+
+<h2 id="数据流与消费端">数据流与消费端</h2>
+
+<p>检测器在 BBR 每个 ACK 事件中被调用，且<strong>仅在 <code class="language-plaintext highlighter-rouge">mode_ == PROBE_BW 或 DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth</code> 时</strong>才触发：</p>
+
+<pre><code class="language-mermaid">flowchart LR
+    subgraph IN["每个 ACK 事件输入"]
+        MB["max_bandwidth 当前带宽估计"]
+        SB["sample_bandwidth 本次样本带宽"]
+        CW["cwnd 与 bytes_in_flight"]
+        RT["smoothed_rtt 减 min_rtt 排队延迟"]
+        JT["uplink_jitter95 与 jitter_diverge"]
+        TR["trendline 带宽使用状态"]
+    end
+    IN --&gt; D["EarlyCongestionDetectAlgo.MaybeEarlyCongestionHappened"]
+    D --&gt;|"返回 0"| N["无动作"]
+    D --&gt;|"返回 短期最大带宽 bw"| A["BBR 执行 max_bandwidth_.Reset(bw)"]
+    A --&gt; A2["reviser.OnEarlyCongestionDetected(bw) 同步压低 shadow/base/longterm 滤波器"]
+    A --&gt; A3["pacing 与 cwnd 随估计快速收敛, 缓解队列堆积"]
+</code></pre>
+
+<p>消费逻辑：返回非零 <code class="language-plaintext highlighter-rouge">bw</code> 时，BBR 把 windowed-max 滤波器<strong>直接 Reset 到该值</strong>（绕过慢速滑出），并把带宽修正器内部的三个影子滤波器一并压下去，避免它们把估计又顶回高位。</p>
+
+<blockquote>
+  <p>为什么只在 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且满带宽阶段生效？因为 <code class="language-plaintext highlighter-rouge">STARTUP</code> 阶段带宽本就在探测爬升、管道打满和延迟上升都是正常现象；只有在带宽理应稳定的阶段，”管道满 + 带宽降 + 延迟涨”同时出现才真正指向拥塞。</p>
+</blockquote>
+
+<hr />
+
+<h2 id="判定逻辑两层门槛--时间持续">判定逻辑：两层门槛 + 时间持续</h2>
+
+<p>算法分两层：先判断<strong>本轮是否疑似拥塞</strong>（<code class="language-plaintext highlighter-rouge">likely_congest</code>），再对疑似状态做<strong>状态累积确认</strong>（持续 800ms + 二次论证）。</p>
+
+<pre><code class="language-mermaid">flowchart TD
+    S["仅在 PROBE_BW 或 DRAIN 且 已达满带宽 时调用"] --&gt; A{"likely_congest 本轮疑似拥塞?&lt;br/&gt;管道打满 且 样本带宽 小于 0.4 倍估计 且 排队延迟 超 120ms 且 jitter95 超 20ms"}
+    A --&gt;|否| R["重置累积状态, 返回 0"]
+    A --&gt;|是| B["累积: 样本计数加一, 记录首次触发时间, 更新短期最大带宽"]
+    B --&gt; C{"持续 超过 800ms 且 满足 抖动路径 或 带宽路径?"}
+    C --&gt;|否| Z["返回 0, 继续累积"]
+    C --&gt;|是| E["判定早期拥塞: 返回短期最大带宽, 重置状态"]
+</code></pre>
+
+<h3 id="第一层likely_congest本轮疑似拥塞">第一层：<code class="language-plaintext highlighter-rouge">likely_congest</code>（本轮疑似拥塞）</h3>
+
+<p>需<strong>同时</strong>满足如下四个条件，记 <code class="language-plaintext highlighter-rouge">remain = cwnd - bytes_in_flight</code>（剩余可发空间）：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>条件</th>
+      <th>判据</th>
+      <th>直觉含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>管道打满</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS 且 remain &lt; cwnd×0.2</code>，或 <code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked 且 remain &lt; cwnd×0.25</code></td>
+      <td>inflight 几乎占满 cwnd，发送受 <strong>cwnd 限制</strong>而非应用限制 —— 想发但发不出去</td>
+    </tr>
+    <tr>
+      <td><strong>带宽骤降</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; max_bandwidth × 0.4</code></td>
+      <td>实测样本带宽跌到估计值的 40% 以下</td>
+    </tr>
+    <tr>
+      <td><strong>排队延迟升高</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
+      <td>明显 bufferbloat</td>
+    </tr>
+    <tr>
+      <td><strong>抖动佐证</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
+      <td>链路争用/受限的抖动特征</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>这四条构成一个<strong>逻辑闭环</strong>：管道明明打满了（说明有足够数据要发），实测带宽却只有估计的四成，同时延迟和抖动都在涨 —— 这只能解释为”链路容量已经下降、估计值虚高、数据在排队”。</p>
+
+<p><strong>任一条件不满足</strong> → 立即重置累积状态（首触发时间、样本计数、短期最大带宽全部清零），返回 0。这保证只有<strong>持续</strong>的疑似拥塞才会被累积。</p>
+
+<h3 id="第二层累积确认">第二层：累积确认</h3>
+
+<p>每轮 <code class="language-plaintext highlighter-rouge">likely_congest</code> 成立时：</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">likely_congest_sample_count++</code>（样本计数）；</li>
+  <li>首次成立时记录 <code class="language-plaintext highlighter-rouge">likely_congest_happened_time</code>；</li>
+  <li>用 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 跟踪疑似窗口内观测到的<strong>最大样本带宽</strong> —— 这就是将来要 Reset 到的目标值。</li>
+</ul>
+
+<p>确认需<strong>持续超过 800ms</strong>，且满足以下<strong>任一</strong>二次证据路径：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>确认路径</th>
+      <th>判据</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>抖动路径</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且（无 stats 或 <code class="language-plaintext highlighter-rouge">uplink_jitter_diverge &gt; 100</code>）</td>
+      <td>抖动相对基线发散严重（<code class="language-plaintext highlighter-rouge">jitter_diverge</code> 来自丢包类型判别模块）</td>
+    </tr>
+    <tr>
+      <td><strong>带宽路径</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且（无 stats 或 trendline 估计 == <code class="language-plaintext highlighter-rouge">kBwCongestion</code>）</td>
+      <td>Trendline 延迟梯度估计器独立判定为拥塞</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>确认后返回 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 并重置全部状态。</p>
+
+<hr />
+
+<h2 id="累积状态机">累积状态机</h2>
+
+<p>用「首触发时间戳 + 样本计数」把瞬时信号沉淀为持续判定：</p>
+
+<pre><code class="language-mermaid">stateDiagram-v2
+    [*] --&gt; Idle
+    state "Idle 未触发" as Idle
+    state "Accumulating 累积观察中" as Acc
+    state "Confirmed 早期拥塞确认" as Conf
+    Idle --&gt; Acc : "本轮 likely_congest 成立并记录首触发时间"
+    Acc --&gt; Acc : "持续 likely_congest 计数加一并更新短期最大带宽"
+    Acc --&gt; Idle : "某轮 likely_congest 不成立即全部重置"
+    Acc --&gt; Conf : "持续超 800ms 且 抖动或带宽确认路径达标"
+    Conf --&gt; Idle : "返回短期最大带宽给 BBR 并重置"
+</code></pre>
+
+<p>设计算法：</p>
+
+<ul>
+  <li><strong>单帧不算数</strong>：任何一层不满足都会清零，杜绝瞬时毛刺误触发；</li>
+  <li><strong>时间 + 计数双重持续性</strong>：既要 800ms 时长，又要足够样本数（抖动路径 &gt;20、带宽路径 &gt;10），避免低采样率下误判；</li>
+  <li><strong>两条独立确认路径</strong>：抖动发散与 Trendline 拥塞判定互为补充，任一成立即可，提升召回；</li>
+  <li><strong>Reset 到”短期最大”而非”瞬时最低”</strong>：不把估计砸到疑似窗口内的最低样本（过度反应会导致带宽利用率骤降），而是取该窗口内的<strong>最大样本</strong>，做到”快速但不过激”地收敛。</li>
+</ul>
+
+<hr />
+
+<h2 id="关键参数一览">关键参数一览</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>参数</th>
+      <th>值</th>
+      <th>作用</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>生效阶段</td>
+      <td><code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth_</code></td>
+      <td>只在带宽应稳定时检测</td>
+    </tr>
+    <tr>
+      <td>管道打满阈值 1</td>
+      <td><code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.2×cwnd</code></td>
+      <td>剩余空间极小</td>
+    </tr>
+    <tr>
+      <td>管道打满阈值 2</td>
+      <td><code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.25×cwnd</code></td>
+      <td>剩余不足一次 ACK</td>
+    </tr>
+    <tr>
+      <td>带宽骤降阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; 0.4 × max_bandwidth</code></td>
+      <td>实测带宽腰斩到四成以下</td>
+    </tr>
+    <tr>
+      <td>排队延迟阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
+      <td>bufferbloat 门槛</td>
+    </tr>
+    <tr>
+      <td>抖动初判阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
+      <td>第一层抖动佐证</td>
+    </tr>
+    <tr>
+      <td>持续时长阈值</td>
+      <td><code class="language-plaintext highlighter-rouge">800ms</code></td>
+      <td>确认所需最短持续</td>
+    </tr>
+    <tr>
+      <td>抖动路径</td>
+      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且 <code class="language-plaintext highlighter-rouge">jitter_diverge &gt; 100</code></td>
+      <td>二次确认路径之一</td>
+    </tr>
+    <tr>
+      <td>带宽路径</td>
+      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且 trendline == <code class="language-plaintext highlighter-rouge">kBwCongestion</code></td>
+      <td>二次确认路径之一</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="小结">小结</h2>
+
+<p><code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 是一个精巧的<strong>带宽估计旁路急刹车</strong>：</p>
+
+<ul>
+  <li><strong>补 BBR 短板</strong>：针对 windowed-max 带宽滤波器”对下降反应慢”的天然缺陷，提供一条快速下修通道，避免链路降容后长时间过量发送、堆积队列；</li>
+  <li><strong>组合信号闭环</strong>：以”管道满却发不快 + 带宽骤降 + 延迟升高 + 抖动升高”的矛盾组合精准刻画早期拥塞，逻辑自洽、误报率低；</li>
+  <li><strong>两层门槛 + 双确认路径</strong>：单帧判疑似、800ms 累积确认、抖动/Trendline 双路二次证据，兼顾灵敏与稳健；</li>
+  <li><strong>温和收敛</strong>：Reset 到短期最大带宽而非瞬时最低，快速缓解队列的同时避免带宽利用率过度塌陷。</li>
+</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[预拥塞检测算法]]></summary></entry><entry><title type="html">如何区分随机丢包与拥塞丢包</title><link href="https://gbcpp.github.io/protocol/loss-differentiation_algo.html" rel="alternate" type="text/html" title="如何区分随机丢包与拥塞丢包" /><published>2026-05-05T06:13:00+00:00</published><updated>2026-05-05T06:13:00+00:00</updated><id>https://gbcpp.github.io/protocol/loss-differentiation_algo</id><content type="html" xml:base="https://gbcpp.github.io/protocol/loss-differentiation_algo.html"><![CDATA[<h1 id="丢包类型检测算法">丢包类型检测算法</h1>
 
 <blockquote>
   <p>本文介绍丢包类型检测算法模块的功能与算法逻辑：如何用「Jitter + 排队延迟 + 突发形态 + 丢包率」多路信号，把丢包区分为<strong>拥塞丢包（congestion loss）与随机丢包（random loss）</strong>，并把结论反馈给拥塞控制算法，以保住决策是否需要降速。</p>
@@ -1685,249 +1927,7 @@ payload: 表示此控制帧的载荷，长度包含在frame_length中。
 
   <span class="n">kMax</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
 <span class="p">};</span>
-</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><category term="RUT" /><summary type="html"><![CDATA[设计思想]]></summary></entry><entry><title type="html">预拥塞检测算法的检测原理</title><link href="https://gbcpp.github.io/protocol/early-congest-detector.html" rel="alternate" type="text/html" title="预拥塞检测算法的检测原理" /><published>2025-05-30T03:45:41+00:00</published><updated>2025-05-30T03:45:41+00:00</updated><id>https://gbcpp.github.io/protocol/early-congest-detector</id><content type="html" xml:base="https://gbcpp.github.io/protocol/early-congest-detector.html"><![CDATA[<h1 id="预拥塞检测算法">预拥塞检测算法</h1>
-
-<blockquote>
-  <p>预拥塞检测算法的实现原理：实现如何在 BBR 稳定发送阶段，用「管道打满 + 带宽骤降 + 排队延迟升高 + 抖动升高」的组合信号快速识别早期拥塞，并跳过 BBR 缓慢的带宽滤波器，把带宽估计一步压到近期真实水平，从源头遏制排队延迟膨胀，降低网络拥塞的影响时长。</p>
-</blockquote>
-
-<hr />
-
-<h2 id="为什么需要预拥塞检测">为什么需要<strong>预拥塞检测</strong></h2>
-
-<p>BBR 用一个 <strong>windowed-max 滤波器</strong> <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 记录最近若干轮的最大带宽样本作为带宽估计。这个设计对带宽<strong>上升</strong>很灵敏，但对带宽<strong>下降</strong>却很迟钝：</p>
-
-<ul>
-  <li>一旦链路可用带宽突然下降（竞争流涌入、无线链路恶化、路由切换到窄链路），BBR 仍会沿用滤波窗口里那个<strong>过时的高带宽估计</strong>继续发送；</li>
-  <li>结果是发送速率持续高于链路容量 → 数据堆进瓶颈缓冲区 → 排队延迟飙升（bufferbloat）；</li>
-  <li>要等旧的高带宽样本<strong>滑出滤波窗口</strong>，估计才会自然降下来，这个过程可能长达数个 RTT；而 <code class="language-plaintext highlighter-rouge">PROBE_RTT</code> 又要 10 秒才来一次，太慢。</li>
-</ul>
-
-<p>预拥塞检测算法 <code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 就是为这个短板设计的<strong>急刹车</strong>：在带宽本应稳定的 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 阶段，实时监控 <strong>链路管道已满却发不快、延迟和抖动却在涨</strong> 这组矛盾信号，一旦持续成立，就判定<strong>早期拥塞已经发生</strong>，把 <code class="language-plaintext highlighter-rouge">max_bandwidth</code> 直接 Reset 到<strong>近期真实观测到的短期最大带宽</strong>，让 pacing 与 cwnd 快速收敛。</p>
-
-<blockquote>
-  <p>它和 <code class="language-plaintext highlighter-rouge">检测延迟突变算法</code> 是一对互补的”补丁”：后者修的是 <code class="language-plaintext highlighter-rouge">min_rtt</code>（链路延迟突变），前者修的是 <code class="language-plaintext highlighter-rouge">max_bandwidth</code>（带宽骤降）—— 都是在补 BBR<strong>对下降反应慢</strong>的天然缺陷。</p>
-</blockquote>
-
-<hr />
-
-<h2 id="数据流与消费端">数据流与消费端</h2>
-
-<p>检测器在 BBR 每个 ACK 事件中被调用，且<strong>仅在 <code class="language-plaintext highlighter-rouge">mode_ == PROBE_BW 或 DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth</code> 时</strong>才触发：</p>
-
-<pre><code class="language-mermaid">flowchart LR
-    subgraph IN["每个 ACK 事件输入"]
-        MB["max_bandwidth 当前带宽估计"]
-        SB["sample_bandwidth 本次样本带宽"]
-        CW["cwnd 与 bytes_in_flight"]
-        RT["smoothed_rtt 减 min_rtt 排队延迟"]
-        JT["uplink_jitter95 与 jitter_diverge"]
-        TR["trendline 带宽使用状态"]
-    end
-    IN --&gt; D["EarlyCongestionDetectAlgo.MaybeEarlyCongestionHappened"]
-    D --&gt;|"返回 0"| N["无动作"]
-    D --&gt;|"返回 短期最大带宽 bw"| A["BBR 执行 max_bandwidth_.Reset(bw)"]
-    A --&gt; A2["reviser.OnEarlyCongestionDetected(bw) 同步压低 shadow/base/longterm 滤波器"]
-    A --&gt; A3["pacing 与 cwnd 随估计快速收敛, 缓解队列堆积"]
-</code></pre>
-
-<p>消费逻辑：返回非零 <code class="language-plaintext highlighter-rouge">bw</code> 时，BBR 把 windowed-max 滤波器<strong>直接 Reset 到该值</strong>（绕过慢速滑出），并把带宽修正器内部的三个影子滤波器一并压下去，避免它们把估计又顶回高位。</p>
-
-<blockquote>
-  <p>为什么只在 <code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且满带宽阶段生效？因为 <code class="language-plaintext highlighter-rouge">STARTUP</code> 阶段带宽本就在探测爬升、管道打满和延迟上升都是正常现象；只有在带宽理应稳定的阶段，”管道满 + 带宽降 + 延迟涨”同时出现才真正指向拥塞。</p>
-</blockquote>
-
-<hr />
-
-<h2 id="判定逻辑两层门槛--时间持续">判定逻辑：两层门槛 + 时间持续</h2>
-
-<p>算法分两层：先判断<strong>本轮是否疑似拥塞</strong>（<code class="language-plaintext highlighter-rouge">likely_congest</code>），再对疑似状态做<strong>状态累积确认</strong>（持续 800ms + 二次论证）。</p>
-
-<pre><code class="language-mermaid">flowchart TD
-    S["仅在 PROBE_BW 或 DRAIN 且 已达满带宽 时调用"] --&gt; A{"likely_congest 本轮疑似拥塞?&lt;br/&gt;管道打满 且 样本带宽 小于 0.4 倍估计 且 排队延迟 超 120ms 且 jitter95 超 20ms"}
-    A --&gt;|否| R["重置累积状态, 返回 0"]
-    A --&gt;|是| B["累积: 样本计数加一, 记录首次触发时间, 更新短期最大带宽"]
-    B --&gt; C{"持续 超过 800ms 且 满足 抖动路径 或 带宽路径?"}
-    C --&gt;|否| Z["返回 0, 继续累积"]
-    C --&gt;|是| E["判定早期拥塞: 返回短期最大带宽, 重置状态"]
-</code></pre>
-
-<h3 id="第一层likely_congest本轮疑似拥塞">第一层：<code class="language-plaintext highlighter-rouge">likely_congest</code>（本轮疑似拥塞）</h3>
-
-<p>需<strong>同时</strong>满足如下四个条件，记 <code class="language-plaintext highlighter-rouge">remain = cwnd - bytes_in_flight</code>（剩余可发空间）：</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>条件</th>
-      <th>判据</th>
-      <th>直觉含义</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>管道打满</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS 且 remain &lt; cwnd×0.2</code>，或 <code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked 且 remain &lt; cwnd×0.25</code></td>
-      <td>inflight 几乎占满 cwnd，发送受 <strong>cwnd 限制</strong>而非应用限制 —— 想发但发不出去</td>
-    </tr>
-    <tr>
-      <td><strong>带宽骤降</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; max_bandwidth × 0.4</code></td>
-      <td>实测样本带宽跌到估计值的 40% 以下</td>
-    </tr>
-    <tr>
-      <td><strong>排队延迟升高</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
-      <td>明显 bufferbloat</td>
-    </tr>
-    <tr>
-      <td><strong>抖动佐证</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
-      <td>链路争用/受限的抖动特征</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>这四条构成一个<strong>逻辑闭环</strong>：管道明明打满了（说明有足够数据要发），实测带宽却只有估计的四成，同时延迟和抖动都在涨 —— 这只能解释为”链路容量已经下降、估计值虚高、数据在排队”。</p>
-
-<p><strong>任一条件不满足</strong> → 立即重置累积状态（首触发时间、样本计数、短期最大带宽全部清零），返回 0。这保证只有<strong>持续</strong>的疑似拥塞才会被累积。</p>
-
-<h3 id="第二层累积确认">第二层：累积确认</h3>
-
-<p>每轮 <code class="language-plaintext highlighter-rouge">likely_congest</code> 成立时：</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">likely_congest_sample_count++</code>（样本计数）；</li>
-  <li>首次成立时记录 <code class="language-plaintext highlighter-rouge">likely_congest_happened_time</code>；</li>
-  <li>用 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 跟踪疑似窗口内观测到的<strong>最大样本带宽</strong> —— 这就是将来要 Reset 到的目标值。</li>
-</ul>
-
-<p>确认需<strong>持续超过 800ms</strong>，且满足以下<strong>任一</strong>二次证据路径：</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>确认路径</th>
-      <th>判据</th>
-      <th>说明</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>抖动路径</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且（无 stats 或 <code class="language-plaintext highlighter-rouge">uplink_jitter_diverge &gt; 100</code>）</td>
-      <td>抖动相对基线发散严重（<code class="language-plaintext highlighter-rouge">jitter_diverge</code> 来自丢包类型判别模块）</td>
-    </tr>
-    <tr>
-      <td><strong>带宽路径</strong></td>
-      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且（无 stats 或 trendline 估计 == <code class="language-plaintext highlighter-rouge">kBwCongestion</code>）</td>
-      <td>Trendline 延迟梯度估计器独立判定为拥塞</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>确认后返回 <code class="language-plaintext highlighter-rouge">max_bandwidth_short_term</code> 并重置全部状态。</p>
-
-<hr />
-
-<h2 id="累积状态机">累积状态机</h2>
-
-<p>用「首触发时间戳 + 样本计数」把瞬时信号沉淀为持续判定：</p>
-
-<pre><code class="language-mermaid">stateDiagram-v2
-    [*] --&gt; Idle
-    state "Idle 未触发" as Idle
-    state "Accumulating 累积观察中" as Acc
-    state "Confirmed 早期拥塞确认" as Conf
-    Idle --&gt; Acc : "本轮 likely_congest 成立并记录首触发时间"
-    Acc --&gt; Acc : "持续 likely_congest 计数加一并更新短期最大带宽"
-    Acc --&gt; Idle : "某轮 likely_congest 不成立即全部重置"
-    Acc --&gt; Conf : "持续超 800ms 且 抖动或带宽确认路径达标"
-    Conf --&gt; Idle : "返回短期最大带宽给 BBR 并重置"
-</code></pre>
-
-<p>设计算法：</p>
-
-<ul>
-  <li><strong>单帧不算数</strong>：任何一层不满足都会清零，杜绝瞬时毛刺误触发；</li>
-  <li><strong>时间 + 计数双重持续性</strong>：既要 800ms 时长，又要足够样本数（抖动路径 &gt;20、带宽路径 &gt;10），避免低采样率下误判；</li>
-  <li><strong>两条独立确认路径</strong>：抖动发散与 Trendline 拥塞判定互为补充，任一成立即可，提升召回；</li>
-  <li><strong>Reset 到”短期最大”而非”瞬时最低”</strong>：不把估计砸到疑似窗口内的最低样本（过度反应会导致带宽利用率骤降），而是取该窗口内的<strong>最大样本</strong>，做到”快速但不过激”地收敛。</li>
-</ul>
-
-<hr />
-
-<h2 id="关键参数一览">关键参数一览</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>参数</th>
-      <th>值</th>
-      <th>作用</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>生效阶段</td>
-      <td><code class="language-plaintext highlighter-rouge">PROBE_BW</code> / <code class="language-plaintext highlighter-rouge">DRAIN</code> 且 <code class="language-plaintext highlighter-rouge">is_at_full_bandwidth_</code></td>
-      <td>只在带宽应稳定时检测</td>
-    </tr>
-    <tr>
-      <td>管道打满阈值 1</td>
-      <td><code class="language-plaintext highlighter-rouge">remain ≤ 2×MSS</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.2×cwnd</code></td>
-      <td>剩余空间极小</td>
-    </tr>
-    <tr>
-      <td>管道打满阈值 2</td>
-      <td><code class="language-plaintext highlighter-rouge">remain &lt; bytes_acked</code> 且 <code class="language-plaintext highlighter-rouge">&lt; 0.25×cwnd</code></td>
-      <td>剩余不足一次 ACK</td>
-    </tr>
-    <tr>
-      <td>带宽骤降阈值</td>
-      <td><code class="language-plaintext highlighter-rouge">sample_bandwidth &lt; 0.4 × max_bandwidth</code></td>
-      <td>实测带宽腰斩到四成以下</td>
-    </tr>
-    <tr>
-      <td>排队延迟阈值</td>
-      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt - min_rtt &gt; 120ms</code></td>
-      <td>bufferbloat 门槛</td>
-    </tr>
-    <tr>
-      <td>抖动初判阈值</td>
-      <td><code class="language-plaintext highlighter-rouge">uplink_jitter95 &gt; 20ms</code></td>
-      <td>第一层抖动佐证</td>
-    </tr>
-    <tr>
-      <td>持续时长阈值</td>
-      <td><code class="language-plaintext highlighter-rouge">800ms</code></td>
-      <td>确认所需最短持续</td>
-    </tr>
-    <tr>
-      <td>抖动路径</td>
-      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 20</code> 且 <code class="language-plaintext highlighter-rouge">jitter_diverge &gt; 100</code></td>
-      <td>二次确认路径之一</td>
-    </tr>
-    <tr>
-      <td>带宽路径</td>
-      <td><code class="language-plaintext highlighter-rouge">sample_cnt &gt; 10</code> 且 trendline == <code class="language-plaintext highlighter-rouge">kBwCongestion</code></td>
-      <td>二次确认路径之一</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h2 id="小结">小结</h2>
-
-<p><code class="language-plaintext highlighter-rouge">EarlyCongestionDetectAlgo</code> 是一个精巧的<strong>带宽估计旁路急刹车</strong>：</p>
-
-<ul>
-  <li><strong>补 BBR 短板</strong>：针对 windowed-max 带宽滤波器”对下降反应慢”的天然缺陷，提供一条快速下修通道，避免链路降容后长时间过量发送、堆积队列；</li>
-  <li><strong>组合信号闭环</strong>：以”管道满却发不快 + 带宽骤降 + 延迟升高 + 抖动升高”的矛盾组合精准刻画早期拥塞，逻辑自洽、误报率低；</li>
-  <li><strong>两层门槛 + 双确认路径</strong>：单帧判疑似、800ms 累积确认、抖动/Trendline 双路二次证据，兼顾灵敏与稳健；</li>
-  <li><strong>温和收敛</strong>：Reset 到短期最大带宽而非瞬时最低，快速缓解队列的同时避免带宽利用率过度塌陷。</li>
-</ul>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><summary type="html"><![CDATA[预拥塞检测算法]]></summary></entry><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T14:02:52+00:00</published><updated>2025-05-21T14:02:52+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
+</code></pre></div></div>]]></content><author><name>Mr Chen</name></author><category term="Protocol" /><category term="Protocol" /><category term="RUT" /><summary type="html"><![CDATA[设计思想]]></summary></entry><entry><title type="html">Install bcc and use memleak on Ubuntu22.04</title><link href="https://gbcpp.github.io/notes/install-bcc.html" rel="alternate" type="text/html" title="Install bcc and use memleak on Ubuntu22.04" /><published>2025-05-21T14:02:52+00:00</published><updated>2025-05-21T14:02:52+00:00</updated><id>https://gbcpp.github.io/notes/install-bcc</id><content type="html" xml:base="https://gbcpp.github.io/notes/install-bcc.html"><![CDATA[<blockquote>
   <p>BCC (BPF Compiler Collection) 是一个强大的工具集，用于开发和运行基于 eBPF 的系统性能分析和网络监控工具。最近需要在为新的运行于 Ubuntu22.04 之上的服务排查内存泄漏的问题，而在 Ubuntu 系统中，虽然可以通过 apt 安装 BCC，但存在很多诡异的兼容性问题，通过源码编译安装的方式能获取最新功能并解决版本兼容问题。这里记录 bcc 在 Ubuntu22.04 下进行编译安装，并进行内存泄漏检测的全部过程。</p>
 </blockquote>
 
