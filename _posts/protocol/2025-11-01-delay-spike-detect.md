@@ -68,7 +68,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 | 成员                    | 含义                                              |
 | --------------------- | ----------------------------------------------- |
-| `short_term_srtt`     | **基线轨道** 平滑 RTT（正常网络的短期 SRTT）                   |
+| `smoothed_rtt`     | **基线轨道** 平滑 RTT（正常网络的短期 SRTT）                   |
 | `rtt_variance`        | **基线轨道** 平滑方差；`-1` = 未初始化（bootstrap 哨兵）         |
 | `spiked_srtt`         | **spike 轨道** 平滑 RTT；`-1` = 本次候选尚未开始累积           |
 | `spiked_rtt_variance` | **spike 轨道** 平滑方差                               |
@@ -90,18 +90,14 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 ## 参数与阈值
 
-> 图片同表格，有时候表格渲染可能是乱码，可以查看图片。
-
-![](/assets/img/blog/delay-spike/table-4.png)
-
 | 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
 | --------------------------------------- | ------------ | --- | ------------------------------------------------------------------------------ |
 | `MinimalRttDispersionThreshold`        | `2500`       | ms² | 越界判据的方差下限。`2500 = 50²`，即 **偏差至少 50ms** 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）           |
-| 越界倍数（硬编码 `36`）                          | `36`         | —   | `36 = 6²`。`dispersion > 36·var ⟺                                               |
+| 越界倍数（硬编码 `36`）                          | `36`         | —   | `36 = 6²`。`dispersion > 36·var` 等价于 `abs(crtt − srtt) > 6σ`（6σ 越界判据）          |
 | `StableDelaySpikeWaitingTime`          | `50`         | ms  | 首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点                                             |
 | `MinimalDelaySpikeObservationDuration` | `200`        | ms  | 确认所需的 **最短** 观测时长（持续性下限）                                                       |
 | `MaximalDelaySpikeObservationDuration` | `1200`       | ms  | 确认的 **最长** 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）                                            |
-| `MaximalRttSpikeThreshold`             | `1200`       | ms  | 上跳幅度上限。`spiked_srtt < short_term_srtt + 1200` 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 `min_rtt` |
+| `MaximalRttSpikeThreshold`             | `1200`       | ms  | 上跳幅度上限。`spiked_srtt < smoothed_rtt + 1200` 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 `min_rtt` |
 | spike 样本数门限（硬编码 `10`）                   | `10`         | 个   | spike 轨道需累积 ≥10 个样本                                                            |
 | 误报回滚门限（硬编码 `3`）                         | `3`          | 个   | 候选挂起期间累计 3 个正常样本即回滚                                                            |
 | 上跳稳定性系数（硬编码 `50`）                       | `50`         | —   | `var·50 < srtt² ⟺ σ/srtt < 1/√50 ≈ 14.1%`（变异系数上限，**严**）                        |
@@ -130,7 +126,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 
 | 运行态            | 判定条件                     | 关键动作                                                               |
 | -------------- | ------------------------ | ------------------------------------------------------------------ |
-| `Bootstrap`    | `rtt_variance < 0`       | 用首样本直接初始化基线（`rtt_variance = dispersion`, `short_term_srtt = crtt`） |
+| `Bootstrap`    | `rtt_variance < 0`       | 用首样本直接初始化基线（`rtt_variance = dispersion`, `smoothed_rtt = crtt`） |
 | `Baseline`     | `first_spiked_time` 未初始化 | 每来一个正常样本就 EWMA 更新基线                                                |
 | `SpikePending` | `first_spiked_time` 已初始化 | 等待期（<50ms）只标记；越过 50ms 后向 spike 轨道累积 EWMA                           |
 | `Confirmed`    | 见 §6 确认判据                | 提升基线、输出方向、`ResetSpikeRecord`、返回 `true`                             |
@@ -151,7 +147,7 @@ BBR 的一切都建立在 `**min_rtt`（链路往返最低延迟）** 之上：
 rtt_dispersion > max(36 * rtt_variance, MinimalRttDispersionThreshold)
 ```
 
-`|crtt − short_term_srtt| > max(6σ, 50ms)`，即同时满足「偏离基线 >6 个标准差」**且**「绝对偏离 >50ms」。
+`|crtt − smoothed_rtt| > max(6σ, 50ms)`，即同时满足「偏离基线 >6 个标准差」**且**「绝对偏离 >50ms」。
 
 ### spike 轨道累积
 
@@ -171,12 +167,12 @@ AND spiked_rtt_count >= 10                                // ≥10 个 spike 样
 AND (
       // (a) 上跳：严稳定 + 高于基线 + 幅度不超 1200ms
       spiked_rtt_variance * 50 < spiked_srtt²
-        && spiked_srtt > short_term_srtt
-        && spiked_srtt < short_term_srtt + 1200
+        && spiked_srtt > smoothed_rtt
+        && spiked_srtt < smoothed_rtt + 1200
    OR
       // (b) 下跳：宽稳定 + 不高于基线
       spiked_rtt_variance * 10 < spiked_srtt²
-        && spiked_srtt <= short_term_srtt
+        && spiked_srtt <= smoothed_rtt
     )
 ```
 
@@ -184,8 +180,8 @@ AND (
 
 - `now > first_spiked_time + 1200ms` → 收敛太慢，`ResetSpikeRecord()`，`return false`（**不**认作干净阶跃）。
 - 否则 → 确认：
-  - `delay_spike_states = (spiked_srtt > short_term_srtt) ? SpikeUp : SpikeDown`；
-  - **提升基线**：`rtt_variance = spiked_rtt_variance`，`short_term_srtt = spiked_srtt`；
+  - `delay_spike_states = (spiked_srtt > smoothed_rtt) ? SpikeUp : SpikeDown`；
+  - **提升基线**：`rtt_variance = spiked_rtt_variance`，`smoothed_rtt = spiked_srtt`；
   - `ResetSpikeRecord()`，`return true`。
 
 > 有效确认窗口是 `(200ms, 1200ms]`。太快（<200ms）不算持续阶跃；太慢（>1200ms）不算干净阶跃。
