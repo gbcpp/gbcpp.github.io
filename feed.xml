@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-07-30T04:03:10+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">预拥塞检测算法的检测原理</title><link href="https://gbcpp.github.io/protocol/early-congest-detector.html" rel="alternate" type="text/html" title="预拥塞检测算法的检测原理" /><published>2026-05-30T03:45:41+00:00</published><updated>2026-05-30T03:45:41+00:00</updated><id>https://gbcpp.github.io/protocol/early-congest-detector</id><content type="html" xml:base="https://gbcpp.github.io/protocol/early-congest-detector.html"><![CDATA[<h1 id="预拥塞检测算法">预拥塞检测算法</h1>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://gbcpp.github.io/" rel="alternate" type="text/html" /><updated>2026-08-11T12:37:34+00:00</updated><id>https://gbcpp.github.io/feed.xml</id><title type="html">Mr Chen</title><subtitle>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</subtitle><author><name>Mr Chen</name></author><entry><title type="html">预拥塞检测算法的检测原理</title><link href="https://gbcpp.github.io/protocol/early-congest-detector.html" rel="alternate" type="text/html" title="预拥塞检测算法的检测原理" /><published>2026-05-30T03:45:41+00:00</published><updated>2026-05-30T03:45:41+00:00</updated><id>https://gbcpp.github.io/protocol/early-congest-detector</id><content type="html" xml:base="https://gbcpp.github.io/protocol/early-congest-detector.html"><![CDATA[<h1 id="预拥塞检测算法">预拥塞检测算法</h1>
 
 <blockquote>
   <p>预拥塞检测算法的实现原理：实现如何在 BBR 稳定发送阶段，用「管道打满 + 带宽骤降 + 排队延迟升高 + 抖动升高」的组合信号快速识别早期拥塞，并跳过 BBR 缓慢的带宽滤波器，把带宽估计一步压到近期真实水平，从源头遏制排队延迟膨胀，降低网络拥塞的影响时长。</p>
@@ -1270,7 +1270,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
   </thead>
   <tbody>
     <tr>
-      <td><code class="language-plaintext highlighter-rouge">short_term_srtt</code></td>
+      <td><code class="language-plaintext highlighter-rouge">smoothed_rtt</code></td>
       <td><strong>基线轨道</strong> 平滑 RTT（正常网络的短期 SRTT）</td>
     </tr>
     <tr>
@@ -1320,25 +1320,84 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 
 <h2 id="参数与阈值">参数与阈值</h2>
 
-<blockquote>
-  <p>图片同表格，有时候表格渲染可能是乱码，可以查看图片。</p>
-</blockquote>
-
-<p><img src="/assets/img/blog/delay-spike/table-4.png" alt="" /></p>
-
-<p>| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
-| ————————————— | ———— | — | —————————————————————————— |
-| <code class="language-plaintext highlighter-rouge">MinimalRttDispersionThreshold</code>        | <code class="language-plaintext highlighter-rouge">2500</code>       | ms² | 越界判据的方差下限。<code class="language-plaintext highlighter-rouge">2500 = 50²</code>，即 <strong>偏差至少 50ms</strong> 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）           |
-| 越界倍数（硬编码 <code class="language-plaintext highlighter-rouge">36</code>）                          | <code class="language-plaintext highlighter-rouge">36</code>         | —   | <code class="language-plaintext highlighter-rouge">36 = 6²</code>。<code class="language-plaintext highlighter-rouge">dispersion &gt; 36·var ⟺                                               |
-| </code>StableDelaySpikeWaitingTime<code class="language-plaintext highlighter-rouge">          | </code>50<code class="language-plaintext highlighter-rouge">         | ms  | 首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点                                             |
-| </code>MinimalDelaySpikeObservationDuration<code class="language-plaintext highlighter-rouge"> | </code>200<code class="language-plaintext highlighter-rouge">        | ms  | 确认所需的 **最短** 观测时长（持续性下限）                                                       |
-| </code>MaximalDelaySpikeObservationDuration<code class="language-plaintext highlighter-rouge"> | </code>1200<code class="language-plaintext highlighter-rouge">       | ms  | 确认的 **最长** 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）                                            |
-| </code>MaximalRttSpikeThreshold<code class="language-plaintext highlighter-rouge">             | </code>1200<code class="language-plaintext highlighter-rouge">       | ms  | 上跳幅度上限。</code>spiked_srtt &lt; short_term_srtt + 1200<code class="language-plaintext highlighter-rouge"> 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 </code>min_rtt<code class="language-plaintext highlighter-rouge"> |
-| spike 样本数门限（硬编码 </code>10<code class="language-plaintext highlighter-rouge">）                   | </code>10<code class="language-plaintext highlighter-rouge">         | 个   | spike 轨道需累积 ≥10 个样本                                                            |
-| 误报回滚门限（硬编码 </code>3<code class="language-plaintext highlighter-rouge">）                         | </code>3<code class="language-plaintext highlighter-rouge">          | 个   | 候选挂起期间累计 3 个正常样本即回滚                                                            |
-| 上跳稳定性系数（硬编码 </code>50<code class="language-plaintext highlighter-rouge">）                       | </code>50<code class="language-plaintext highlighter-rouge">         | —   | </code>var·50 &lt; srtt² ⟺ σ/srtt &lt; 1/√50 ≈ 14.1%<code class="language-plaintext highlighter-rouge">（变异系数上限，**严**）                        |
-| 下跳稳定性系数（硬编码 </code>10<code class="language-plaintext highlighter-rouge">）                       | </code>10<code class="language-plaintext highlighter-rouge">         | —   | </code>var·10 &lt; srtt² ⟺ σ/srtt &lt; 1/√10 ≈ 31.6%<code class="language-plaintext highlighter-rouge">（变异系数上限，**宽**）                        |
-| EWMA 系数                                 | </code>1/8<code class="language-plaintext highlighter-rouge">, </code>1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |</p>
+<table>
+  <thead>
+    <tr>
+      <th>常量</th>
+      <th>值</th>
+      <th>单位</th>
+      <th>作用 / 数学含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MinimalRttDispersionThreshold</code></td>
+      <td><code class="language-plaintext highlighter-rouge">2500</code></td>
+      <td>ms²</td>
+      <td>越界判据的方差下限。<code class="language-plaintext highlighter-rouge">2500 = 50²</code>，即 <strong>偏差至少 50ms</strong> 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）</td>
+    </tr>
+    <tr>
+      <td>越界倍数（硬编码 <code class="language-plaintext highlighter-rouge">36</code>）</td>
+      <td><code class="language-plaintext highlighter-rouge">36</code></td>
+      <td>—</td>
+      <td><code class="language-plaintext highlighter-rouge">36 = 6²</code>。<code class="language-plaintext highlighter-rouge">dispersion &gt; 36·var</code> 等价于 <code class="language-plaintext highlighter-rouge">abs(crtt − srtt) &gt; 6σ</code>（6σ 越界判据）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">StableDelaySpikeWaitingTime</code></td>
+      <td><code class="language-plaintext highlighter-rouge">50</code></td>
+      <td>ms</td>
+      <td>首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MinimalDelaySpikeObservationDuration</code></td>
+      <td><code class="language-plaintext highlighter-rouge">200</code></td>
+      <td>ms</td>
+      <td>确认所需的 <strong>最短</strong> 观测时长（持续性下限）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MaximalDelaySpikeObservationDuration</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1200</code></td>
+      <td>ms</td>
+      <td>确认的 <strong>最长</strong> 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">MaximalRttSpikeThreshold</code></td>
+      <td><code class="language-plaintext highlighter-rouge">1200</code></td>
+      <td>ms</td>
+      <td>上跳幅度上限。<code class="language-plaintext highlighter-rouge">spiked_srtt &lt; smoothed_rtt + 1200</code> 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 <code class="language-plaintext highlighter-rouge">min_rtt</code></td>
+    </tr>
+    <tr>
+      <td>spike 样本数门限（硬编码 <code class="language-plaintext highlighter-rouge">10</code>）</td>
+      <td><code class="language-plaintext highlighter-rouge">10</code></td>
+      <td>个</td>
+      <td>spike 轨道需累积 ≥10 个样本</td>
+    </tr>
+    <tr>
+      <td>误报回滚门限（硬编码 <code class="language-plaintext highlighter-rouge">3</code>）</td>
+      <td><code class="language-plaintext highlighter-rouge">3</code></td>
+      <td>个</td>
+      <td>候选挂起期间累计 3 个正常样本即回滚</td>
+    </tr>
+    <tr>
+      <td>上跳稳定性系数（硬编码 <code class="language-plaintext highlighter-rouge">50</code>）</td>
+      <td><code class="language-plaintext highlighter-rouge">50</code></td>
+      <td>—</td>
+      <td><code class="language-plaintext highlighter-rouge">var·50 &lt; srtt² ⟺ σ/srtt &lt; 1/√50 ≈ 14.1%</code>（变异系数上限，<strong>严</strong>）</td>
+    </tr>
+    <tr>
+      <td>下跳稳定性系数（硬编码 <code class="language-plaintext highlighter-rouge">10</code>）</td>
+      <td><code class="language-plaintext highlighter-rouge">10</code></td>
+      <td>—</td>
+      <td><code class="language-plaintext highlighter-rouge">var·10 &lt; srtt² ⟺ σ/srtt &lt; 1/√10 ≈ 31.6%</code>（变异系数上限，<strong>宽</strong>）</td>
+    </tr>
+    <tr>
+      <td>EWMA 系数</td>
+      <td><code class="language-plaintext highlighter-rouge">1/8</code>, <code class="language-plaintext highlighter-rouge">1/4</code></td>
+      <td>—</td>
+      <td>SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）</td>
+    </tr>
+  </tbody>
+</table>
 
 <h3 id="为什么上跳严下跳宽">为什么上跳严、下跳宽？</h3>
 
@@ -1371,7 +1430,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
     <tr>
       <td><code class="language-plaintext highlighter-rouge">Bootstrap</code></td>
       <td><code class="language-plaintext highlighter-rouge">rtt_variance &lt; 0</code></td>
-      <td>用首样本直接初始化基线（<code class="language-plaintext highlighter-rouge">rtt_variance = dispersion</code>, <code class="language-plaintext highlighter-rouge">short_term_srtt = crtt</code>）</td>
+      <td>用首样本直接初始化基线（<code class="language-plaintext highlighter-rouge">rtt_variance = dispersion</code>, <code class="language-plaintext highlighter-rouge">smoothed_rtt = crtt</code>）</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">Baseline</code></td>
@@ -1402,7 +1461,7 @@ QUIC 源码：<code class="language-plaintext highlighter-rouge">quiche/gquiche/
 <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rtt_dispersion</span> <span class="o">&gt;</span> <span class="n">max</span><span class="p">(</span><span class="mi">36</span> <span class="o">*</span> <span class="n">rtt_variance</span><span class="p">,</span> <span class="n">MinimalRttDispersionThreshold</span><span class="p">)</span>
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">|crtt − short_term_srtt| &gt; max(6σ, 50ms)</code>，即同时满足「偏离基线 &gt;6 个标准差」<strong>且</strong>「绝对偏离 &gt;50ms」。</p>
+<p><code class="language-plaintext highlighter-rouge">|crtt − smoothed_rtt| &gt; max(6σ, 50ms)</code>，即同时满足「偏离基线 &gt;6 个标准差」<strong>且</strong>「绝对偏离 &gt;50ms」。</p>
 
 <h3 id="spike-轨道累积">spike 轨道累积</h3>
 
@@ -1423,12 +1482,12 @@ AND spiked_rtt_count &gt;= 10                                // ≥10 个 spike 
 AND (
       // (a) 上跳：严稳定 + 高于基线 + 幅度不超 1200ms
       spiked_rtt_variance * 50 &lt; spiked_srtt²
-        &amp;&amp; spiked_srtt &gt; short_term_srtt
-        &amp;&amp; spiked_srtt &lt; short_term_srtt + 1200
+        &amp;&amp; spiked_srtt &gt; smoothed_rtt
+        &amp;&amp; spiked_srtt &lt; smoothed_rtt + 1200
    OR
       // (b) 下跳：宽稳定 + 不高于基线
       spiked_rtt_variance * 10 &lt; spiked_srtt²
-        &amp;&amp; spiked_srtt &lt;= short_term_srtt
+        &amp;&amp; spiked_srtt &lt;= smoothed_rtt
     )
 </code></pre></div></div>
 
@@ -1438,8 +1497,8 @@ AND (
   <li><code class="language-plaintext highlighter-rouge">now &gt; first_spiked_time + 1200ms</code> → 收敛太慢，<code class="language-plaintext highlighter-rouge">ResetSpikeRecord()</code>，<code class="language-plaintext highlighter-rouge">return false</code>（<strong>不</strong>认作干净阶跃）。</li>
   <li>否则 → 确认：
     <ul>
-      <li><code class="language-plaintext highlighter-rouge">delay_spike_states = (spiked_srtt &gt; short_term_srtt) ? SpikeUp : SpikeDown</code>；</li>
-      <li><strong>提升基线</strong>：<code class="language-plaintext highlighter-rouge">rtt_variance = spiked_rtt_variance</code>，<code class="language-plaintext highlighter-rouge">short_term_srtt = spiked_srtt</code>；</li>
+      <li><code class="language-plaintext highlighter-rouge">delay_spike_states = (spiked_srtt &gt; smoothed_rtt) ? SpikeUp : SpikeDown</code>；</li>
+      <li><strong>提升基线</strong>：<code class="language-plaintext highlighter-rouge">rtt_variance = spiked_rtt_variance</code>，<code class="language-plaintext highlighter-rouge">smoothed_rtt = spiked_srtt</code>；</li>
       <li><code class="language-plaintext highlighter-rouge">ResetSpikeRecord()</code>，<code class="language-plaintext highlighter-rouge">return true</code>。</li>
     </ul>
   </li>

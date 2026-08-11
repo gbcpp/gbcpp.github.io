@@ -5,8 +5,8 @@
     <description>个人的一个技术博客站点，主要用于记录个人在学习过程中遇到的技术问题及解决方法、技术实验，以及一些比较有趣的事情。</description>
     <link>https://gbcpp.github.io//</link>
     <atom:link href="https://gbcpp.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 30 Jul 2026 04:03:10 +0000</pubDate>
-    <lastBuildDate>Thu, 30 Jul 2026 04:03:10 +0000</lastBuildDate>
+    <pubDate>Tue, 11 Aug 2026 12:37:34 +0000</pubDate>
+    <lastBuildDate>Tue, 11 Aug 2026 12:37:34 +0000</lastBuildDate>
     <generator>Jekyll v4.4.1</generator>
     
       <item>
@@ -1360,7 +1360,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt&lt;/code&gt;&lt;/td&gt;
       &lt;td&gt;&lt;strong&gt;基线轨道&lt;/strong&gt; 平滑 RTT（正常网络的短期 SRTT）&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
@@ -1410,25 +1410,84 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 
 &lt;h2 id=&quot;参数与阈值&quot;&gt;参数与阈值&lt;/h2&gt;
 
-&lt;blockquote&gt;
-  &lt;p&gt;图片同表格，有时候表格渲染可能是乱码，可以查看图片。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;img src=&quot;/assets/img/blog/delay-spike/table-4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;| 常量                                      | 值            | 单位  | 作用 / 数学含义                                                                      |
-| ————————————— | ———— | — | —————————————————————————— |
-| &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MinimalRttDispersionThreshold&lt;/code&gt;        | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500&lt;/code&gt;       | ms² | 越界判据的方差下限。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500 = 50²&lt;/code&gt;，即 &lt;strong&gt;偏差至少 50ms&lt;/strong&gt; 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）           |
-| 越界倍数（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;）                          | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;         | —   | &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36 = 6²&lt;/code&gt;。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dispersion &amp;gt; 36·var ⟺                                               |
-| &lt;/code&gt;StableDelaySpikeWaitingTime&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;          | &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | ms  | 首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点                                             |
-| &lt;/code&gt;MinimalDelaySpikeObservationDuration&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; | &lt;/code&gt;200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;        | ms  | 确认所需的 **最短** 观测时长（持续性下限）                                                       |
-| &lt;/code&gt;MaximalDelaySpikeObservationDuration&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; | &lt;/code&gt;1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;       | ms  | 确认的 **最长** 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）                                            |
-| &lt;/code&gt;MaximalRttSpikeThreshold&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;             | &lt;/code&gt;1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;       | ms  | 上跳幅度上限。&lt;/code&gt;spiked_srtt &amp;lt; short_term_srtt + 1200&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 &lt;/code&gt;min_rtt&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt; |
-| spike 样本数门限（硬编码 &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                   | &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | 个   | spike 轨道需累积 ≥10 个样本                                                            |
-| 误报回滚门限（硬编码 &lt;/code&gt;3&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                         | &lt;/code&gt;3&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;          | 个   | 候选挂起期间累计 3 个正常样本即回滚                                                            |
-| 上跳稳定性系数（硬编码 &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                       | &lt;/code&gt;50&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | —   | &lt;/code&gt;var·50 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√50 ≈ 14.1%&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;（变异系数上限，**严**）                        |
-| 下跳稳定性系数（硬编码 &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;）                       | &lt;/code&gt;10&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;         | —   | &lt;/code&gt;var·10 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√10 ≈ 31.6%&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;（变异系数上限，**宽**）                        |
-| EWMA 系数                                 | &lt;/code&gt;1/8&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;, &lt;/code&gt;1/4` | —   | SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）                                           |&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;常量&lt;/th&gt;
+      &lt;th&gt;值&lt;/th&gt;
+      &lt;th&gt;单位&lt;/th&gt;
+      &lt;th&gt;作用 / 数学含义&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MinimalRttDispersionThreshold&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;ms²&lt;/td&gt;
+      &lt;td&gt;越界判据的方差下限。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2500 = 50²&lt;/code&gt;，即 &lt;strong&gt;偏差至少 50ms&lt;/strong&gt; 才算越界（防止低 RTT、低抖动链路上 6σ 太小被误触）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;越界倍数（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;—&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;36 = 6²&lt;/code&gt;。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dispersion &amp;gt; 36·var&lt;/code&gt; 等价于 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;abs(crtt − srtt) &amp;gt; 6σ&lt;/code&gt;（6σ 越界判据）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;StableDelaySpikeWaitingTime&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;50&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;ms&lt;/td&gt;
+      &lt;td&gt;首个可疑点后的「等待期」，期间只标记不累积，剔除阶跃边沿的中间过渡点&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MinimalDelaySpikeObservationDuration&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;200&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;ms&lt;/td&gt;
+      &lt;td&gt;确认所需的 &lt;strong&gt;最短&lt;/strong&gt; 观测时长（持续性下限）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaximalDelaySpikeObservationDuration&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1200&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;ms&lt;/td&gt;
+      &lt;td&gt;确认的 &lt;strong&gt;最长&lt;/strong&gt; 观测时长；超过仍未收敛则放弃（认定不是干净阶跃）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MaximalRttSpikeThreshold&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1200&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;ms&lt;/td&gt;
+      &lt;td&gt;上跳幅度上限。&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;spiked_srtt &amp;lt; smoothed_rtt + 1200&lt;/code&gt; 才认作水平阶跃；超过视为瞬时巨抖/中断，不抬 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;min_rtt&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;spike 样本数门限（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;个&lt;/td&gt;
+      &lt;td&gt;spike 轨道需累积 ≥10 个样本&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;误报回滚门限（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;个&lt;/td&gt;
+      &lt;td&gt;候选挂起期间累计 3 个正常样本即回滚&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;上跳稳定性系数（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;50&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;50&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;—&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;var·50 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√50 ≈ 14.1%&lt;/code&gt;（变异系数上限，&lt;strong&gt;严&lt;/strong&gt;）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;下跳稳定性系数（硬编码 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;—&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;var·10 &amp;lt; srtt² ⟺ σ/srtt &amp;lt; 1/√10 ≈ 31.6%&lt;/code&gt;（变异系数上限，&lt;strong&gt;宽&lt;/strong&gt;）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;EWMA 系数&lt;/td&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1/8&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1/4&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;—&lt;/td&gt;
+      &lt;td&gt;SRTT 取 1/8 新值，方差取 1/4 新值（RFC6298 风格）&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
 &lt;h3 id=&quot;为什么上跳严下跳宽&quot;&gt;为什么上跳严、下跳宽？&lt;/h3&gt;
 
@@ -1461,7 +1520,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
     &lt;tr&gt;
       &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Bootstrap&lt;/code&gt;&lt;/td&gt;
       &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance &amp;lt; 0&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;用首样本直接初始化基线（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = dispersion&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt = crtt&lt;/code&gt;）&lt;/td&gt;
+      &lt;td&gt;用首样本直接初始化基线（&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = dispersion&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt = crtt&lt;/code&gt;）&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
       &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Baseline&lt;/code&gt;&lt;/td&gt;
@@ -1492,7 +1551,7 @@ QUIC 源码：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt
 &lt;div class=&quot;language-cpp highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;rtt_dispersion&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;36&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rtt_variance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MinimalRttDispersionThreshold&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|crtt − short_term_srtt| &amp;gt; max(6σ, 50ms)&lt;/code&gt;，即同时满足「偏离基线 &amp;gt;6 个标准差」&lt;strong&gt;且&lt;/strong&gt;「绝对偏离 &amp;gt;50ms」。&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|crtt − smoothed_rtt| &amp;gt; max(6σ, 50ms)&lt;/code&gt;，即同时满足「偏离基线 &amp;gt;6 个标准差」&lt;strong&gt;且&lt;/strong&gt;「绝对偏离 &amp;gt;50ms」。&lt;/p&gt;
 
 &lt;h3 id=&quot;spike-轨道累积&quot;&gt;spike 轨道累积&lt;/h3&gt;
 
@@ -1513,12 +1572,12 @@ AND spiked_rtt_count &amp;gt;= 10                                // ≥10 个 sp
 AND (
       // (a) 上跳：严稳定 + 高于基线 + 幅度不超 1200ms
       spiked_rtt_variance * 50 &amp;lt; spiked_srtt²
-        &amp;amp;&amp;amp; spiked_srtt &amp;gt; short_term_srtt
-        &amp;amp;&amp;amp; spiked_srtt &amp;lt; short_term_srtt + 1200
+        &amp;amp;&amp;amp; spiked_srtt &amp;gt; smoothed_rtt
+        &amp;amp;&amp;amp; spiked_srtt &amp;lt; smoothed_rtt + 1200
    OR
       // (b) 下跳：宽稳定 + 不高于基线
       spiked_rtt_variance * 10 &amp;lt; spiked_srtt²
-        &amp;amp;&amp;amp; spiked_srtt &amp;lt;= short_term_srtt
+        &amp;amp;&amp;amp; spiked_srtt &amp;lt;= smoothed_rtt
     )
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
@@ -1528,8 +1587,8 @@ AND (
   &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;now &amp;gt; first_spiked_time + 1200ms&lt;/code&gt; → 收敛太慢，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetSpikeRecord()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return false&lt;/code&gt;（&lt;strong&gt;不&lt;/strong&gt;认作干净阶跃）。&lt;/li&gt;
   &lt;li&gt;否则 → 确认：
     &lt;ul&gt;
-      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_states = (spiked_srtt &amp;gt; short_term_srtt) ? SpikeUp : SpikeDown&lt;/code&gt;；&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;提升基线&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = spiked_rtt_variance&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;short_term_srtt = spiked_srtt&lt;/code&gt;；&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;delay_spike_states = (spiked_srtt &amp;gt; smoothed_rtt) ? SpikeUp : SpikeDown&lt;/code&gt;；&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;提升基线&lt;/strong&gt;：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rtt_variance = spiked_rtt_variance&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smoothed_rtt = spiked_srtt&lt;/code&gt;；&lt;/li&gt;
       &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ResetSpikeRecord()&lt;/code&gt;，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;return true&lt;/code&gt;。&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
